@@ -1,0 +1,20 @@
+#!/usr/bin/env python
+
+from vos_aa1.srv import *
+from vos_aa1.msg import *
+import rospy
+
+def detect_feature_callback(req):
+    print "detect_feature_callback: received feature:  frame [%s] : algorithm [%s] : id [%d] : translation [%d,%d,%d] : orientation (quaternion) [%d,%d,%d,%d] "%(req.cameraPose.header.frameId, req.visualFeature.algorithm, req.visualFeature.id, req.visualFeature.pose.pose.position.x, req.visualFeature.pose.pose.position.y, req.visualFeature.pose.pose.position.z, visualFeature.pose.pose.orientation.x, visualFeature.pose.pose.orientation.y, visualFeature.pose.pose.orientation.z, visualFeature.pose.pose.orientation.w)
+    return DetectedFeatureResponse("bob")
+
+
+def detect_feature_server():
+    rospy.init_node('detect_feature_server')
+    s = rospy.Service('androidvosopencvros/detected_feature', DetectedFeature, detect_feature_callback)
+    print "Ready to receive detected features."
+    rospy.spin()
+
+
+if __name__ == "__main__":
+    detect_feature_server()

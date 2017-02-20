@@ -1,0 +1,5 @@
+# Given a set of visual features, estimate a pose
+# TODO: pose with covariance
+VisualFeature[] visualFeatures
+---
+geometry_msgs/Pose pose

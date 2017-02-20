@@ -1,0 +1,4 @@
+string type
+string xml_data
+---
+int32[] ids

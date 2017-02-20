@@ -1,0 +1,6 @@
+# Report a set of visual features; used to build a world map
+std_msgs/Header header
+VisualFeature visualFeature
+geometry_msgs/PoseStamped cameraPose
+---
+string acknowledgement
