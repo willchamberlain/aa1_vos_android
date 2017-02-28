@@ -10,11 +10,14 @@ import tf
 def detect_feature_callback(req):
     print "----------------------------------------------"
     print "detect_feature_callback: "
-    print "  received feature:  frame_id [%s] :"%(req.cameraPose.header.frame_id)
-    print "  algorithm [%s] : "%(req.visualFeature.algorithm)
-    print "  id [%d] : "%(req.visualFeature.id)
-    print "  translation [%.4f,%.4f,%.4f] : "%(req.visualFeature.pose.pose.position.x, req.visualFeature.pose.pose.position.y, req.visualFeature.pose.pose.position.z)
-    print "  orientation (quaternion) [%.4f,%.4f,%.4f,%.4f] "%(req.visualFeature.pose.pose.orientation.x, req.visualFeature.pose.pose.orientation.y, req.visualFeature.pose.pose.orientation.z, req.visualFeature.pose.pose.orientation.w)
+    print "  camera frame_id [%s] :"%(req.cameraPose.header.frame_id)
+    print "  camera translation from map [%.4f,%.4f,%.4f] : "%(req.cameraPose.pose.position.x,req.cameraPose.pose.position.y,req.cameraPose.pose.position.z)
+    print "  camera orientation (quaternion) [%.4f,%.4f,%.4f,%.4f] : "%(req.cameraPose.pose.orientation.x,req.cameraPose.pose.orientation.y,req.cameraPose.pose.orientation.z,req.cameraPose.pose.orientation.w)
+    print "  feature algorithm [%s] : "%(req.visualFeature.algorithm)
+    print "  feature id [%d] : "%(req.visualFeature.id)
+    print '  feature frame_id : %s_%s%s' % (req.cameraPose.header.frame_id, req.visualFeature.algorithm, req.visualFeature.id)
+    print "  feature translation [%.4f,%.4f,%.4f] : "%(req.visualFeature.pose.pose.position.x, req.visualFeature.pose.pose.position.y, req.visualFeature.pose.pose.position.z)
+    print "  feature orientation (quaternion) [%.4f,%.4f,%.4f,%.4f] "%(req.visualFeature.pose.pose.orientation.x, req.visualFeature.pose.pose.orientation.y, req.visualFeature.pose.pose.orientation.z, req.visualFeature.pose.pose.orientation.w)
 
 
     # TODO - something about this conversion is not right: the translation and quaternion match those found by AprilTags_Kaess and sent by DetectedFeatureClient, but the RPY are different
@@ -24,20 +27,21 @@ def detect_feature_callback(req):
     tfBroadcaster = tf.TransformBroadcaster()
     time_now = rospy.Time.now()
 
-    # publish the map-to-camera_pose
-    tfBroadcaster.sendTransform((req.cameraPose.pose.position.x, req.cameraPose.pose.position.y, 1), # TODO - hardcoding to 1m up to display in RViz
-        tf.transformations.quaternion_from_euler(0, 0, 0), # TODO - hardcoding to the map origin
+    # publish the map-to-camera_pose tf
+    tfBroadcaster.sendTransform(
+        (req.cameraPose.pose.position.x,req.cameraPose.pose.position.y,req.cameraPose.pose.position.z),
+        (req.cameraPose.pose.orientation.x,req.cameraPose.pose.orientation.y,req.cameraPose.pose.orientation.z,req.cameraPose.pose.orientation.w),
         time_now,
-        req.cameraPose.header.frame_id,
-        "map")
+        req.cameraPose.header.frame_id,            # to      '/cam/%s/pose' % req.cameraPose.header.frame_id e.g. "/cam/c_1/pose"    # TODO - remove hardcoding to base namespace
+        'map')                                                      # from frame
 
-    # publish the camera_pose-to-tag_pose
-    tfBroadcaster.sendTransform((req.visualFeature.pose.pose.position.x, req.visualFeature.pose.pose.position.y, req.visualFeature.pose.pose.position.z),
+    # publish the camera_pose-to-tag_pose tf
+    tfBroadcaster.sendTransform(
+        (req.visualFeature.pose.pose.position.x, req.visualFeature.pose.pose.position.y, req.visualFeature.pose.pose.position.z),
         (req.visualFeature.pose.pose.orientation.x, req.visualFeature.pose.pose.orientation.y, req.visualFeature.pose.pose.orientation.z, req.visualFeature.pose.pose.orientation.w),
         time_now,
-        req.cameraPose.header.frame_id + "_" + str(req.visualFeature.id),
-        req.cameraPose.header.frame_id)
-
+        '%s_%s%s' % (req.cameraPose.header.frame_id, req.visualFeature.algorithm, req.visualFeature.id),  # to   e.g. c1_t1 '/feature/%s/%s/pose' % algorithm, req.visualFeature.id   e.g. "/feature/t/1"     # TODO - remove hardcoding to base namespace
+        req.cameraPose.header.frame_id)            # from      '/cam/%s/pose' % req.cameraPose.header.frame_id e.g. "/cam/c_1/pose"    # TODO - remove hardcoding to base namespace
 
     response = DetectedFeatureResponse()
     response.acknowledgement="bob"
