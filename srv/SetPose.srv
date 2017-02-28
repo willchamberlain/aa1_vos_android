@@ -1,0 +1,7 @@
+# Sent to a robot or smart camera to specify the pose of a control point e.g. the left big toe of a Nao, or the front centre of a Pioneer, or the centre of a Turtlebot
+# This is a manual configuration set, and is not part of the normal robotic system operation.
+# Robot/smart camera name is not required: sent straight to the robot/camera by a user/operator.
+string control_point_name
+geometry_msgs/Pose pose_in_map
+---
+string acknowledgement
