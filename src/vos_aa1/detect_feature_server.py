@@ -35,13 +35,28 @@ def detect_feature_callback(req):
         req.cameraPose.header.frame_id,            # to      '/cam/%s/pose' % req.cameraPose.header.frame_id e.g. "/cam/c_1/pose"    # TODO - remove hardcoding to base namespace
         'map')                                                      # from frame
 
+
+    tfBroadcaster.sendTransform(
+        (0.0, 0.0, 0.0),
+        ( 0.0, 0.7071, 0.0, 0.7071 ), #  http://www.euclideanspace.com/maths/geometry/rotations/conversions/eulerToQuaternion/steps/index.htm
+        time_now,
+        req.cameraPose.header.frame_id + 'z' ,  # to
+        req.cameraPose.header.frame_id )        # from
+
+    tfBroadcaster.sendTransform(
+        (0.0, 0.0, 0.0),
+        ( 0.0, 0.0, 0.7071, 0.7071 ), #  http://www.euclideanspace.com/maths/geometry/rotations/conversions/eulerToQuaternion/steps/index.htm
+        time_now,
+        req.cameraPose.header.frame_id + 'zy' ,  # to
+        req.cameraPose.header.frame_id + 'z' )        # from
+
     # publish the camera_pose-to-tag_pose tf
     tfBroadcaster.sendTransform(
         (req.visualFeature.pose.pose.position.x, req.visualFeature.pose.pose.position.y, req.visualFeature.pose.pose.position.z),
         (req.visualFeature.pose.pose.orientation.x, req.visualFeature.pose.pose.orientation.y, req.visualFeature.pose.pose.orientation.z, req.visualFeature.pose.pose.orientation.w),
         time_now,
         '%s_%s%s' % (req.cameraPose.header.frame_id, req.visualFeature.algorithm, req.visualFeature.id),  # to   e.g. c1_t1 '/feature/%s/%s/pose' % algorithm, req.visualFeature.id   e.g. "/feature/t/1"     # TODO - remove hardcoding to base namespace
-        req.cameraPose.header.frame_id)            # from      '/cam/%s/pose' % req.cameraPose.header.frame_id e.g. "/cam/c_1/pose"    # TODO - remove hardcoding to base namespace
+        req.cameraPose.header.frame_id + 'zy')            # from      '/cam/%s/pose' % req.cameraPose.header.frame_id e.g. "/cam/c_1/pose"    # TODO - remove hardcoding to base namespace
 
     response = DetectedFeatureResponse()
     response.acknowledgement="bob"
