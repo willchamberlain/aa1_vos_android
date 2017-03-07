@@ -3,11 +3,14 @@
 import rospy
 import tf
 from geometry_msgs.msg import Pose
+from tf import transformations
 
 from vos_aa1.srv import DetectedFeature
 from vos_aa1.srv import DetectedFeatureRequest
 from vos_aa1.srv import DetectedFeatureResponse
 from vos_aa1.srv import LocaliseFromAFeature
+from vos_aa1.srv import LocaliseFromAFeatureRequest
+from vos_aa1.srv import LocaliseFromAFeatureResponse
 from vos_aa1.msg import VisualFeatureInWorld
 from vos_aa1.msg import VisualFeatureObservation
 
@@ -29,8 +32,32 @@ tag_55.pose.orientation.w=1
 fixed_features.append(tag_55)
 
 def localise_from_a_feature_callback(req):
+    response = LocaliseFromAFeatureResponse()
     print "----------------------------------------------"
     print "localise_from_a_feature_callback: "
+    feature_tf_frame_id = '%s_%s%s' % (req.visualFeature.pose.header.frame_id, algorithm_abreviations[req.visualFeature.algorithm], req.visualFeature.id)
+    print "localise_from_a_feature_callback: feature_tf_frame_id = %s"%feature_tf_frame_id
+
+    listener = tf.TransformListener()
+
+    # from  http://wiki.ros.org/tf/TfUsingPython
+    # if listener.frameExists(feature_tf_frame_id) and listener.frameExists('/map'):
+      #  time_ = listener.getLatestCommonTime('/map',feature_tf_frame_id)
+       # position_, quaternion_ = listener.lookupTransform('/map', feature_tf_frame_id, time_)
+    #try:
+    listener.waitForTransform('/map', feature_tf_frame_id, rospy.Time(), rospy.Duration(4.0))
+    position_, quaternion_ = listener.lookupTransform('/map', feature_tf_frame_id, rospy.Time())
+    print '/map', ' to ' , feature_tf_frame_id, ' = ', position_, quaternion_
+    response.pose.position.x = position_[0]
+    response.pose.position.y = position_[1]
+    response.pose.position.z = position_[2]
+    response.pose.orientation.x = quaternion_[0]
+    response.pose.orientation.y = quaternion_[1]
+    response.pose.orientation.z = quaternion_[2]
+    response.pose.orientation.w = quaternion_[3]
+    #except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
+     #   print 'got an exception'
+    return response
 
 def detect_feature_callback(req):
     print "----------------------------------------------"
@@ -75,13 +102,33 @@ def detect_feature_callback(req):
         req.cameraPose.header.frame_id + 'zy' ,  # to
         req.cameraPose.header.frame_id + 'z' )        # from
 
+
+    camera_tag_frame_id = '%s_%s%s' % (req.cameraPose.header.frame_id, algorithm_abreviations[req.visualFeature.algorithm], req.visualFeature.id)
+
     # publish the camera_pose-to-tag_pose tf
     tfBroadcaster.sendTransform(
         (req.visualFeature.pose.pose.position.x, req.visualFeature.pose.pose.position.y, req.visualFeature.pose.pose.position.z),
         (req.visualFeature.pose.pose.orientation.x, req.visualFeature.pose.pose.orientation.y, req.visualFeature.pose.pose.orientation.z, req.visualFeature.pose.pose.orientation.w),
         time_now,
-        '%s_%s%s' % (req.cameraPose.header.frame_id, algorithm_abreviations[req.visualFeature.algorithm], req.visualFeature.id),  # to   e.g. c1_t1 '/feature/%s/%s/pose' % algorithm, req.visualFeature.id   e.g. "/feature/t/1"     # TODO - remove hardcoding to base namespace
+        camera_tag_frame_id,  # to   e.g. c1_t1 '/feature/%s/%s/pose' % algorithm, req.visualFeature.id   e.g. "/feature/t/1"     # TODO - remove hardcoding to base namespace
         req.cameraPose.header.frame_id + 'zy')            # from      '/cam/%s/pose' % req.cameraPose.header.frame_id e.g. "/cam/c_1/pose"    # TODO - remove hardcoding to base namespace
+
+
+    #- 90 Y
+    tfBroadcaster.sendTransform(
+        (0.0, 0.0, 0.0),
+        ( 0.0, -0.7071, 0.0, 0.7071 ), #  http://www.euclideanspace.com/maths/geometry/rotations/conversions/eulerToQuaternion/steps/index.htm
+        time_now,
+        camera_tag_frame_id + 'y' ,  # to
+        camera_tag_frame_id )        # from
+
+    #- 90 X
+    tfBroadcaster.sendTransform(
+        (0.0, 0.0, 0.0),
+        ( -0.7071, 0, 0.0, 0.7071 ), #  http://www.euclideanspace.com/maths/geometry/rotations/conversions/eulerToQuaternion/steps/index.htm
+        time_now,
+        camera_tag_frame_id + 'yx' ,  # to
+        camera_tag_frame_id + 'y' )        # from
 
 
     for fixed_feature in fixed_features:
