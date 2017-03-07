@@ -1,6 +1,6 @@
 # Report a set of visual features; used to build a world map
-std_msgs/Header header
-VisualFeature visualFeature
-geometry_msgs/PoseStamped cameraPose
+std_msgs/Header                 header              # ...
+VisualFeatureObservation        visualFeature       # the observed feature, at the time of observation
+geometry_msgs/PoseStamped       cameraPose          # the pose of the observing camera, at the last known time
 ---
-string acknowledgement
+string                          acknowledgement     # blank return value

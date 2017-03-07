@@ -1,0 +1,5 @@
+# Given an observation of a feature, get the location/pose of the observing camera.
+
+VisualFeatureObservation            visualFeature       # the observed feature
+---
+geometry_msgs/Pose                  pose                # the estimated location of the camera

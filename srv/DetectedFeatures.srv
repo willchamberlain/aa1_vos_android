@@ -1,5 +1,5 @@
 # Report a set of visual features; used to build a world map
-VisualFeature[] visualFeatures
+VisualFeatureObservation[] visualFeatures
 geometry_msgs/PoseStamped cameraPose
 ---
 std_msgs/String acknowledgement
