@@ -30,6 +30,18 @@ tag_55.pose.orientation.y=0
 tag_55.pose.orientation.z=0
 tag_55.pose.orientation.w=1
 fixed_features.append(tag_55)
+tag_32 = VisualFeatureInWorld()
+tag_32.algorithm = 'AprilTags_Kaess_36h11'
+tag_32.id = '32'
+tag_32.pose = Pose()
+tag_32.pose.position.x=0
+tag_32.pose.position.y=0
+tag_32.pose.position.z=0.8
+tag_32.pose.orientation.x=0
+tag_32.pose.orientation.y=0
+tag_32.pose.orientation.z=0
+tag_32.pose.orientation.w=1
+#fixed_features.append(tag_32)
 
 # adapted from https://afni.nimh.nih.gov/pub/dist/src/pkundu/meica.libs/nibabel/quaternions.py
 def conjugate(q):
@@ -81,6 +93,8 @@ def inverse(q):
     return conjugate(q) / norm(q)
 
 def localise_from_a_feature_callback(req):
+    position_   = [0,0,0]
+    quaternion_ = [0,0,0,1]
     time_now = rospy.Time.now()
     tfBroadcaster = tf.TransformBroadcaster()
     response = LocaliseFromAFeatureResponse()
@@ -96,34 +110,53 @@ def localise_from_a_feature_callback(req):
 
     listener = tf.TransformListener()
 
-    # from  http://wiki.ros.org/tf/TfUsingPython
-    # if listener.frameExists(feature_tf_frame_id) and listener.frameExists('/map'):
-      #  time_ = listener.getLatestCommonTime('/map',feature_tf_frame_id)
-       # position_, quaternion_ = listener.lookupTransform('/map', feature_tf_frame_id, time_)
-    #try:
-    # listener.waitForTransform(feature_tf_frame_id, '/map', rospy.Time(), rospy.Duration(4.0))
-    listener.waitForTransform(camera_tag_frame_id + 'yx', req.visualFeature.pose.header.frame_id + 'zy', rospy.Time(), rospy.Duration(4.0))
-    position_, quaternion_ = listener.lookupTransform(camera_tag_frame_id + 'yx'  , req.visualFeature.pose.header.frame_id + 'zy' ,  rospy.Time())
-    #print feature_tf_frame_id, ' to ' , '/map = ', position_, quaternion_
+    try:
+        listener.waitForTransform(camera_tag_frame_id + 'yx', req.visualFeature.pose.header.frame_id + 'zy', rospy.Time(), rospy.Duration(4.0))
+        position_, quaternion_ = listener.lookupTransform(camera_tag_frame_id + 'yx'  , req.visualFeature.pose.header.frame_id + 'zy' ,  rospy.Time())
 
+        tfBroadcaster.sendTransform(
+            (position_[0],position_[1],position_[2]),
+            (quaternion_[0],quaternion_[1],quaternion_[2],quaternion_[3]),
+            time_now,
+            'tag_frame_%s_to_cam_body_%s'%(camera_tag_frame_id + 'yx', req.visualFeature.pose.header.frame_id + 'zy'),     # map_to_c12_t55
+            camera_tag_frame_id + 'yx')                                                      # from frame
+    except:
+        print '----  No tf from  %s  to  %s  ----',(camera_tag_frame_id + 'yx', req.visualFeature.pose.header.frame_id + 'zy')
 
-    tfBroadcaster.sendTransform(
-        (position_[0],position_[1],position_[2]),
-        (quaternion_[0],quaternion_[1],quaternion_[2],quaternion_[3]),
-        time_now,
-        'tag_frame_%s_to_cam_body_%s'%(camera_tag_frame_id + 'yx', req.visualFeature.pose.header.frame_id + 'zy'),     # map_to_c12_t55
-        camera_tag_frame_id + 'yx')                                                      # from frame
+    try:
+        listener.waitForTransform(camera_tag_frame_id + 'yx', req.visualFeature.pose.header.frame_id, rospy.Time(), rospy.Duration(4.0))
+        position_, quaternion_ = listener.lookupTransform(camera_tag_frame_id + 'yx'  , req.visualFeature.pose.header.frame_id,  rospy.Time())
+        tfBroadcaster.sendTransform(
+            (position_[0],position_[1],position_[2]),
+            (quaternion_[0],quaternion_[1],quaternion_[2],quaternion_[3]),
+            time_now,
+            'tag_frame_%s_to_cam_body_%s'%(camera_tag_frame_id + 'yx', req.visualFeature.pose.header.frame_id),     # to
+            camera_tag_frame_id + 'yx')                                                             # from
 
-    response.pose.position.x = position_[0]
-    response.pose.position.y = position_[1]
-    response.pose.position.z = position_[2]
-    response.pose.orientation.x = quaternion_[0]
-    response.pose.orientation.y = quaternion_[1]
-    response.pose.orientation.z = quaternion_[2]
-    response.pose.orientation.w = quaternion_[3]
-    #except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
-     #   print 'got an exception'
+        if any(x.id == req.visualFeature.id for x in fixed_features):
+            tfBroadcaster.sendTransform(
+                (position_[0],position_[1],position_[2]),
+                (quaternion_[0],quaternion_[1],quaternion_[2],quaternion_[3]),
+                time_now,
+                'fixed_tag_frame_%s_to_cam_body_%s'%(req.visualFeature.id, req.visualFeature.pose.header.frame_id),    # to
+                req.visualFeature.id)                                                                                  # from
+
+            response.pose.position.x = position_[0]
+            response.pose.position.y = position_[1]
+            response.pose.position.z = position_[2]
+            response.pose.orientation.x = quaternion_[0]
+            response.pose.orientation.y = quaternion_[1]
+            response.pose.orientation.z = quaternion_[2]
+            response.pose.orientation.w = quaternion_[3]
+            response.poseFound = True
+        else:
+            response.poseFound = False
+    except:
+        print '---- No tf from  %s  to  %s  ----'%(camera_tag_frame_id + 'yx', req.visualFeature.pose.header.frame_id)
+        #except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
+        response.poseFound = False
     return response
+
 
 def detect_feature_callback(req):
     print "----------------------------------------------"
@@ -153,31 +186,93 @@ def detect_feature_callback(req):
         req.cameraPose.header.frame_id,            # to      '/cam/%s/pose' % req.cameraPose.header.frame_id e.g. "/cam/c_1/pose"    # TODO - remove hardcoding to base namespace
         'map')                                                      # from frame
 
-    # create the robot-convention camera body frame, step 1
+    # create the robot-convention camera body frame, step 1 : +90Y
     tfBroadcaster.sendTransform(
         (0.0, 0.0, 0.0),
         ( 0.0, 0.7071, 0.0, 0.7071 ), #  http://www.euclideanspace.com/maths/geometry/rotations/conversions/eulerToQuaternion/steps/index.htm
         time_now,
-        req.cameraPose.header.frame_id + 'z' ,  # to
+        req.cameraPose.header.frame_id + 'y' ,  # to
         req.cameraPose.header.frame_id )        # from
 
-    # create the robot-convention camera body frame, step 2
+    # create the robot-convention camera body frame, step 2 : +90Z
     tfBroadcaster.sendTransform(
         (0.0, 0.0, 0.0),
         ( 0.0, 0.0, 0.7071, 0.7071 ), #  http://www.euclideanspace.com/maths/geometry/rotations/conversions/eulerToQuaternion/steps/index.htm
         time_now,
-        req.cameraPose.header.frame_id + 'zy' ,  # to
-        req.cameraPose.header.frame_id + 'z' )        # from
+        req.cameraPose.header.frame_id + 'yz' ,  # to
+        req.cameraPose.header.frame_id + 'y' )        # from
 
     camera_tag_frame_id = '%s_%s%s' % (req.cameraPose.header.frame_id, algorithm_abreviations[req.visualFeature.algorithm], req.visualFeature.id)
+    
+    t55_from_c2 = '%s%s_from_%s'% (algorithm_abreviations[req.visualFeature.algorithm], req.visualFeature.id, req.cameraPose.header.frame_id)    
+    tfBroadcaster.sendTransform(
+        (req.visualFeature.pose.pose.position.x, req.visualFeature.pose.pose.position.y, req.visualFeature.pose.pose.position.z),
+        #(req.visualFeature.pose.pose.orientation.x, req.visualFeature.pose.pose.orientation.y, req.visualFeature.pose.pose.orientation.z, req.visualFeature.pose.pose.orientation.w),
+        (req.visualFeature.pose.pose.orientation.z, -req.visualFeature.pose.pose.orientation.x, -req.visualFeature.pose.pose.orientation.y, req.visualFeature.pose.pose.orientation.w),        
+        time_now,
+        t55_from_c2,                          # to   tag-from-camera-body t55_from_c2
+        req.cameraPose.header.frame_id)                     # from camera-body c2
+        
+        
+    t55_from_c2_180x = t55_from_c2 + '_180x'    
+    tfBroadcaster.sendTransform(
+        (0.0, 0.0, 0.0),
+        (1.0, 0.0, 0.0, 0.0),        
+        time_now,
+        t55_from_c2_180x,               # to
+        t55_from_c2)                     # from
+        
+    # a node 10cm foward-left-up of the tag centre, to aid visualisation    
+    t55_from_c2_plus1 = t55_from_c2 + '_plus1'    
+    tfBroadcaster.sendTransform(
+        (0.1, 0.1, 0.1),
+        (0.0, 0.0, 0.0, 1.0),        
+        time_now,
+        t55_from_c2_plus1,               # to
+        t55_from_c2)                     # from
+    
+    # mirror the tag     
+    t55_from_c2_mirrored = '%s%s_from_%s_mirrored'% (algorithm_abreviations[req.visualFeature.algorithm], req.visualFeature.id, req.cameraPose.header.frame_id)
+    tfBroadcaster.sendTransform(
+        (req.visualFeature.pose.pose.position.x, req.visualFeature.pose.pose.position.y, req.visualFeature.pose.pose.position.z),
+        (-req.visualFeature.pose.pose.orientation.x, req.visualFeature.pose.pose.orientation.y, -req.visualFeature.pose.pose.orientation.z, req.visualFeature.pose.pose.orientation.w),
+        time_now,
+        t55_from_c2_mirrored,                          # to   tag-from-camera-body t55_from_c2
+        req.cameraPose.header.frame_id)                     # from camera-body c2
+    # correct the tag axes, step 1
+    #- 90 Y
+    tfBroadcaster.sendTransform(
+        (0.0, 0.0, 0.0),
+        ( 0.0, -0.7071, 0.0, 0.7071 ), #  http://www.euclideanspace.com/maths/geometry/rotations/conversions/eulerToQuaternion/steps/index.htm
+        time_now,
+        t55_from_c2 + 'y' ,  # to
+        t55_from_c2 )        # from
+    # correct the tag axes, step 2: the correct tag axes are now published as e.g. c5_t7yx
+    #+ 90 X
+    tfBroadcaster.sendTransform(
+        (0.0, 0.0, 0.0),
+        ( 0.7071, 0, 0.0, 0.7071 ), #  http://www.euclideanspace.com/maths/geometry/rotations/conversions/eulerToQuaternion/steps/index.htm
+        time_now,
+        t55_from_c2 + 'yx' ,  # to
+        t55_from_c2 + 'y' )        # from
+    
 
     # publish the camera_pose-to-tag_pose tf  -  from the robot-convention camera body frame, to the tag frame
     tfBroadcaster.sendTransform(
+        #(req.visualFeature.pose.pose.position.x, req.visualFeature.pose.pose.position.y, req.visualFeature.pose.pose.position.z),
         (req.visualFeature.pose.pose.position.x, req.visualFeature.pose.pose.position.y, req.visualFeature.pose.pose.position.z),
+        (0,0,0,1),
+        time_now,
+        #camera_tag_frame_id,
+        camera_tag_frame_id + 't',                          # to   e.g. c1_t1 '/feature/%s/%s/pose' % algorithm, req.visualFeature.id   e.g. "/feature/t/1"     # TODO - remove hardcoding to base namespace
+        req.cameraPose.header.frame_id + 'zy')              # from      '/cam/%s/pose' % req.cameraPose.header.frame_id e.g. "/cam/c_1/pose"    # TODO - remove hardcoding to base namespace
+
+    tfBroadcaster.sendTransform(
+        (0,0,0),
         (req.visualFeature.pose.pose.orientation.x, req.visualFeature.pose.pose.orientation.y, req.visualFeature.pose.pose.orientation.z, req.visualFeature.pose.pose.orientation.w),
         time_now,
-        camera_tag_frame_id,                                # to   e.g. c1_t1 '/feature/%s/%s/pose' % algorithm, req.visualFeature.id   e.g. "/feature/t/1"     # TODO - remove hardcoding to base namespace
-        req.cameraPose.header.frame_id + 'zy')              # from      '/cam/%s/pose' % req.cameraPose.header.frame_id e.g. "/cam/c_1/pose"    # TODO - remove hardcoding to base namespace
+        camera_tag_frame_id,
+        camera_tag_frame_id + 't')              # from      '/cam/%s/pose' % req.cameraPose.header.frame_id e.g. "/cam/c_1/pose"    # TODO - remove hardcoding to base namespace
 
     # correct the tag axes, step 1
     #- 90 Y
@@ -189,13 +284,36 @@ def detect_feature_callback(req):
         camera_tag_frame_id )        # from
 
     # correct the tag axes, step 2: the correct tag axes are now published as e.g. c5_t7yx
-    #- 90 X
+    #+ 90 X
     tfBroadcaster.sendTransform(
         (0.0, 0.0, 0.0),
-        ( -0.7071, 0, 0.0, 0.7071 ), #  http://www.euclideanspace.com/maths/geometry/rotations/conversions/eulerToQuaternion/steps/index.htm
+        ( 0.7071, 0, 0.0, 0.7071 ), #  http://www.euclideanspace.com/maths/geometry/rotations/conversions/eulerToQuaternion/steps/index.htm
         time_now,
         camera_tag_frame_id + 'yx' ,  # to
         camera_tag_frame_id + 'y' )        # from
+
+
+    tag_label = '%s%s'%(algorithm_abreviations[req.visualFeature.algorithm], req.visualFeature.id)
+
+
+    tfBroadcaster.sendTransform(
+        (0,0,0),
+        (-req.visualFeature.pose.pose.orientation.x, req.visualFeature.pose.pose.orientation.y, -req.visualFeature.pose.pose.orientation.z, req.visualFeature.pose.pose.orientation.w),
+        time_now,
+        camera_tag_frame_id + '_mirrored_rotation' ,                        # to
+        tag_label  )              # from
+        ## NOTE: have to undo any mirroring before applying a straight inverse rotation
+
+    tfBroadcaster.sendTransform(
+        # (req.visualFeature.pose.pose.position.x, req.visualFeature.pose.pose.position.y, -req.visualFeature.pose.pose.position.z),  ?? Apriltags in optical-frame-format ??
+        (req.visualFeature.pose.pose.position.z, -req.visualFeature.pose.pose.position.x, req.visualFeature.pose.pose.position.y),
+        (0,0,0,1),
+        time_now,
+        camera_tag_frame_id + '_mirrored_rotation_mirrored_translation' ,                        # to
+        camera_tag_frame_id + '_mirrored_rotation')              # from
+
+    print camera_tag_frame_id + '_mirrored_translation', ': from camera to tag: x=' , req.visualFeature.pose.pose.position.z, ', y=', -req.visualFeature.pose.pose.position.x, ', z=', -req.visualFeature.pose.pose.position.y
+    print camera_tag_frame_id + '_mirrored_translation', ': from tag to camera: x=' , req.visualFeature.pose.pose.position.z, ', y=', -req.visualFeature.pose.pose.position.x, ', z=', req.visualFeature.pose.pose.position.y
 
 
 
