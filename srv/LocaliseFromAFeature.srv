@@ -3,3 +3,4 @@
 VisualFeatureObservation            visualFeature       # the observed feature
 ---
 geometry_msgs/Pose                  pose                # the estimated location of the camera
+bool                                poseFound           # false if no location could be estimated
