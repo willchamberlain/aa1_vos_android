@@ -4,6 +4,7 @@ import rospy
 import tf
 from geometry_msgs.msg import Pose
 from tf import transformations
+import numpy as np
 
 from vos_aa1.srv import DetectedFeature
 from vos_aa1.srv import DetectedFeatureRequest
@@ -219,17 +220,35 @@ def detect_feature_callback(req):
         (0.0, 0.0, 0.0),
         (1.0, 0.0, 0.0, 0.0),        
         time_now,
-        t55_from_c2_180x,               # to
-        t55_from_c2)                     # from
+        t55_from_c2_180x,                   # to
+        t55_from_c2)                        # from
         
     # a node 10cm foward-left-up of the tag centre, to aid visualisation    
-    t55_from_c2_plus1 = t55_from_c2 + '_plus1'    
+    t55_from_c2_180x_plus1 = t55_from_c2_180x + '_plus1'    
     tfBroadcaster.sendTransform(
         (0.1, 0.1, 0.1),
         (0.0, 0.0, 0.0, 1.0),        
         time_now,
-        t55_from_c2_plus1,               # to
-        t55_from_c2)                     # from
+        t55_from_c2_180x_plus1,             # to
+        t55_from_c2_180x)                   # from
+        
+    quat_t55_from_c2 = [req.visualFeature.pose.pose.orientation.z, -req.visualFeature.pose.pose.orientation.x, -req.visualFeature.pose.pose.orientation.y, req.visualFeature.pose.pose.orientation.w]
+    quat_c2_from_t55 = inverse(quat_t55_from_c2)        
+    c2_from_t55_from_c2_180x = 'c2_from_' + t55_from_c2_180x
+    c2_from_t55_from_c2_180x_tmp = c2_from_t55_from_c2_180x+'_tmp'
+    tfBroadcaster.sendTransform(
+        #(req.visualFeature.pose.pose.position.x, req.visualFeature.pose.pose.position.y, -req.visualFeature.pose.pose.position.z),
+        (0.0,0.0,0.0),
+        quat_c2_from_t55,        
+        time_now,
+        c2_from_t55_from_c2_180x_tmp,           # to
+        t55_from_c2)                   # from
+    tfBroadcaster.sendTransform(
+        (-req.visualFeature.pose.pose.position.x, -req.visualFeature.pose.pose.position.y, -req.visualFeature.pose.pose.position.z),
+        (0.0,0.0,0.0,1.0),        
+        time_now,
+        c2_from_t55_from_c2_180x,           # to
+        c2_from_t55_from_c2_180x_tmp)                   # from
     
     # mirror the tag     
     t55_from_c2_mirrored = '%s%s_from_%s_mirrored'% (algorithm_abreviations[req.visualFeature.algorithm], req.visualFeature.id, req.cameraPose.header.frame_id)
