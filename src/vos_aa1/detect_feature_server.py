@@ -5,6 +5,7 @@ import tf
 from geometry_msgs.msg import Pose
 from tf import transformations
 import numpy as np
+from visualization_msgs.msg import Marker
 
 from vos_aa1.srv import DetectedFeature
 from vos_aa1.srv import DetectedFeatureRequest
@@ -30,7 +31,7 @@ tag_55.pose.orientation.x=0
 tag_55.pose.orientation.y=0
 tag_55.pose.orientation.z=0
 tag_55.pose.orientation.w=1
-fixed_features.append(tag_55)
+#fixed_features.append(tag_55)
 tag_32 = VisualFeatureInWorld()
 tag_32.algorithm = 'AprilTags_Kaess_36h11'
 tag_32.id = '32'
@@ -42,7 +43,9 @@ tag_32.pose.orientation.x=0
 tag_32.pose.orientation.y=0
 tag_32.pose.orientation.z=0
 tag_32.pose.orientation.w=1
-#fixed_features.append(tag_32)
+fixed_features.append(tag_32)
+
+marker_publisher = 1
 
 # adapted from https://afni.nimh.nih.gov/pub/dist/src/pkundu/meica.libs/nibabel/quaternions.py
 def conjugate(q):
@@ -205,6 +208,8 @@ def detect_feature_callback(req):
 
     camera_tag_frame_id = '%s_%s%s' % (req.cameraPose.header.frame_id, algorithm_abreviations[req.visualFeature.algorithm], req.visualFeature.id)
     
+    tag_same_fixed = '%s%s'%(algorithm_abreviations[req.visualFeature.algorithm], req.visualFeature.id)
+    
     t55_from_c2 = '%s%s_from_%s'% (algorithm_abreviations[req.visualFeature.algorithm], req.visualFeature.id, req.cameraPose.header.frame_id)    
     tfBroadcaster.sendTransform(
         (req.visualFeature.pose.pose.position.x, req.visualFeature.pose.pose.position.y, req.visualFeature.pose.pose.position.z),
@@ -213,6 +218,15 @@ def detect_feature_callback(req):
         time_now,
         t55_from_c2,                          # to   tag-from-camera-body t55_from_c2
         req.cameraPose.header.frame_id)                     # from camera-body c2
+        
+        
+    t55_from_c2_plain = t55_from_c2 + '_plain'  
+    tfBroadcaster.sendTransform(
+        (req.visualFeature.pose.pose.position.x, req.visualFeature.pose.pose.position.y, req.visualFeature.pose.pose.position.z),
+        (req.visualFeature.pose.pose.orientation.x, req.visualFeature.pose.pose.orientation.y, req.visualFeature.pose.pose.orientation.z, req.visualFeature.pose.pose.orientation.w),        
+        time_now,
+        t55_from_c2_plain,
+        req.cameraPose.header.frame_id)
         
         
     t55_from_c2_180x = t55_from_c2 + '_180x'    
@@ -249,6 +263,35 @@ def detect_feature_callback(req):
         time_now,
         c2_from_t55_from_c2_180x,           # to
         c2_from_t55_from_c2_180x_tmp)                   # from
+        
+    #  from fixed tag to camera 
+    tag_same_fixed_mirrored      = tag_same_fixed+'_mirrored'           # tag is rot+-180Z from robot pov: AprilTags gives tag pose as away from camera i.e. tag x-axis is into the tag / robot-convention frame aligned with back of tag, I treat tag x-axis as out of the tag / robot-convention axes aligned with face of tag
+    c2_from_fixed_t55       = 'c2_from_fixed_' + tag_same_fixed 
+    c2_from_fixed_t55_tmp   = 'c2_from_fixed_' + tag_same_fixed+'_tmp'
+    c2_from_fixed_t55_tmp180x   = 'c2_from_fixed_' + tag_same_fixed+'_tmp180x'
+      
+    tfBroadcaster.sendTransform(
+        (0.0, 0.0, 0.0),
+        (1.0, 0.0, 0.0, 0.0),        
+        time_now,
+        c2_from_fixed_t55_tmp180x,      # to
+        tag_same_fixed)                 # from    
+    tfBroadcaster.sendTransform(
+        #(req.visualFeature.pose.pose.position.x, req.visualFeature.pose.pose.position.y, -req.visualFeature.pose.pose.position.z),
+        (0.0,0.0,0.0),                              # _tmp is same position as fixed tag ...
+        quat_c2_from_t55,                           # ... inverse quaternion
+        time_now,
+        c2_from_fixed_t55_tmp,          # to
+        c2_from_fixed_t55_tmp180x)      # from
+    tfBroadcaster.sendTransform(    
+        (-req.visualFeature.pose.pose.position.x, -req.visualFeature.pose.pose.position.y, -req.visualFeature.pose.pose.position.z),    # est c2 is reversed translation from fixed tag ...
+        (0.0,0.0,0.0,1.0),                                                                                                              # ... same orientation as the _tmp
+        time_now,
+        c2_from_fixed_t55,              # to
+        c2_from_fixed_t55_tmp)          # from
+    axisMarker(req.visualFeature.id,c2_from_fixed_t55)        
+        
+        
     
     # mirror the tag     
     t55_from_c2_mirrored = '%s%s_from_%s_mirrored'% (algorithm_abreviations[req.visualFeature.algorithm], req.visualFeature.id, req.cameraPose.header.frame_id)
@@ -349,6 +392,27 @@ def detect_feature_callback(req):
     response = DetectedFeatureResponse()
     response.acknowledgement="bob"
     return response
+    
+def axisMarker(marker_id_,parent_frame_id_):
+    marker = Marker()
+    marker.id = marker_id_
+    marker.header.frame_id = parent_frame_id_
+    marker.type = marker.CUBE
+    marker.action = marker.ADD
+    marker.scale.x = 0.05
+    marker.scale.y = 0.05
+    marker.scale.z = 0.05
+    marker.color.a = 1.0
+    marker.color.r = 0.8
+    marker.color.g = 0.8
+    marker.color.b = 0.8
+    marker.pose.orientation.w = 1.0
+    marker.pose.position.x = 0
+    marker.pose.position.y = 0 
+    marker.pose.position.z = 0  
+    marker_publisher.publish(marker)   
+    print 'axisMarker done'
+    print marker
 
 
 def detect_feature_server():
@@ -356,7 +420,11 @@ def detect_feature_server():
     detect_feature_server = rospy.Service('/androidvosopencvros/detected_feature', DetectedFeature, detect_feature_callback)
     print "Ready to receive detected features."
     localise_from_a_feature_server = rospy.Service('/androidvosopencvros/localise_from_a_feature', LocaliseFromAFeature, localise_from_a_feature_callback)
-    print "Ready to receive localise from individual features."
+    print "Ready to receive localise from individual features."    
+    global marker_publisher
+    marker_publisher = rospy.Publisher('axis_markers', Marker, queue_size = 100)
+    print "Ready to publish markers"
+    print marker_publisher
     rospy.spin()
 
 
