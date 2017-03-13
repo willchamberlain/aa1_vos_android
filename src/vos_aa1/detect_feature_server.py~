@@ -105,47 +105,22 @@ def localise_from_a_feature_callback(req):
     response = LocaliseFromAFeatureResponse()
     print "----------------------------------------------"
     print "localise_from_a_feature_callback: "
-    camera_tag_frame_id = '%s_%s%s' % (req.visualFeature.pose.header.frame_id, algorithm_abreviations[req.visualFeature.algorithm], req.visualFeature.id)
-    camera_frame_id = req.visualFeature.pose.header.frame_id
-    camera_body_frame_id = req.visualFeature.pose.header.frame_id + 'zy'
-    corrected_tag_frame_from_camera = camera_tag_frame_id + 'yx'
-    # wanted : the camera_body_frame_id from the corrected_tag_frame_from_camera
-    # feature_tf_frame_id = '%s_%s%s' % (req.visualFeature.pose.header.frame_id, algorithm_abreviations[req.visualFeature.algorithm], req.visualFeature.id)
-    # print "localise_from_a_feature_callback: feature_tf_frame_id = %s"%feature_tf_frame_id
-
+    cN = req.visualFeature.pose.header.frame_id
+    visual_feature_descriptor = req.visualFeature.id
     listener = tf.TransformListener()
-
-    try:
-        listener.waitForTransform(camera_tag_frame_id + 'yx', req.visualFeature.pose.header.frame_id + 'zy', rospy.Time(), rospy.Duration(4.0))
-        position_, quaternion_ = listener.lookupTransform(camera_tag_frame_id + 'yx'  , req.visualFeature.pose.header.frame_id + 'zy' ,  rospy.Time())
-
-        tfBroadcaster.sendTransform(
-            (position_[0],position_[1],position_[2]),
-            (quaternion_[0],quaternion_[1],quaternion_[2],quaternion_[3]),
-            time_now,
-            'tag_frame_%s_to_cam_body_%s'%(camera_tag_frame_id + 'yx', req.visualFeature.pose.header.frame_id + 'zy'),     # map_to_c12_t55
-            camera_tag_frame_id + 'yx')                                                      # from frame
-    except:
-        print '----  No tf from  %s  to  %s  ----',(camera_tag_frame_id + 'yx', req.visualFeature.pose.header.frame_id + 'zy')
-
-    try:
-        listener.waitForTransform(camera_tag_frame_id + 'yx', req.visualFeature.pose.header.frame_id, rospy.Time(), rospy.Duration(4.0))
-        position_, quaternion_ = listener.lookupTransform(camera_tag_frame_id + 'yx'  , req.visualFeature.pose.header.frame_id,  rospy.Time())
-        tfBroadcaster.sendTransform(
-            (position_[0],position_[1],position_[2]),
-            (quaternion_[0],quaternion_[1],quaternion_[2],quaternion_[3]),
-            time_now,
-            'tag_frame_%s_to_cam_body_%s'%(camera_tag_frame_id + 'yx', req.visualFeature.pose.header.frame_id),     # to
-            camera_tag_frame_id + 'yx')                                                             # from
-
-        if any(x.id == req.visualFeature.id for x in fixed_features):
-            tfBroadcaster.sendTransform(
-                (position_[0],position_[1],position_[2]),
-                (quaternion_[0],quaternion_[1],quaternion_[2],quaternion_[3]),
-                time_now,
-                'fixed_tag_frame_%s_to_cam_body_%s'%(req.visualFeature.id, req.visualFeature.pose.header.frame_id),    # to
-                req.visualFeature.id)                                                                                  # from
-
+    
+    #  1) set up the tf names to use as variables
+    #  2) use those variables to pull the tfs and respond to the camera self-localisation request
+    for x in fixed_features:
+        print '---- fixed_feature exists with id "',x.id,'"'
+    
+    if any( x.id == visual_feature_descriptor or str(x.id) == str(visual_feature_descriptor) for x in fixed_features):
+        print '---- localise_from_a_feature_callback: fixed feature "',x,'" matches descriptor "',visual_feature_descriptor,'"'
+        tag_same_fixed = '%s%s'%(algorithm_abreviations[req.visualFeature.algorithm], req.visualFeature.id)
+        c2_from_fixed_t55 = '%s_from_fixed_%s'%(cN,tag_same_fixed)
+        try:
+            listener.waitForTransform('map', c2_from_fixed_t55, rospy.Time(), rospy.Duration(4.0))      # from the map origin, to the camera, through a fixed point
+            position_, quaternion_ = listener.lookupTransform('map', c2_from_fixed_t55,  rospy.Time())
             response.pose.position.x = position_[0]
             response.pose.position.y = position_[1]
             response.pose.position.z = position_[2]
@@ -154,12 +129,14 @@ def localise_from_a_feature_callback(req):
             response.pose.orientation.z = quaternion_[2]
             response.pose.orientation.w = quaternion_[3]
             response.poseFound = True
-        else:
+            print '---- localise_from_a_feature_callback: '
+        except:
+            print '---- localise_from_a_feature_callback: exception'
+            #except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
             response.poseFound = False
-    except:
-        print '---- No tf from  %s  to  %s  ----'%(camera_tag_frame_id + 'yx', req.visualFeature.pose.header.frame_id)
-        #except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
-        response.poseFound = False
+    else:        
+        print '---- localise_from_a_feature_callback: no fixed features match descriptor "', visual_feature_descriptor,'"'
+        response.poseFound = False            
     return response
 
 
@@ -270,6 +247,7 @@ def detect_feature_callback(req):
         
     #  from fixed tag to camera 
     tag_same_fixed_mirrored      = tag_same_fixed+'_mirrored'           # tag is rot+-180Z from robot pov: AprilTags gives tag pose as away from camera i.e. tag x-axis is into the tag / robot-convention frame aligned with back of tag, I treat tag x-axis as out of the tag / robot-convention axes aligned with face of tag
+    #   tag_same_fixed = '%s%s'%(algorithm_abreviations[req.visualFeature.algorithm], req.visualFeature.id)
     c2_from_fixed_t55       = '%s_from_fixed_%s'%(cN,tag_same_fixed)
     c2_from_fixed_t55_tmp   = c2_from_fixed_t55+'_tmp'
     c2_from_fixed_t55_tmp180x   = c2_from_fixed_t55+'_tmp180x'
@@ -293,7 +271,7 @@ def detect_feature_callback(req):
         time_now,
         c2_from_fixed_t55,              # to
         c2_from_fixed_t55_tmp)          # from
-    axisMarker(cN,req.visualFeature.id,c2_from_fixed_t55)        
+    axisMarker(req.visualFeature.id,c2_from_fixed_t55)        
         
         
     
