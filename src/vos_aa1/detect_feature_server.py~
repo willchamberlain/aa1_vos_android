@@ -6,6 +6,7 @@ from geometry_msgs.msg import Pose
 from tf import transformations
 import numpy as np
 from visualization_msgs.msg import Marker
+import re
 
 from vos_aa1.srv import DetectedFeature
 from vos_aa1.srv import DetectedFeatureRequest
@@ -173,6 +174,9 @@ def detect_feature_callback(req):
     print '  feature frame_id : %s_%s%s' % (req.cameraPose.header.frame_id, algorithm_abreviations[req.visualFeature.algorithm], req.visualFeature.id)
     print "  feature translation [%.4f,%.4f,%.4f] : "%(req.visualFeature.pose.pose.position.x, req.visualFeature.pose.pose.position.y, req.visualFeature.pose.pose.position.z)
     print "  feature orientation (quaternion) [%.4f,%.4f,%.4f,%.4f] "%(req.visualFeature.pose.pose.orientation.x, req.visualFeature.pose.pose.orientation.y, req.visualFeature.pose.pose.orientation.z, req.visualFeature.pose.pose.orientation.w)
+    
+    cN = req.cameraPose.header.frame_id
+    
 
 
     # TODO - something about this conversion is not right: the translation and quaternion match those found by AprilTags_Kaess and sent by DetectedFeatureClient, but the RPY are different
@@ -248,7 +252,7 @@ def detect_feature_callback(req):
         
     quat_t55_from_c2 = [req.visualFeature.pose.pose.orientation.z, -req.visualFeature.pose.pose.orientation.x, -req.visualFeature.pose.pose.orientation.y, req.visualFeature.pose.pose.orientation.w]
     quat_c2_from_t55 = inverse(quat_t55_from_c2)        
-    c2_from_t55_from_c2_180x = 'c2_from_' + t55_from_c2_180x
+    c2_from_t55_from_c2_180x = '%s_from_%s'%(cN,t55_from_c2_180x)
     c2_from_t55_from_c2_180x_tmp = c2_from_t55_from_c2_180x+'_tmp'
     tfBroadcaster.sendTransform(
         #(req.visualFeature.pose.pose.position.x, req.visualFeature.pose.pose.position.y, -req.visualFeature.pose.pose.position.z),
@@ -266,9 +270,9 @@ def detect_feature_callback(req):
         
     #  from fixed tag to camera 
     tag_same_fixed_mirrored      = tag_same_fixed+'_mirrored'           # tag is rot+-180Z from robot pov: AprilTags gives tag pose as away from camera i.e. tag x-axis is into the tag / robot-convention frame aligned with back of tag, I treat tag x-axis as out of the tag / robot-convention axes aligned with face of tag
-    c2_from_fixed_t55       = 'c2_from_fixed_' + tag_same_fixed 
-    c2_from_fixed_t55_tmp   = 'c2_from_fixed_' + tag_same_fixed+'_tmp'
-    c2_from_fixed_t55_tmp180x   = 'c2_from_fixed_' + tag_same_fixed+'_tmp180x'
+    c2_from_fixed_t55       = '%s_from_fixed_%s'%(cN,tag_same_fixed)
+    c2_from_fixed_t55_tmp   = c2_from_fixed_t55+'_tmp'
+    c2_from_fixed_t55_tmp180x   = c2_from_fixed_t55+'_tmp180x'
       
     tfBroadcaster.sendTransform(
         (0.0, 0.0, 0.0),
@@ -289,7 +293,7 @@ def detect_feature_callback(req):
         time_now,
         c2_from_fixed_t55,              # to
         c2_from_fixed_t55_tmp)          # from
-    axisMarker(req.visualFeature.id, -req.visualFeature.pose.pose.position.x, -req.visualFeature.pose.pose.position.y, -req.visualFeature.pose.pose.position.z)        
+    axisMarker(cN,req.visualFeature.id,c2_from_fixed_t55)        
         
         
     
@@ -393,9 +397,10 @@ def detect_feature_callback(req):
     response.acknowledgement="bob"
     return response
     
-def axisMarker(parent_frame_id_, x_, y_, z_):
+def axisMarker(marker_id_,parent_frame_id_):
     marker = Marker()
-    marker.id = marker_id
+    marker.ns = parent_frame_id_
+    marker.id = marker_id_
     marker.header.frame_id = parent_frame_id_
     marker.type = marker.CUBE
     marker.action = marker.ADD
