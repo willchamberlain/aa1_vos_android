@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import sys
 import rospy
 import tf
 from geometry_msgs.msg import Pose
@@ -44,7 +45,7 @@ tag_32.id = '32'
 tag_32.pose = Pose()
 tag_32.pose.position.x=0
 tag_32.pose.position.y=0
-tag_32.pose.position.z=0.8
+tag_32.pose.position.z=1.18
 tag_32.pose.orientation.x=0
 tag_32.pose.orientation.y=0
 tag_32.pose.orientation.z=0
@@ -148,30 +149,32 @@ def localise_from_a_feature_callback(req):
         response.poseFound = False       
         print '---- localise_from_a_feature_callback: sending request on to sources for descriptor"', visual_feature_descriptor,'"'             
         #return_url = cN;
-        try:
+        response = localise_from_feature_from_visionsources(req)
+#        try:
             # NOT going to use a return URL for this: the vision sources register with their base URLs, so we can take their localise_from_feature service URLs relative to that  -- return_url = 'c3/localise_from_feature_return'  or some such - to get back to the camera(s) 
             # NOT going to check FoV: the server doesn't know where that feature is in the world   --   fov = True or some such region of interest -  
             # NOT for this function, but for the detectFreeSpace or whatever later NOTE: should probably go back and see if there is good code to re-use from Aug-Oct 2015         
 # leave off threading for now            thread = Thread(target = localise_from_feature_from_visionsources(return_url,visual_feature_descriptor,fov))  # https://www.tutorialspoint.com/python/python_multithreading.htm 
-            response = localise_from_feature_from_visionsources(visual_feature_descriptor_)
-        except: 
-           print "Error: ---- localise_from_a_feature_callback: unable to start threads"                
+#            response = localise_from_feature_from_visionsources(req)
+#        except: 
+#           print "ERROR: ---- localise_from_a_feature_callback: unable to start threads: error = ", sys.exc_info()[0]           
+#           raise     
     return response
     
     
-def localise_from_feature_from_visionsources(visual_feature_descriptor_):
-    for vision_source_base_url in vision_sources.base_url:    
-        localise_service_url = '%s/localise_from_feature'%vision_source_base_url
+def localise_from_feature_from_visionsources(LocaliseFromAFeatureRequest_):
+    for vision_source in vision_sources:        
+        localise_service_url = '%s/localise_from_a_feature'%vision_source.base_url
         rospy.wait_for_service(localise_service_url)        
         try:
-            cam_localise_serviceproxy = rospy.ServiceProxy(localise_service_url, visual_feature_descriptor_)
-            response = cam_localise_serviceproxy(x, y)        
+            cam_localise_serviceproxy = rospy.ServiceProxy(localise_service_url, LocaliseFromAFeature)
+            response = cam_localise_serviceproxy(LocaliseFromAFeatureRequest_)        
             print 'localise_from_feature_from_source: service call succeeded'            
             if response.poseFound:
                 return response
                 # TODO:  average over all responses, or some such, rather than just return the first match found
         except rospy.ServiceException, e:
-            print "localise_from_feature_from_source: Service call failed: %s"%e    
+            print "ERROR: ---- localise_from_feature_from_source: Service call failed: %s"%e    
     # no location found for that feature: return poseFound=False, empty pose        
     response = LocaliseFromAFeatureResponse()
     response.poseFound = False       
@@ -179,14 +182,14 @@ def localise_from_feature_from_visionsources(visual_feature_descriptor_):
 
     
 def distribute_to_visionsources(return_url_,visual_feature_descriptor_,fov_):
-    for vision_source_url in vision_sources.url:    
-        rospy.wait_for_service(return_url_)
-    try:
-        cam_localise_serviceproxy = rospy.ServiceProxy(return_url_, visual_feature_descriptor_,fov_)
-        ack = cam_localise_serviceproxy(x, y)
-        print 'localise_from_feature_from_source: service call succeeded'            
-    except rospy.ServiceException, e:
-        print "localise_from_feature_from_source: Service call failed: %s"%e    
+    for vision_source in vision_sources:    
+        rospy.wait_for_service(vision_source.base_url)
+        try:
+            cam_localise_serviceproxy = rospy.ServiceProxy(vision_source.base_url, visual_feature_descriptor_,fov_)
+            ack = cam_localise_serviceproxy(x, y)
+            print 'localise_from_feature_from_source: service call succeeded'            
+        except rospy.ServiceException, e:
+            print "localise_from_feature_from_source: Service call failed: %s"%e    
 
 def detect_feature_callback(req):
     print "----------------------------------------------"
@@ -210,13 +213,21 @@ def detect_feature_callback(req):
 
     tfBroadcaster = tf.TransformBroadcaster()
     time_now = rospy.Time.now()
-
+    
     # publish the map-to-camera_pose tf
     tfBroadcaster.sendTransform(
         (req.cameraPose.pose.position.x,req.cameraPose.pose.position.y,req.cameraPose.pose.position.z),
         (req.cameraPose.pose.orientation.x,req.cameraPose.pose.orientation.y,req.cameraPose.pose.orientation.z,req.cameraPose.pose.orientation.w),
         time_now,
         req.cameraPose.header.frame_id,            # to      '/cam/%s/pose' % req.cameraPose.header.frame_id e.g. "/cam/c_1/pose"    # TODO - remove hardcoding to base namespace
+        'map')                                                      # from frame
+
+    # publish the map-to-camera_pose tf
+    tfBroadcaster.sendTransform(
+        (req.cameraPose.pose.position.x,req.cameraPose.pose.position.y,req.cameraPose.pose.position.z),
+        (req.cameraPose.pose.orientation.x,req.cameraPose.pose.orientation.y,req.cameraPose.pose.orientation.z,req.cameraPose.pose.orientation.w),
+        time_now,
+        req.cameraPose.header.frame_id + '_in_detect_feature_req_header',            # to      '/cam/%s/pose' % req.cameraPose.header.frame_id e.g. "/cam/c_1/pose"    # TODO - remove hardcoding to base namespace
         'map')                                                      # from frame
 
     # create the robot-convention camera body frame, step 1 : +90Y
@@ -239,6 +250,9 @@ def detect_feature_callback(req):
     
     tag_same_fixed = '%s%s'%(algorithm_abreviations[req.visualFeature.algorithm], req.visualFeature.id)
     
+    
+        # THIS IS THE GOOD TAG POSITION, AND GOOD TAG ORIENTATION BUT THE TAG FACES AWAY FROM THE CAMERA 
+        # INTIIALLY GOOD AND ALIGNED WITH c2_from_fixed_t55 BUT THEN ROTATES STRANGELY IF THE CAMERA ROTATES
     t55_from_c2 = '%s%s_from_%s'% (algorithm_abreviations[req.visualFeature.algorithm], req.visualFeature.id, req.cameraPose.header.frame_id)    
     tfBroadcaster.sendTransform(
         (req.visualFeature.pose.pose.position.x, req.visualFeature.pose.pose.position.y, req.visualFeature.pose.pose.position.z),
@@ -249,7 +263,8 @@ def detect_feature_callback(req):
         req.cameraPose.header.frame_id)                     # from camera-body c2
         
         
-    t55_from_c2_plain = t55_from_c2 + '_plain'  
+        #  USELESS
+    t55_from_c2_plain = t55_from_c2 + '_plain'      
     tfBroadcaster.sendTransform(
         (req.visualFeature.pose.pose.position.x, req.visualFeature.pose.pose.position.y, req.visualFeature.pose.pose.position.z),
         (req.visualFeature.pose.pose.orientation.x, req.visualFeature.pose.pose.orientation.y, req.visualFeature.pose.pose.orientation.z, req.visualFeature.pose.pose.orientation.w),        
@@ -258,7 +273,9 @@ def detect_feature_callback(req):
         req.cameraPose.header.frame_id)
         
         
-    t55_from_c2_180x = t55_from_c2 + '_180x'    
+        #  THIS IS THE GOOD TAG POSE, with the visible tag facing toward the camera
+        #  INTIIALLY GOOD  BUT THEN ROTATES STRANGELY WITH t55_from_c2 IF THE CAMERA ROTATES 
+    t55_from_c2_180x = t55_from_c2 + '_180x'     
     tfBroadcaster.sendTransform(
         (0.0, 0.0, 0.0),
         (1.0, 0.0, 0.0, 0.0),        
@@ -301,22 +318,22 @@ def detect_feature_callback(req):
     c2_from_fixed_t55_tmp180x   = c2_from_fixed_t55+'_tmp180x'
       
     tfBroadcaster.sendTransform(
-        (0.0, 0.0, 0.0),
-        (1.0, 0.0, 0.0, 0.0),        
-        time_now,
+        (0.0, 0.0, 0.0),                # same position: _t55_tmp180x is the same position as t55 / tag_same_fixed ... 
+        (1.0, 0.0, 0.0, 0.0),           # 180 around x:  ... but rotated 180 around x 
+        time_now,                       # simultaneous 'now'
         c2_from_fixed_t55_tmp180x,      # to
         tag_same_fixed)                 # from    
     tfBroadcaster.sendTransform(
         #(req.visualFeature.pose.pose.position.x, req.visualFeature.pose.pose.position.y, -req.visualFeature.pose.pose.position.z),
-        (0.0,0.0,0.0),                              # _tmp is same position as fixed tag ...
-        quat_c2_from_t55,                           # ... inverse quaternion
-        time_now,
+        (0.0,0.0,0.0),                  # _tmp is same position as the fixed tag ...
+        quat_c2_from_t55,               # ... but inverse quaternion to point back toward the camera 
+        time_now,                       # simultaneous 'now'
         c2_from_fixed_t55_tmp,          # to
         c2_from_fixed_t55_tmp180x)      # from
     tfBroadcaster.sendTransform(    
-        (-req.visualFeature.pose.pose.position.x, -req.visualFeature.pose.pose.position.y, -req.visualFeature.pose.pose.position.z),    # est c2 is reversed translation from fixed tag ...
-        (0.0,0.0,0.0,1.0),                                                                                                              # ... same orientation as the _tmp
-        time_now,
+        (-req.visualFeature.pose.pose.position.x, -req.visualFeature.pose.pose.position.y, -req.visualFeature.pose.pose.position.z),    # inverse/reversed translation from fixed tag ...
+        (0.0,0.0,0.0,1.0),              # ... same orientation as the _tmp
+        time_now,                       # simultaneous 'now'
         c2_from_fixed_t55,              # to
         c2_from_fixed_t55_tmp)          # from
     axisMarker(req.visualFeature.id,c2_from_fixed_t55)        
@@ -417,6 +434,20 @@ def detect_feature_callback(req):
             time_now,
             '%s%s' % (algorithm_abreviations[fixed_feature.algorithm], fixed_feature.id),
             'map')
+        tfBroadcaster.sendTransform(
+            (fixed_feature.pose.position.x, fixed_feature.pose.position.y, fixed_feature.pose.position.z ),
+            (fixed_feature.pose.orientation.x, fixed_feature.pose.orientation.y, fixed_feature.pose.orientation.z, fixed_feature.pose.orientation.w),
+            time_now,
+            'fixed_%s%s' % (algorithm_abreviations[fixed_feature.algorithm], fixed_feature.id),
+            'map')
+            
+    if 'c3'==cN:
+        try:
+            # LATER; 'c1_from_fixed_t32'
+            listener.waitForTransform('map', 't50_from_c1_180x', rospy.Time(), rospy.Duration(4.0))      # from the map origin, to the camera, through a fixed point
+        except:
+            print 'ERROR ------'    
+        
 
 
     response = DetectedFeatureResponse()
@@ -485,6 +516,24 @@ def detect_feature_server():
     print "Ready to register vision sources"
     display_status_subscriber = rospy.Subscriber('/androidvosopencvros/display_status',std_msgs.msg.String, display_status_callback)
     print "Ready to display current status to console"
+    
+    
+    tfBroadcaster = tf.TransformBroadcaster()
+    time_now = rospy.Time.now()
+    for fixed_feature in fixed_features:
+        tfBroadcaster.sendTransform(
+            (fixed_feature.pose.position.x, fixed_feature.pose.position.y, fixed_feature.pose.position.z ),
+            (fixed_feature.pose.orientation.x, fixed_feature.pose.orientation.y, fixed_feature.pose.orientation.z, fixed_feature.pose.orientation.w),
+            time_now,
+            '%s%s' % (algorithm_abreviations[fixed_feature.algorithm], fixed_feature.id),
+            'map')
+        tfBroadcaster.sendTransform(
+            (fixed_feature.pose.position.x, fixed_feature.pose.position.y, fixed_feature.pose.position.z ),
+            (fixed_feature.pose.orientation.x, fixed_feature.pose.orientation.y, fixed_feature.pose.orientation.z, fixed_feature.pose.orientation.w),
+            time_now,
+            'fixed_%s%s' % (algorithm_abreviations[fixed_feature.algorithm], fixed_feature.id),
+            'map')
+    
     rospy.spin()
 
 
