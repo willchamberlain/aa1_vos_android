@@ -6,7 +6,9 @@ from geometry_msgs.msg import Pose
 from tf import transformations
 import numpy as np
 from visualization_msgs.msg import Marker
-import re
+import threading
+from pprint import pprint
+import std_msgs
 
 from vos_aa1.srv import DetectedFeature
 from vos_aa1.srv import DetectedFeatureRequest
@@ -14,6 +16,9 @@ from vos_aa1.srv import DetectedFeatureResponse
 from vos_aa1.srv import LocaliseFromAFeature
 from vos_aa1.srv import LocaliseFromAFeatureRequest
 from vos_aa1.srv import LocaliseFromAFeatureResponse
+from vos_aa1.srv import RegisterVisionSource
+from vos_aa1.srv import RegisterVisionSourceRequest
+from vos_aa1.srv import RegisterVisionSourceResponse
 from vos_aa1.msg import VisualFeatureInWorld
 from vos_aa1.msg import VisualFeatureObservation
 
@@ -45,6 +50,10 @@ tag_32.pose.orientation.y=0
 tag_32.pose.orientation.z=0
 tag_32.pose.orientation.w=1
 fixed_features.append(tag_32)
+
+
+vision_sources = []
+
 
 marker_publisher = 1
 
@@ -101,7 +110,6 @@ def localise_from_a_feature_callback(req):
     position_   = [0,0,0]
     quaternion_ = [0,0,0,1]
     time_now = rospy.Time.now()
-    tfBroadcaster = tf.TransformBroadcaster()
     response = LocaliseFromAFeatureResponse()
     print "----------------------------------------------"
     print "localise_from_a_feature_callback: "
@@ -136,9 +144,49 @@ def localise_from_a_feature_callback(req):
             response.poseFound = False
     else:        
         print '---- localise_from_a_feature_callback: no fixed features match descriptor "', visual_feature_descriptor,'"'
-        response.poseFound = False            
+        # default to not found, then check the cameras
+        response.poseFound = False       
+        print '---- localise_from_a_feature_callback: sending request on to sources for descriptor"', visual_feature_descriptor,'"'             
+        #return_url = cN;
+        try:
+            # NOT going to use a return URL for this: the vision sources register with their base URLs, so we can take their localise_from_feature service URLs relative to that  -- return_url = 'c3/localise_from_feature_return'  or some such - to get back to the camera(s) 
+            # NOT going to check FoV: the server doesn't know where that feature is in the world   --   fov = True or some such region of interest -  
+            # NOT for this function, but for the detectFreeSpace or whatever later NOTE: should probably go back and see if there is good code to re-use from Aug-Oct 2015         
+# leave off threading for now            thread = Thread(target = localise_from_feature_from_visionsources(return_url,visual_feature_descriptor,fov))  # https://www.tutorialspoint.com/python/python_multithreading.htm 
+            response = localise_from_feature_from_visionsources(visual_feature_descriptor_)
+        except: 
+           print "Error: ---- localise_from_a_feature_callback: unable to start threads"                
     return response
+    
+    
+def localise_from_feature_from_visionsources(visual_feature_descriptor_):
+    for vision_source_base_url in vision_sources.base_url:    
+        localise_service_url = '%s/localise_from_feature'%vision_source_base_url
+        rospy.wait_for_service(localise_service_url)        
+        try:
+            cam_localise_serviceproxy = rospy.ServiceProxy(localise_service_url, visual_feature_descriptor_)
+            response = cam_localise_serviceproxy(x, y)        
+            print 'localise_from_feature_from_source: service call succeeded'            
+            if response.poseFound:
+                return response
+                # TODO:  average over all responses, or some such, rather than just return the first match found
+        except rospy.ServiceException, e:
+            print "localise_from_feature_from_source: Service call failed: %s"%e    
+    # no location found for that feature: return poseFound=False, empty pose        
+    response = LocaliseFromAFeatureResponse()
+    response.poseFound = False       
+    return response           
 
+    
+def distribute_to_visionsources(return_url_,visual_feature_descriptor_,fov_):
+    for vision_source_url in vision_sources.url:    
+        rospy.wait_for_service(return_url_)
+    try:
+        cam_localise_serviceproxy = rospy.ServiceProxy(return_url_, visual_feature_descriptor_,fov_)
+        ack = cam_localise_serviceproxy(x, y)
+        print 'localise_from_feature_from_source: service call succeeded'            
+    except rospy.ServiceException, e:
+        print "localise_from_feature_from_source: Service call failed: %s"%e    
 
 def detect_feature_callback(req):
     print "----------------------------------------------"
@@ -395,7 +443,30 @@ def axisMarker(marker_id_,parent_frame_id_):
     marker.pose.position.z = 0  
     marker_publisher.publish(marker)   
     print 'axisMarker done'
-    print marker
+    #    print marker
+    
+class VisionSource:
+    def __init__(self, vision_source_id_, base_url_):
+        self.vision_source_id = vision_source_id_  
+        self.base_url         = base_url_   
+
+def register_vision_source_callback(req_registerVisionSource):
+    new_vision_source = VisionSource(req_registerVisionSource.vision_source_id,req_registerVisionSource.vision_source_base_url)
+    vision_sources.append(new_vision_source)
+    response = RegisterVisionSourceResponse()
+    response.acknowledgement = 'registered'
+    rospy.loginfo('register_vision_source_callback: registered vision source %s with base URL %s',new_vision_source.vision_source_id, new_vision_source.base_url)
+    print vision_sources
+    return response
+    
+    
+def display_status_callback(string_msg_):
+    print "-------------------------------------"
+    print "current status: "
+    print "  Registered vision sources:"
+    for vision_source_ in vision_sources:
+        print '    vision source: id = "%s", base URL = "%s"'%(vision_source_.vision_source_id, vision_source_.base_url)
+    print "-------------------------------------"
 
 
 def detect_feature_server():
@@ -408,6 +479,10 @@ def detect_feature_server():
     marker_publisher = rospy.Publisher('axis_markers', Marker, queue_size = 100)
     print "Ready to publish markers"
     print marker_publisher
+    vision_source_registration_server = rospy.Service('/androidvosopencvros/register_vision_source',RegisterVisionSource,register_vision_source_callback)
+    print "Ready to register vision sources"
+    display_status_subscriber = rospy.Subscriber('/androidvosopencvros/display_status',std_msgs.msg.String, display_status_callback)
+    print "Ready to display current status to console"
     rospy.spin()
 
 

@@ -63,6 +63,7 @@ add_service_files(
     DetectedFeature.srv
     DetectedFeatures.srv
     FindItems.srv
+    RegisterVisionSource.srv
     SetPose.srv
 )
 

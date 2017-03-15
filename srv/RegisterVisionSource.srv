@@ -1,0 +1,8 @@
+string vision_source_id
+string vision_source_base_url
+int32 observable_area_x_lower
+int32 observable_area_y_lower
+int32 observable_area_x_upper
+int32 observable_area_y_upper
+---
+string acknowledgement
