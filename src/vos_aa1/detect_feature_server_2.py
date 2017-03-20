@@ -38,7 +38,7 @@ tag_55.pose.orientation.x=0
 tag_55.pose.orientation.y=0
 tag_55.pose.orientation.z=0
 tag_55.pose.orientation.w=1
-#fixed_features.append(tag_55)
+fixed_features.append(tag_55)
 tag_32 = VisualFeatureInWorld()
 tag_32.algorithm = 'AprilTags_Kaess_36h11'
 tag_32.id = '32'
@@ -153,7 +153,7 @@ def localise_from_a_feature_callback(req):
 #        try:
             # NOT going to use a return URL for this: the vision sources register with their base URLs, so we can take their localise_from_feature service URLs relative to that  -- return_url = 'c3/localise_from_feature_return'  or some such - to get back to the camera(s) 
             # NOT going to check FoV: the server doesn't know where that feature is in the world   --   fov = True or some such region of interest -  
-            # NOT for this function, but for the detectFreeSpace or whatever later NOTE: should probably go back and see if there is good code to re-use from Aug-Oct 2015         
+            # NOT for this func tion, but for the detectFreeSpace or whatever later NOTE: should probably go back and see if there is good code to re-use from Aug-Oct 2015         
 # leave off threading for now            thread = Thread(target = localise_from_feature_from_visionsources(return_url,visual_feature_descriptor,fov))  # https://www.tutorialspoint.com/python/python_multithreading.htm 
 #            response = localise_from_feature_from_visionsources(req)
 #        except: 
@@ -248,7 +248,7 @@ def detect_feature_callback(req):
 
     camera_tag_frame_id = '%s_%s%s' % (req.cameraPose.header.frame_id, algorithm_abreviations[req.visualFeature.algorithm], req.visualFeature.id)
     
-    tag_same_fixed = '%s%s'%(algorithm_abreviations[req.visualFeature.algorithm], req.visualFeature.id)
+    t55 = '%s%s'%(algorithm_abreviations[req.visualFeature.algorithm], req.visualFeature.id)
     
     
         # THIS IS THE GOOD TAG POSITION, AND GOOD TAG ORIENTATION BUT THE TAG FACES AWAY FROM THE CAMERA 
@@ -270,9 +270,49 @@ def detect_feature_callback(req):
         (req.visualFeature.pose.pose.orientation.x, req.visualFeature.pose.pose.orientation.y, req.visualFeature.pose.pose.orientation.z, req.visualFeature.pose.pose.orientation.w),        
         time_now,
         t55_from_c2_plain,
+        req.cameraPose.header.frame_id)         # c5
+        
+        
+        
+    t55_from_c2_plain_trans = t55_from_c2 + '_plain_trans'      
+    tfBroadcaster.sendTransform(
+        (req.visualFeature.pose.pose.position.x, req.visualFeature.pose.pose.position.y, req.visualFeature.pose.pose.position.z),
+        (0.0, 0.0, 0.0, 1.0),        
+        time_now,
+        t55_from_c2_plain_trans,
         req.cameraPose.header.frame_id)
         
+    t55_from_c2_plain_trans_then_rot = t55_from_c2 + '_plain_trans_then_rot'      
+    tfBroadcaster.sendTransform(
+        (0.0, 0.0, 0.0),
+        (req.visualFeature.pose.pose.orientation.x, req.visualFeature.pose.pose.orientation.y, req.visualFeature.pose.pose.orientation.z, req.visualFeature.pose.pose.orientation.w),        
+        time_now,
+        t55_from_c2_plain_trans_then_rot,
+        t55_from_c2_plain_trans)
         
+        
+        
+    t55_from_c2_plain_rot = t55_from_c2 + '_plain_rot'      
+    tfBroadcaster.sendTransform(
+        (0.0, 0.0, 0.0),
+        (req.visualFeature.pose.pose.orientation.x, req.visualFeature.pose.pose.orientation.y, req.visualFeature.pose.pose.orientation.z, req.visualFeature.pose.pose.orientation.w),        
+        time_now,
+        t55_from_c2_plain_rot,
+        req.cameraPose.header.frame_id)
+        
+    t55_from_c2_plain_rot_then_trans = t55_from_c2 + '_plain_rot_then_trans'      
+    tfBroadcaster.sendTransform(
+        (req.visualFeature.pose.pose.position.x, req.visualFeature.pose.pose.position.y, req.visualFeature.pose.pose.position.z),
+        (0.0, 0.0, 0.0, 1.0),            
+        time_now,
+        t55_from_c2_plain_rot_then_trans,
+        t55_from_c2_plain_rot)
+        
+        
+        
+    # GOOD:  t55_from_c2_180x
+    # GOOD with translationRotationWithAxisChange --> tagDetection.getRelativeTranslationRotation 
+    # Problem is the once-off localisation against the fixed tag
         #  THIS IS THE GOOD TAG POSE, with the visible tag facing toward the camera
         #  INTIIALLY GOOD  BUT THEN ROTATES STRANGELY WITH t55_from_c2 IF THE CAMERA ROTATES 
     t55_from_c2_180x = t55_from_c2 + '_180x'     
@@ -292,6 +332,43 @@ def detect_feature_callback(req):
         t55_from_c2_180x_plus1,             # to
         t55_from_c2_180x)                   # from
         
+        
+    # simplify the below (c2_from_t55_from_c2_180x is GOOD, but maybe simplify)
+    quat_t55_from_c2_plain = [req.visualFeature.pose.pose.orientation.x, req.visualFeature.pose.pose.orientation.y, req.visualFeature.pose.pose.orientation.z, req.visualFeature.pose.pose.orientation.w]        
+    quat_c2_from_t55_plain = inverse(quat_t55_from_c2_plain)
+    fixed_t55 = 'fixed_%s'%(t55)
+    c2_from_fixed_t55_simple_a = '%s_from_fixed_%s_simple_a'%(cN,t55)
+    c2_from_fixed_t55_simple_b = '%s_from_fixed_%s_simple_b'%(cN,t55)
+    c2_from_fixed_t55_simple_bc = '%s_from_fixed_%s_simple_bc'%(cN,t55)
+    
+    # inverse transform in one go: check order this applies rotation and translation
+    tfBroadcaster.sendTransform(
+        (-req.visualFeature.pose.pose.position.x, -req.visualFeature.pose.pose.position.y, -req.visualFeature.pose.pose.position.z),
+        quat_c2_from_t55_plain,        
+        time_now,
+        c2_from_fixed_t55_simple_a,         # to
+        fixed_t55)                          # from
+        
+    # first inverse rotation, then inverse translation    
+    tfBroadcaster.sendTransform(
+        (0.0, 0.0, 0.0),
+        (quat_c2_from_t55_plain),        
+        time_now,
+        c2_from_fixed_t55_simple_b,         # to
+        fixed_t55)                          # from
+    tfBroadcaster.sendTransform(
+        (-req.visualFeature.pose.pose.position.x, -req.visualFeature.pose.pose.position.y, -req.visualFeature.pose.pose.position.z),
+        (0.0, 0.0, 0.0, 1.0),
+        time_now,
+        c2_from_fixed_t55_simple_bc,         # to
+        c2_from_fixed_t55_simple_b)         # from
+        
+    
+    # GOOD:  c2_from_t55_from_c2_180x     
+    # GOOD with translationRotationWithAxisChange --> tagDetection.getRelativeTranslationRotation 
+    # Problem is the once-off localisation against the fixed tag
+        # NOTE 1:  t55 from c2  is  [ +z -x -y +w ] 
+        # NOTE 2:  c2 from t55  is  inverse( [ +z -x -y +w ] ) 
     quat_t55_from_c2 = [req.visualFeature.pose.pose.orientation.z, -req.visualFeature.pose.pose.orientation.x, -req.visualFeature.pose.pose.orientation.y, req.visualFeature.pose.pose.orientation.w]
     quat_c2_from_t55 = inverse(quat_t55_from_c2)        
     c2_from_t55_from_c2_180x = '%s_from_%s'%(cN,t55_from_c2_180x)
@@ -311,18 +388,18 @@ def detect_feature_callback(req):
         c2_from_t55_from_c2_180x_tmp)                   # from
         
     #  from fixed tag to camera 
-    tag_same_fixed_mirrored      = tag_same_fixed+'_mirrored'           # tag is rot+-180Z from robot pov: AprilTags gives tag pose as away from camera i.e. tag x-axis is into the tag / robot-convention frame aligned with back of tag, I treat tag x-axis as out of the tag / robot-convention axes aligned with face of tag
-    #   tag_same_fixed = '%s%s'%(algorithm_abreviations[req.visualFeature.algorithm], req.visualFeature.id)
-    c2_from_fixed_t55       = '%s_from_fixed_%s'%(cN,tag_same_fixed)
+    t55_mirrored      = t55+'_mirrored'           # tag is rot+-180Z from robot pov: AprilTags gives tag pose as away from camera i.e. tag x-axis is into the tag / robot-convention frame aligned with back of tag, I treat tag x-axis as out of the tag / robot-convention axes aligned with face of tag
+    #   t55 = '%s%s'%(algorithm_abreviations[req.visualFeature.algorithm], req.visualFeature.id)
+    c2_from_fixed_t55       = '%s_from_fixed_%s'%(cN,t55)
     c2_from_fixed_t55_tmp   = c2_from_fixed_t55+'_tmp'
     c2_from_fixed_t55_tmp180x   = c2_from_fixed_t55+'_tmp180x'
       
     tfBroadcaster.sendTransform(
-        (0.0, 0.0, 0.0),                # same position: _t55_tmp180x is the same position as t55 / tag_same_fixed ... 
+        (0.0, 0.0, 0.0),                # same position: _t55_tmp180x is the same position as t55 / t55 ... 
         (1.0, 0.0, 0.0, 0.0),           # 180 around x:  ... but rotated 180 around x 
         time_now,                       # simultaneous 'now'
         c2_from_fixed_t55_tmp180x,      # to
-        tag_same_fixed)                 # from    
+        t55)                 # from    
     tfBroadcaster.sendTransform(
         #(req.visualFeature.pose.pose.position.x, req.visualFeature.pose.pose.position.y, -req.visualFeature.pose.pose.position.z),
         (0.0,0.0,0.0),                  # _tmp is same position as the fixed tag ...
@@ -447,6 +524,7 @@ def detect_feature_callback(req):
             listener.waitForTransform('map', 't50_from_c1_180x', rospy.Time(), rospy.Duration(4.0))      # from the map origin, to the camera, through a fixed point
         except:
             print 'ERROR ------ : no transform from %s to %s '%('map', 't50_from_c1_180x')
+            
     response = DetectedFeatureResponse()
     response.acknowledgement="bob"
     return response
@@ -522,13 +600,13 @@ def detect_feature_server():
             (fixed_feature.pose.position.x, fixed_feature.pose.position.y, fixed_feature.pose.position.z ),
             (fixed_feature.pose.orientation.x, fixed_feature.pose.orientation.y, fixed_feature.pose.orientation.z, fixed_feature.pose.orientation.w),
             time_now,
-            '%s%s' % (algorithm_abreviations[fixed_feature.algorithm], fixed_feature.id),
+            '%s%s' % (algorithm_abreviations[fixed_feature.algorithm], fixed_feature.id),           # /map -> t55 
             'map')
         tfBroadcaster.sendTransform(
             (fixed_feature.pose.position.x, fixed_feature.pose.position.y, fixed_feature.pose.position.z ),
             (fixed_feature.pose.orientation.x, fixed_feature.pose.orientation.y, fixed_feature.pose.orientation.z, fixed_feature.pose.orientation.w),
             time_now,
-            'fixed_%s%s' % (algorithm_abreviations[fixed_feature.algorithm], fixed_feature.id),
+            'fixed_%s%s' % (algorithm_abreviations[fixed_feature.algorithm], fixed_feature.id),     # /map -> fixed_t55 
             'map')
     
     rospy.spin()

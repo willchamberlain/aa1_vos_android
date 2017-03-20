@@ -135,6 +135,32 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
+
+################################################################################
+### 2017_03_20 :  publish dummy odometry for the fake_localization amcl-replacement node to run from: see  http://wiki.ros.org/navigation/Tutorials/RobotSetup/Odom  and  http://wiki.ros.org/fake_localization, respectively
+
+include_directories(${catkin_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS})   # the include/header files/dirs
+# Build the executable
+add_executable(odometry_publisher  src/odometry_publisher.cpp)  # the executable and the list of files to compile and link into it
+target_link_libraries(odometry_publisher                        # Link against the catkin libraries
+    ${catkin_LIBRARIES}
+    ${Boost_LIBRARIES}
+    )
+# Add a build order dependency on nav_msgs
+# This ensures that nav_msgs' msg headers are built before your executable
+if(nav_msgs_EXPORTED_TARGETS)
+  add_dependencies(odometry_publisher ${nav_msgs_EXPORTED_TARGETS})
+endif()
+add_dependencies(odometry_publisher nav_msgs_generate_messages_cpp)
+add_dependencies(odometry_publisher geometry_msgs_generate_messages_cpp)
+# Install the built executable
+install(
+    TARGETS
+        odometry_publisher
+    DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+################################################################################
+
 ## Declare a C++ library
 # add_library(vos_aa1
 #   src/${PROJECT_NAME}/vos_aa1.cpp

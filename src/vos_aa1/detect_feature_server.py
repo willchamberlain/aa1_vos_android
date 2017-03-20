@@ -446,10 +446,8 @@ def detect_feature_callback(req):
             # LATER; 'c1_from_fixed_t32'
             listener.waitForTransform('map', 't50_from_c1_180x', rospy.Time(), rospy.Duration(4.0))      # from the map origin, to the camera, through a fixed point
         except:
-            print 'ERROR ------'    
-        
-
-
+            print 'ERROR ------ : no transform from %s to %s '%('map', 't50_from_c1_180x')
+            
     response = DetectedFeatureResponse()
     response.acknowledgement="bob"
     return response
