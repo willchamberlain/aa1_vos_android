@@ -263,50 +263,8 @@ def detect_feature_callback(req):
         req.cameraPose.header.frame_id)                     # from camera-body c2
         
         
-        #  USELESS
-    t55_from_c2_plain = t55_from_c2 + '_plain'      
-    tfBroadcaster.sendTransform(
-        (req.visualFeature.pose.pose.position.x, req.visualFeature.pose.pose.position.y, req.visualFeature.pose.pose.position.z),
-        (req.visualFeature.pose.pose.orientation.x, req.visualFeature.pose.pose.orientation.y, req.visualFeature.pose.pose.orientation.z, req.visualFeature.pose.pose.orientation.w),        
-        time_now,
-        t55_from_c2_plain,
-        req.cameraPose.header.frame_id)         # c5
         
         
-        
-    t55_from_c2_plain_trans = t55_from_c2 + '_plain_trans'      
-    tfBroadcaster.sendTransform(
-        (req.visualFeature.pose.pose.position.x, req.visualFeature.pose.pose.position.y, req.visualFeature.pose.pose.position.z),
-        (0.0, 0.0, 0.0, 1.0),        
-        time_now,
-        t55_from_c2_plain_trans,
-        req.cameraPose.header.frame_id)
-        
-    t55_from_c2_plain_trans_then_rot = t55_from_c2 + '_plain_trans_then_rot'      
-    tfBroadcaster.sendTransform(
-        (0.0, 0.0, 0.0),
-        (req.visualFeature.pose.pose.orientation.x, req.visualFeature.pose.pose.orientation.y, req.visualFeature.pose.pose.orientation.z, req.visualFeature.pose.pose.orientation.w),        
-        time_now,
-        t55_from_c2_plain_trans_then_rot,
-        t55_from_c2_plain_trans)
-        
-        
-        
-    t55_from_c2_plain_rot = t55_from_c2 + '_plain_rot'      
-    tfBroadcaster.sendTransform(
-        (0.0, 0.0, 0.0),
-        (req.visualFeature.pose.pose.orientation.x, req.visualFeature.pose.pose.orientation.y, req.visualFeature.pose.pose.orientation.z, req.visualFeature.pose.pose.orientation.w),        
-        time_now,
-        t55_from_c2_plain_rot,
-        req.cameraPose.header.frame_id)
-        
-    t55_from_c2_plain_rot_then_trans = t55_from_c2 + '_plain_rot_then_trans'      
-    tfBroadcaster.sendTransform(
-        (req.visualFeature.pose.pose.position.x, req.visualFeature.pose.pose.position.y, req.visualFeature.pose.pose.position.z),
-        (0.0, 0.0, 0.0, 1.0),            
-        time_now,
-        t55_from_c2_plain_rot_then_trans,
-        t55_from_c2_plain_rot)
         
         
         
@@ -323,45 +281,11 @@ def detect_feature_callback(req):
         t55_from_c2_180x,                   # to
         t55_from_c2)                        # from
         
-    # a node 10cm foward-left-up of the tag centre, to aid visualisation    
-    t55_from_c2_180x_plus1 = t55_from_c2_180x + '_plus1'    
-    tfBroadcaster.sendTransform(
-        (0.1, 0.1, 0.1),
-        (0.0, 0.0, 0.0, 1.0),        
-        time_now,
-        t55_from_c2_180x_plus1,             # to
-        t55_from_c2_180x)                   # from
-        
         
     # simplify the below (c2_from_t55_from_c2_180x is GOOD, but maybe simplify)
     quat_t55_from_c2_plain = [req.visualFeature.pose.pose.orientation.x, req.visualFeature.pose.pose.orientation.y, req.visualFeature.pose.pose.orientation.z, req.visualFeature.pose.pose.orientation.w]        
     quat_c2_from_t55_plain = inverse(quat_t55_from_c2_plain)
     fixed_t55 = 'fixed_%s'%(t55)
-    c2_from_fixed_t55_simple_a = '%s_from_fixed_%s_simple_a'%(cN,t55)
-    c2_from_fixed_t55_simple_b = '%s_from_fixed_%s_simple_b'%(cN,t55)
-    c2_from_fixed_t55_simple_bc = '%s_from_fixed_%s_simple_bc'%(cN,t55)
-    
-    # inverse transform in one go: check order this applies rotation and translation
-    tfBroadcaster.sendTransform(
-        (-req.visualFeature.pose.pose.position.x, -req.visualFeature.pose.pose.position.y, -req.visualFeature.pose.pose.position.z),
-        quat_c2_from_t55_plain,        
-        time_now,
-        c2_from_fixed_t55_simple_a,         # to
-        fixed_t55)                          # from
-        
-    # first inverse rotation, then inverse translation    
-    tfBroadcaster.sendTransform(
-        (0.0, 0.0, 0.0),
-        (quat_c2_from_t55_plain),        
-        time_now,
-        c2_from_fixed_t55_simple_b,         # to
-        fixed_t55)                          # from
-    tfBroadcaster.sendTransform(
-        (-req.visualFeature.pose.pose.position.x, -req.visualFeature.pose.pose.position.y, -req.visualFeature.pose.pose.position.z),
-        (0.0, 0.0, 0.0, 1.0),
-        time_now,
-        c2_from_fixed_t55_simple_bc,         # to
-        c2_from_fixed_t55_simple_b)         # from
         
     
     # GOOD:  c2_from_t55_from_c2_180x     
@@ -413,45 +337,9 @@ def detect_feature_callback(req):
         time_now,                       # simultaneous 'now'
         c2_from_fixed_t55,              # to
         c2_from_fixed_t55_tmp)          # from
-    axisMarker(req.visualFeature.id,c2_from_fixed_t55)        
+    axisMarker(req.visualFeature.id,c2_from_fixed_t55)    
         
         
-    
-    # mirror the tag     
-    t55_from_c2_mirrored = '%s%s_from_%s_mirrored'% (algorithm_abreviations[req.visualFeature.algorithm], req.visualFeature.id, req.cameraPose.header.frame_id)
-    tfBroadcaster.sendTransform(
-        (req.visualFeature.pose.pose.position.x, req.visualFeature.pose.pose.position.y, req.visualFeature.pose.pose.position.z),
-        (-req.visualFeature.pose.pose.orientation.x, req.visualFeature.pose.pose.orientation.y, -req.visualFeature.pose.pose.orientation.z, req.visualFeature.pose.pose.orientation.w),
-        time_now,
-        t55_from_c2_mirrored,                          # to   tag-from-camera-body t55_from_c2
-        req.cameraPose.header.frame_id)                     # from camera-body c2
-    # correct the tag axes, step 1
-    #- 90 Y
-    tfBroadcaster.sendTransform(
-        (0.0, 0.0, 0.0),
-        ( 0.0, -0.7071, 0.0, 0.7071 ), #  http://www.euclideanspace.com/maths/geometry/rotations/conversions/eulerToQuaternion/steps/index.htm
-        time_now,
-        t55_from_c2 + 'y' ,  # to
-        t55_from_c2 )        # from
-    # correct the tag axes, step 2: the correct tag axes are now published as e.g. c5_t7yx
-    #+ 90 X
-    tfBroadcaster.sendTransform(
-        (0.0, 0.0, 0.0),
-        ( 0.7071, 0, 0.0, 0.7071 ), #  http://www.euclideanspace.com/maths/geometry/rotations/conversions/eulerToQuaternion/steps/index.htm
-        time_now,
-        t55_from_c2 + 'yx' ,  # to
-        t55_from_c2 + 'y' )        # from
-    
-
-    # publish the camera_pose-to-tag_pose tf  -  from the robot-convention camera body frame, to the tag frame
-    tfBroadcaster.sendTransform(
-        #(req.visualFeature.pose.pose.position.x, req.visualFeature.pose.pose.position.y, req.visualFeature.pose.pose.position.z),
-        (req.visualFeature.pose.pose.position.x, req.visualFeature.pose.pose.position.y, req.visualFeature.pose.pose.position.z),
-        (0,0,0,1),
-        time_now,
-        #camera_tag_frame_id,
-        camera_tag_frame_id + 't',                          # to   e.g. c1_t1 '/feature/%s/%s/pose' % algorithm, req.visualFeature.id   e.g. "/feature/t/1"     # TODO - remove hardcoding to base namespace
-        req.cameraPose.header.frame_id + 'zy')              # from      '/cam/%s/pose' % req.cameraPose.header.frame_id e.g. "/cam/c_1/pose"    # TODO - remove hardcoding to base namespace
 
     tfBroadcaster.sendTransform(
         (0,0,0),
@@ -460,43 +348,11 @@ def detect_feature_callback(req):
         camera_tag_frame_id,
         camera_tag_frame_id + 't')              # from      '/cam/%s/pose' % req.cameraPose.header.frame_id e.g. "/cam/c_1/pose"    # TODO - remove hardcoding to base namespace
 
-    # correct the tag axes, step 1
-    #- 90 Y
-    tfBroadcaster.sendTransform(
-        (0.0, 0.0, 0.0),
-        ( 0.0, -0.7071, 0.0, 0.7071 ), #  http://www.euclideanspace.com/maths/geometry/rotations/conversions/eulerToQuaternion/steps/index.htm
-        time_now,
-        camera_tag_frame_id + 'y' ,  # to
-        camera_tag_frame_id )        # from
-
-    # correct the tag axes, step 2: the correct tag axes are now published as e.g. c5_t7yx
-    #+ 90 X
-    tfBroadcaster.sendTransform(
-        (0.0, 0.0, 0.0),
-        ( 0.7071, 0, 0.0, 0.7071 ), #  http://www.euclideanspace.com/maths/geometry/rotations/conversions/eulerToQuaternion/steps/index.htm
-        time_now,
-        camera_tag_frame_id + 'yx' ,  # to
-        camera_tag_frame_id + 'y' )        # from
 
 
     tag_label = '%s%s'%(algorithm_abreviations[req.visualFeature.algorithm], req.visualFeature.id)
 
 
-    tfBroadcaster.sendTransform(
-        (0,0,0),
-        (-req.visualFeature.pose.pose.orientation.x, req.visualFeature.pose.pose.orientation.y, -req.visualFeature.pose.pose.orientation.z, req.visualFeature.pose.pose.orientation.w),
-        time_now,
-        camera_tag_frame_id + '_mirrored_rotation' ,                        # to
-        tag_label  )              # from
-        ## NOTE: have to undo any mirroring before applying a straight inverse rotation
-
-    tfBroadcaster.sendTransform(
-        # (req.visualFeature.pose.pose.position.x, req.visualFeature.pose.pose.position.y, -req.visualFeature.pose.pose.position.z),  ?? Apriltags in optical-frame-format ??
-        (req.visualFeature.pose.pose.position.z, -req.visualFeature.pose.pose.position.x, req.visualFeature.pose.pose.position.y),
-        (0,0,0,1),
-        time_now,
-        camera_tag_frame_id + '_mirrored_rotation_mirrored_translation' ,                        # to
-        camera_tag_frame_id + '_mirrored_rotation')              # from
 
     print camera_tag_frame_id + '_mirrored_translation', ': from camera to tag: x=' , req.visualFeature.pose.pose.position.z, ', y=', -req.visualFeature.pose.pose.position.x, ', z=', -req.visualFeature.pose.pose.position.y
     print camera_tag_frame_id + '_mirrored_translation', ': from tag to camera: x=' , req.visualFeature.pose.pose.position.z, ', y=', -req.visualFeature.pose.pose.position.x, ', z=', req.visualFeature.pose.pose.position.y
