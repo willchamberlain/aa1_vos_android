@@ -51,18 +51,33 @@ tag_32.pose.orientation.y=0
 tag_32.pose.orientation.z=0
 tag_32.pose.orientation.w=1
 fixed_features.append(tag_32)
-tag_8 = VisualFeatureInWorld()
-tag_8.algorithm = 'AprilTags_Kaess_36h11'
-tag_8.id = '8'
-tag_8.pose = Pose()
-tag_8.pose.position.x=0
-tag_8.pose.position.y=0
-tag_8.pose.position.z=1.18
-tag_8.pose.orientation.x=0
-tag_8.pose.orientation.y=0
-tag_8.pose.orientation.z=0
-tag_8.pose.orientation.w=1
-fixed_features.append(tag_8)
+tag_2 = VisualFeatureInWorld()
+tag_2.algorithm = 'AprilTags_Kaess_36h11'
+tag_2.id = '2'
+tag_2.pose = Pose()
+tag_2.pose.position.x=0
+tag_2.pose.position.y=0
+tag_2.pose.position.z=1.18
+tag_2.pose.orientation.x=0
+tag_2.pose.orientation.y=0
+tag_2.pose.orientation.z=0
+tag_2.pose.orientation.w=1
+fixed_features.append(tag_2)
+tag_9 = VisualFeatureInWorld()
+tag_9.algorithm = 'AprilTags_Kaess_36h11'
+tag_9.id = '9'
+tag_9.pose = Pose()
+tag_9.pose.position.x=0
+tag_9.pose.position.y=0
+tag_9.pose.position.z=1.18
+tag_9.pose.orientation.x=0
+tag_9.pose.orientation.y=0
+tag_9.pose.orientation.z=0
+tag_9.pose.orientation.w=1
+fixed_features.append(tag_9)
+
+# features_present = (0,2,3,9)
+features_present = (0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59)
 
 
 vision_sources = []
@@ -217,7 +232,11 @@ def detect_feature_callback(req):
 
     cN = req.cameraPose.header.frame_id
 
-
+    if req.visualFeature.id not in features_present:
+        print "detect_feature_callback: camera frame_id [%s] : feature id [%d] : feature is not present - is a false positive - not listing as a detection."%(req.cameraPose.header.frame_id, req.visualFeature.id)
+        response = DetectedFeatureResponse()
+        response.acknowledgement="feature not present"
+        return response
 
     # TODO - something about this conversion is not right: the translation and quaternion match those found by AprilTags_Kaess and sent by DetectedFeatureClient, but the RPY are different
     euler = tf.transformations.euler_from_quaternion([req.visualFeature.pose.pose.orientation.x, req.visualFeature.pose.pose.orientation.y, req.visualFeature.pose.pose.orientation.z, req.visualFeature.pose.pose.orientation.w])
