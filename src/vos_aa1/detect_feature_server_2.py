@@ -10,6 +10,12 @@ from visualization_msgs.msg import Marker
 import threading
 from pprint import pprint
 import std_msgs
+import time
+
+
+import jsonpickle
+from collections import deque
+
 
 from vos_aa1.srv import DetectedFeature
 from vos_aa1.srv import DetectedFeatureRequest
@@ -25,56 +31,72 @@ from vos_aa1.msg import VisualFeatureObservation
 
 algorithm_abreviations = {'AprilTags_Kaess_36h11':'t'}
 
-
+#
 fixed_features = []
-tag_55 = VisualFeatureInWorld()
-tag_55.algorithm = 'AprilTags_Kaess_36h11'
-tag_55.id = '55'
-tag_55.pose = Pose()
-tag_55.pose.position.x=0
-tag_55.pose.position.y=0
-tag_55.pose.position.z=0.8
-tag_55.pose.orientation.x=0
-tag_55.pose.orientation.y=0
-tag_55.pose.orientation.z=0
-tag_55.pose.orientation.w=1
-fixed_features.append(tag_55)
-tag_32 = VisualFeatureInWorld()
-tag_32.algorithm = 'AprilTags_Kaess_36h11'
-tag_32.id = '32'
-tag_32.pose = Pose()
-tag_32.pose.position.x=0
-tag_32.pose.position.y=0
-tag_32.pose.position.z=1.18
-tag_32.pose.orientation.x=0
-tag_32.pose.orientation.y=0
-tag_32.pose.orientation.z=0
-tag_32.pose.orientation.w=1
-fixed_features.append(tag_32)
+
+# tag_55 = VisualFeatureInWorld()
+# tag_55.algorithm = 'AprilTags_Kaess_36h11'
+# tag_55.id = '55'
+# tag_55.pose = Pose()
+# tag_55.pose.position.x=0
+# tag_55.pose.position.y=0
+# tag_55.pose.position.z=0.8
+# tag_55.pose.orientation.x=0
+# tag_55.pose.orientation.y=0
+# tag_55.pose.orientation.z=0
+# tag_55.pose.orientation.w=1
+# fixed_features.append(tag_55)
+# tag_32 = VisualFeatureInWorld()
+# tag_32.algorithm = 'AprilTags_Kaess_36h11'
+# tag_32.id = '32'
+# tag_32.pose = Pose()
+# tag_32.pose.position.x=0
+# tag_32.pose.position.y=0
+# tag_32.pose.position.z=1.18
+# tag_32.pose.orientation.x=0
+# tag_32.pose.orientation.y=0
+# tag_32.pose.orientation.z=0
+# tag_32.pose.orientation.w=1
+# fixed_features.append(tag_32)
+
 tag_2 = VisualFeatureInWorld()
 tag_2.algorithm = 'AprilTags_Kaess_36h11'
 tag_2.id = '2'
 tag_2.pose = Pose()
-tag_2.pose.position.x=0
-tag_2.pose.position.y=0
-tag_2.pose.position.z=1.18
+tag_2.pose.position.x=-1.3
+tag_2.pose.position.y=2.5
+tag_2.pose.position.z=1.15
 tag_2.pose.orientation.x=0
 tag_2.pose.orientation.y=0
 tag_2.pose.orientation.z=0
 tag_2.pose.orientation.w=1
 fixed_features.append(tag_2)
-tag_9 = VisualFeatureInWorld()
-tag_9.algorithm = 'AprilTags_Kaess_36h11'
-tag_9.id = '9'
-tag_9.pose = Pose()
-tag_9.pose.position.x=0
-tag_9.pose.position.y=0
-tag_9.pose.position.z=1.18
-tag_9.pose.orientation.x=0
-tag_9.pose.orientation.y=0
-tag_9.pose.orientation.z=0
-tag_9.pose.orientation.w=1
-fixed_features.append(tag_9)
+
+# tag_19 = VisualFeatureInWorld()
+# tag_19.algorithm = 'AprilTags_Kaess_36h11'
+# tag_19.id = '19'
+# tag_19.pose = Pose()
+# tag_19.pose.position.x=0
+# tag_19.pose.position.y=0
+# tag_19.pose.position.z=1.18
+# tag_19.pose.orientation.x=0
+# tag_19.pose.orientation.y=0
+# tag_19.pose.orientation.z=0
+# tag_19.pose.orientation.w=1
+# fixed_features.append(tag_19)
+
+tag_0 = VisualFeatureInWorld()
+tag_0.algorithm = 'AprilTags_Kaess_36h11'
+tag_0.id = '0'
+tag_0.pose = Pose()
+tag_0.pose.position.x=0
+tag_0.pose.position.y=0
+tag_0.pose.position.z=1.25
+tag_0.pose.orientation.x=0
+tag_0.pose.orientation.y=0
+tag_0.pose.orientation.z=0
+tag_0.pose.orientation.w=1
+fixed_features.append(tag_0)
 
 # features_present = (0,2,3,9)
 features_present = (0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59)
@@ -84,6 +106,17 @@ vision_sources = []
 
 
 marker_publisher = 1
+
+
+tfBroadcaster__ = []
+
+def set_tfBroadcaster(tfBroadcaster_):
+    tfBroadcaster__.append(tfBroadcaster_)
+
+def get_tfBroadcaster():
+    return tfBroadcaster__[0]
+
+
 
 # adapted from https://afni.nimh.nih.gov/pub/dist/src/pkundu/meica.libs/nibabel/quaternions.py
 def conjugate(q):
@@ -218,17 +251,19 @@ def distribute_to_visionsources(return_url_,visual_feature_descriptor_,fov_):
         except rospy.ServiceException, e:
             print "localise_from_feature_from_source: Service call failed: %s"%e
 
+
+
 def detect_feature_callback(req):
-    print "----------------------------------------------"
-    print "detect_feature_callback: "
-    print "  camera frame_id [%s] :"%(req.cameraPose.header.frame_id)
-    print "  camera translation from map [%.4f,%.4f,%.4f] : "%(req.cameraPose.pose.position.x,req.cameraPose.pose.position.y,req.cameraPose.pose.position.z)
-    print "  camera orientation (quaternion) [%.4f,%.4f,%.4f,%.4f] : "%(req.cameraPose.pose.orientation.x,req.cameraPose.pose.orientation.y,req.cameraPose.pose.orientation.z,req.cameraPose.pose.orientation.w)
-    print "  feature algorithm [%s] : "%(req.visualFeature.algorithm)
-    print "  feature id [%d] : "%(req.visualFeature.id)
-    print '  feature frame_id : %s_%s%s' % (req.cameraPose.header.frame_id, algorithm_abreviations[req.visualFeature.algorithm], req.visualFeature.id)
-    print "  feature translation [%.4f,%.4f,%.4f] : "%(req.visualFeature.pose.pose.position.x, req.visualFeature.pose.pose.position.y, req.visualFeature.pose.pose.position.z)
-    print "  feature orientation (quaternion) [%.4f,%.4f,%.4f,%.4f] "%(req.visualFeature.pose.pose.orientation.x, req.visualFeature.pose.pose.orientation.y, req.visualFeature.pose.pose.orientation.z, req.visualFeature.pose.pose.orientation.w)
+    # print "----------------------------------------------"
+    # print "detect_feature_callback: "
+    # print "  camera frame_id [%s] :"%(req.cameraPose.header.frame_id)
+    # print "  camera translation from map [%.4f,%.4f,%.4f] : "%(req.cameraPose.pose.position.x,req.cameraPose.pose.position.y,req.cameraPose.pose.position.z)
+    # print "  camera orientation (quaternion) [%.4f,%.4f,%.4f,%.4f] : "%(req.cameraPose.pose.orientation.x,req.cameraPose.pose.orientation.y,req.cameraPose.pose.orientation.z,req.cameraPose.pose.orientation.w)
+    # print "  feature algorithm [%s] : "%(req.visualFeature.algorithm)
+    # print "  feature id [%d] : "%(req.visualFeature.id)
+    # print '  feature frame_id : %s_%s%s' % (req.cameraPose.header.frame_id, algorithm_abreviations[req.visualFeature.algorithm], req.visualFeature.id)
+    # print "  feature translation [%.4f,%.4f,%.4f] : "%(req.visualFeature.pose.pose.position.x, req.visualFeature.pose.pose.position.y, req.visualFeature.pose.pose.position.z)
+    # print "  feature orientation (quaternion) [%.4f,%.4f,%.4f,%.4f] "%(req.visualFeature.pose.pose.orientation.x, req.visualFeature.pose.pose.orientation.y, req.visualFeature.pose.pose.orientation.z, req.visualFeature.pose.pose.orientation.w)
 
     cN = req.cameraPose.header.frame_id
 
@@ -455,6 +490,8 @@ def register_vision_source_callback(req_registerVisionSource):
     return response
 
 
+
+
 def display_status_callback(string_msg_):
     print "-------------------------------------"
     print "current status: "
@@ -464,8 +501,147 @@ def display_status_callback(string_msg_):
     print "-------------------------------------"
 
 
+def fixed_tag_pose_callback(string_msg_):
+    msg = string_msg_.data
+    parts = msg.split("|")
+    tag_number = parts[0]
+#    matches = (fixed_feature for fixed_feature in fixed_features if fixed_feature.algorithm == 'AprilTags_Kaess_36h11'  and fixed_feature.id == tag_number )
+    for fixed_feature in fixed_features:
+        if fixed_feature.algorithm == 'AprilTags_Kaess_36h11'  and fixed_feature.id == tag_number:
+            print 'fixed_tag_pose_callback: updating tag %s'%(tag_number)
+            fixed_feature.pose.position.x=float(parts[1])
+            fixed_feature.pose.position.y=float(parts[2])
+            fixed_feature.pose.position.z=float(parts[3])
+            fixed_feature.pose.orientation.x=float(parts[4])
+            fixed_feature.pose.orientation.y=float(parts[5])
+            fixed_feature.pose.orientation.z=float(parts[6])
+            fixed_feature.pose.orientation.w=float(parts[7])
+    time_now = rospy.Time.now()
+    tfBroadcaster_ = get_tfBroadcaster()
+    publish_fixed_tags_tf(tfBroadcaster_, time_now)
+
+
+
+
+fixed_tags_filename = "/tmp/fixed_tags"
+
+def write_fixed_tags_to_file(fixed_tags_filename_):
+    print "write_fixed_tags_to_file(): start"
+    print "write_fixed_tags_to_file(): writing to file %s" % ( fixed_tags_filename )
+    f = open(fixed_tags_filename_, 'w')
+    for fixed_feature in fixed_features:
+        json_obj = jsonpickle.encode(fixed_feature)
+        f.write(json_obj)
+        f.flush()
+#    json_obj = jsonpickle.encode(fixed_features)
+#    f.write(json_obj)
+#    f.flush()
+    f.close()
+    print "write_fixed_tags_to_file(): end"
+
+def load_fixed_tags_from_file(fixed_tags_filename_):
+    print "load_fixed_tags_from_file(): start"
+    print "load_fixed_tags_from_file(): reading fixed_tags from file %s" % ( fixed_tags_filename )
+    f = open(fixed_tags_filename_, 'r')
+    single_line = f.read()
+    all_lines = single_line.split("}{")
+
+    fixed_features = []
+
+    i_ = 0
+    for a_line in all_lines:
+        i_ = i_ + 1
+        json_str = a_line+"}"
+        if i_ > 1:
+            json_str = "{" + a_line
+        print json_str
+        obj = jsonpickle.decode(json_str)
+        print "loading fixed tag %s = %s" % (type(obj),obj)
+        fixed_features.append(obj)
+#    json_str = f.read()
+#    obj = jsonpickle.decode(json_str)
+#    print obj
+
+    print "load_fixed_tags_from_file(): end"
+
+
+vos_base_frame_name = "vos_base_frame"
+map_to_vos_base_frame_tf = Pose()
+map_to_vos_base_frame_tf.position.x=2.3
+map_to_vos_base_frame_tf.position.y=-2.5
+map_to_vos_base_frame_tf.position.z=0
+map_to_vos_base_frame_tf.orientation.x=0
+map_to_vos_base_frame_tf.orientation.y=0
+map_to_vos_base_frame_tf.orientation.z=0
+map_to_vos_base_frame_tf.orientation.w=1
+
+deque_to_base_frame_publisher_thread = deque()
+
+
+
+def publish_map_to_vos_base_frame_tf(tfBroadcaster,time_now):
+    pos = map_to_vos_base_frame_tf.position
+    ori = map_to_vos_base_frame_tf.orientation
+    tfBroadcaster.sendTransform(
+        (pos.x, pos.y, pos.z ),
+        (ori.x, ori.y, ori.z, ori.w),
+        time_now,
+        vos_base_frame_name,        # to   'vos_base_frame'
+        'map')                      # from 'map'
+
+
+def publish_map_to_vos_base_frame_tf_loop_forever(tfBroadcaster,time_now,deque_to_base_frame_publisher_thread):
+    print "publish_map_to_vos_base_frame_tf_loop_forever: start"
+    while 2 > 1:
+        print "publish_map_to_vos_base_frame_tf_loop_forever: iteration start"
+        try:
+            something = deque_to_base_frame_publisher_thread.popleft()
+            print "publish_map_to_vos_base_frame_tf_loop_forever: something on deque"
+        except IndexError as e:
+            print "publish_map_to_vos_base_frame_tf_loop_forever: nothing on deque: running publish_map_to_vos_base_frame_tf(tfBroadcaster,time_now)"
+            publish_map_to_vos_base_frame_tf(tfBroadcaster,time_now)
+        time.sleep(0.1)
+
+
+def publish_map_to_vos_base_frame_tf_threaded(tfBroadcaster,time_now):
+    map_to_vos_base_frame_tf_thread = threading.Thread(target=publish_map_to_vos_base_frame_tf_loop_forever, args=(tfBroadcaster,time_now,deque_to_base_frame_publisher_thread))
+    map_to_vos_base_frame_tf_thread.start()
+
+
+def publish_map_coordinate_frame_origin_tf(tfBroadcaster,time_now):
+    pos = map_to_vos_base_frame_tf.position
+    ori = map_to_vos_base_frame_tf.orientation
+    tfBroadcaster.sendTransform(
+        (pos.x, pos.y, pos.z ),
+        (ori.x, ori.y, ori.z, ori.w),
+        time_now,
+        vos_base_frame_name,        # to   'vos_base_frame'
+        'map')                      # from 'map'
+
+def publish_fixed_tags_tf(tfBroadcaster,time_now):
+    for fixed_feature in fixed_features:
+        tfBroadcaster.sendTransform(
+            (fixed_feature.pose.position.x, fixed_feature.pose.position.y, fixed_feature.pose.position.z ),
+            (fixed_feature.pose.orientation.x, fixed_feature.pose.orientation.y, fixed_feature.pose.orientation.z, fixed_feature.pose.orientation.w),
+            time_now,
+            '%s%s' % (algorithm_abreviations[fixed_feature.algorithm], fixed_feature.id),           # /map -> t55
+            vos_base_frame_name)
+        tfBroadcaster.sendTransform(
+            (fixed_feature.pose.position.x, fixed_feature.pose.position.y, fixed_feature.pose.position.z ),
+            (fixed_feature.pose.orientation.x, fixed_feature.pose.orientation.y, fixed_feature.pose.orientation.z, fixed_feature.pose.orientation.w),
+            time_now,
+            'fixed_%s%s' % (algorithm_abreviations[fixed_feature.algorithm], fixed_feature.id),     # /map -> fixed_t55
+            vos_base_frame_name)
+
+
 def detect_feature_server():
     rospy.init_node('detect_feature_server')
+
+#######    write_fixed_tags_to_file("/tmp/fixed_tags")
+#######    load_fixed_tags_from_file("/tmp/fixed_tags")
+#######    write_fixed_tags_to_file("/tmp/fixed_tags2")
+#######    load_fixed_tags_from_file("/tmp/fixed_tags2")
+
     detect_feature_server = rospy.Service('/androidvosopencvros/detected_feature', DetectedFeature, detect_feature_callback)
     print "Ready to receive detected features."
     localise_from_a_feature_server = rospy.Service('/androidvosopencvros/localise_from_a_feature', LocaliseFromAFeature, localise_from_a_feature_callback)
@@ -478,23 +654,16 @@ def detect_feature_server():
     print "Ready to register vision sources"
     display_status_subscriber = rospy.Subscriber('/androidvosopencvros/display_status',std_msgs.msg.String, display_status_callback)
     print "Ready to display current status to console"
-
+    fixed_tag_pose_subscriber = rospy.Subscriber('/androidvosopencvros/fixed_tag_pose',std_msgs.msg.String, fixed_tag_pose_callback)
+    print "Ready to update fixed tags"
 
     tfBroadcaster = tf.TransformBroadcaster()
+    set_tfBroadcaster(tfBroadcaster)
     time_now = rospy.Time.now()
-    for fixed_feature in fixed_features:
-        tfBroadcaster.sendTransform(
-            (fixed_feature.pose.position.x, fixed_feature.pose.position.y, fixed_feature.pose.position.z ),
-            (fixed_feature.pose.orientation.x, fixed_feature.pose.orientation.y, fixed_feature.pose.orientation.z, fixed_feature.pose.orientation.w),
-            time_now,
-            '%s%s' % (algorithm_abreviations[fixed_feature.algorithm], fixed_feature.id),           # /map -> t55
-            'map')
-        tfBroadcaster.sendTransform(
-            (fixed_feature.pose.position.x, fixed_feature.pose.position.y, fixed_feature.pose.position.z ),
-            (fixed_feature.pose.orientation.x, fixed_feature.pose.orientation.y, fixed_feature.pose.orientation.z, fixed_feature.pose.orientation.w),
-            time_now,
-            'fixed_%s%s' % (algorithm_abreviations[fixed_feature.algorithm], fixed_feature.id),     # /map -> fixed_t55
-            'map')
+
+#    publish_map_coordinate_frame_origin_tf(tfBroadcaster,time_now)
+#    publish_map_to_vos_base_frame_tf_threaded(tfBroadcaster,time_now)
+    publish_fixed_tags_tf(tfBroadcaster, time_now)
 
     rospy.spin()
 
