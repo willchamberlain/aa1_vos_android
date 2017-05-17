@@ -3,7 +3,7 @@
 import sys
 import rospy
 import tf
-from geometry_msgs.msg import Pose
+from geometry_msgs.msg import Point, Pose, Quaternion, Twist, Vector3, PoseStamped  # https://gist.github.com/atotto/f2754f75bedb6ea56e3e0264ec405dcf
 
 from tf import transformations
 import numpy as np
@@ -31,6 +31,7 @@ from vos_aa1.msg import VisualFeatureInWorld
 from vos_aa1.msg import VisualFeatureObservation
 
 algorithm_abreviations = {'AprilTags_Kaess_36h11':'t'}
+
 
 #
 fixed_features = []
@@ -115,13 +116,15 @@ tag_210.pose.orientation.w=0.7071
 fixed_features.append(tag_210)
 
 # features_present = (0,2,3,9)
-features_present = (170, 210, 250, 290, 330, 370, 410, 450, 490, 530, 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59)
-
+# features_present = (170, 210, 250, 290, 330, 370, 410, 450, 490, 530, 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59)
+# features_present = (210, 1210, 2210, 3210, 4210, 5210, 6210, 7210, 8210, 9210, 10210,   22210)
+features_present = (9210 , -9000)
 
 vision_sources = []
 
 
 marker_publisher = 1
+pose_publisher = 1
 
 
 tfBroadcaster__ = []
@@ -283,12 +286,12 @@ def detect_feature_callback(req):
 
     cN = req.cameraPose.header.frame_id
 
-    # if req.visualFeature.id not in features_present:
-    #     print "detect_feature_callback: camera frame_id [%s] : feature id [%d] : feature is not present - is a false positive - not listing as a detection."%(req.cameraPose.header.frame_id, req.visualFeature.id)
-    #     response = DetectedFeatureResponse()
-    #     response.acknowledgement="feature not present"
-    #     return response
-    #
+    if req.visualFeature.id not in features_present:
+        print "detect_feature_callback: camera frame_id [%s] : feature id [%d] : feature is not present - is a false positive - not listing as a detection."%(req.cameraPose.header.frame_id, req.visualFeature.id)
+        response = DetectedFeatureResponse()
+        response.acknowledgement="feature not present"
+        return response
+
     # # TODO - something about this conversion is not right: the translation and quaternion match those found by AprilTags_Kaess and sent by DetectedFeatureClient, but the RPY are different
     # euler = tf.transformations.euler_from_quaternion([req.visualFeature.pose.pose.orientation.x, req.visualFeature.pose.pose.orientation.y, req.visualFeature.pose.pose.orientation.z, req.visualFeature.pose.pose.orientation.w])
     # print "  feature x_y_z_w roll=%.4f pitch=%.4f yaw=%.4f"%(euler[0], euler[1], euler[2])
@@ -350,6 +353,45 @@ def detect_feature_callback(req):
         t55_transrot_from_dum_c2,
         t55_trans_from_dum_c2)
 
+    t55_transrot_from_dum_c2_pre90y = "dum_%s_trans_rot_to_%s_pre90y"%(c2,t55)
+    tfBroadcaster.sendTransform(
+        (0,0,0),
+        (0, 0.7071, 0, 0.7071),
+        time_now,
+        t55_transrot_from_dum_c2_pre90y,
+        t55_trans_from_dum_c2)
+
+    t55_transrot_from_dum_c2_pre90y90z = "dum_%s_trans_rot_to_%s_pre90y90z"%(c2,t55)
+    tfBroadcaster.sendTransform(
+        (0,0,0),
+        (0, 0, 0.7071, 0.7071),
+        time_now,
+        t55_transrot_from_dum_c2_pre90y90z,
+        t55_transrot_from_dum_c2_pre90y)
+
+    # t55_transrot_from_dum_c2_post90y = "dum_%s_trans_rot_to_%s_post90y"%(c2,t55)
+    # tfBroadcaster.sendTransform(
+    #     (0,0,0),
+    #     (req.visualFeature.pose.pose.orientation.x, req.visualFeature.pose.pose.orientation.y, req.visualFeature.pose.pose.orientation.z, req.visualFeature.pose.pose.orientation.w),
+    #     time_now,
+    #     t55_transrot_from_dum_c2_post90y,
+    #     t55_transrot_from_dum_c2_pre90y)
+
+    t55_transrot_from_dum_c2_post90y90z = "dum_%s_trans_rot_to_%s_post90y90z"%(c2,t55)
+    tfBroadcaster.sendTransform(
+        (0,0,0),
+        (req.visualFeature.pose.pose.orientation.x, req.visualFeature.pose.pose.orientation.y, req.visualFeature.pose.pose.orientation.z, req.visualFeature.pose.pose.orientation.w),
+        time_now,
+        t55_transrot_from_dum_c2_post90y90z,
+        t55_transrot_from_dum_c2_pre90y90z)
+
+
+    ori = req.visualFeature.pose.pose.orientation
+    pos = req.visualFeature.pose.pose.position
+
+
+
+    publish_pose_xyz_xyzw(pose_publisher, time_now, t55_transrot_from_dum_c2, pos.x, pos.y, pos.z, ori.x, ori.y, ori.z, ori.w)
 
     #
     # t55_transrot_from_dum_c2 = "dum_%s_rospy_to_%s"%(c2,t55)
@@ -382,19 +424,41 @@ def detect_feature_callback(req):
     # t55_from_dum_c2_negzposx
     tfBroadcaster.sendTransform(
         (0.0, 0.0, 0.0),
+        ( 1.0, 0.0, 0.0, 0.0 ), #  http://www.euclideanspace.com/maths/geometry/rotations/conversions/eulerToQuaternion/steps/index.htm
+        time_now,
+        t55_transrot_from_dum_c2 + 'negz180x' ,  # to
+        t55_transrot_from_dum_c2 + 'negz' )        # from
+
+    # create the robot-convention camera body frame, step 2 : +90x
+    # t55_from_dum_c2_negzposx
+    tfBroadcaster.sendTransform(
+        (0.0, 0.0, 0.0),
         ( 0.7071, 0.0, 0.0, 0.7071 ), #  http://www.euclideanspace.com/maths/geometry/rotations/conversions/eulerToQuaternion/steps/index.htm
         time_now,
         t55_transrot_from_dum_c2 + 'negzposx' ,  # to
         t55_transrot_from_dum_c2 + 'negz' )        # from
     axisMarker(req.visualFeature.id, t55_transrot_from_dum_c2 + 'negzposx')
 
-##  DOESNT MIRROR - JUST ROTATES
+    mirror_in_xy_origin_point     = np.zeros(4)
+    mirror_in_xy_origin_point[3]  = 1.0                   # homogeneous
+    mirror_in_xy_normal_is_z_axis = np.zeros(3)
+    mirror_in_xy_normal_is_z_axis[2] = 1.0
+    mirror_in_xy_matrix  = tf.transformations.reflection_matrix(mirror_in_xy_origin_point, mirror_in_xy_normal_is_z_axis)  # point is homogeneous 4-vec, normal is 3-vec
+    mirror_in_xy_quat    = tf.transformations.quaternion_from_matrix(mirror_in_xy_matrix)
     tfBroadcaster.sendTransform(
         (0.0, 0.0, 0.0),
-        ( 0.0, 0.0, -1.0, -1.0 ), #  http://www.euclideanspace.com/maths/geometry/rotations/conversions/eulerToQuaternion/steps/index.htm
+        ( mirror_in_xy_quat[0], mirror_in_xy_quat[1], mirror_in_xy_quat[2], mirror_in_xy_quat[3] ), # https://github.com/ros/geometry/blob/indigo-devel/tf/src/tf/transformations.py
         time_now,
         t55_transrot_from_dum_c2 + 'negzposxmirrorxy' ,  # to
         t55_transrot_from_dum_c2 + 'negzposx' )        # from
+
+##  DOESNT MIRROR - JUST ROTATES
+    # tfBroadcaster.sendTransform(
+    #     (0.0, 0.0, 0.0),
+    #     ( 0.0, 0.0, -1.0, -1.0 ), #  http://www.euclideanspace.com/maths/geometry/rotations/conversions/eulerToQuaternion/steps/index.htm
+    #     time_now,
+    #     t55_transrot_from_dum_c2 + 'negzposxmirrorxy' ,  # to
+    #     t55_transrot_from_dum_c2 + 'negzposx' )        # from
 
 # now need to negate the Z i.e. mirror through the XY plane
 
@@ -791,6 +855,25 @@ def publish_fixed_tags_tf(tfBroadcaster,time_now):
             'fixed_%s%s' % (algorithm_abreviations[fixed_feature.algorithm], fixed_feature.id),     # /map -> fixed_t55
             vos_base_frame_name)
 
+def publish_pose_xyz_rpy(pose_publisher,time_now, id_, x, y, z, r, p, yaw):
+    # next, we'll publish the pose message over ROS
+    pose_quat = tf.transformations.quaternion_from_euler(r,p,yaw)
+    pose = PoseStamped()
+    pose.header.stamp = time_now
+    pose.header.frame_id = id_
+    pose.pose.pose = Pose(Point(x, y, z), Quaternion(*pose_quat))  # NOTE: '*' means turn into a list of arguments or some such
+    pose_publisher.publish(pose)
+
+
+def publish_pose_xyz_xyzw(pose_publisher,time_now, id_, x, y, z, qx, qy, qz, qw):
+    # next, we'll publish the pose message over ROS
+    pose = PoseStamped()
+    pose.header.stamp = time_now
+    pose.header.frame_id = id_
+    pose.pose = Pose(Point(x, y, z), Quaternion(qx, qy, qz, qw))
+    pose_publisher.publish(pose)
+
+
 
 def detect_feature_server():
     rospy.init_node('detect_feature_server')
@@ -814,6 +897,10 @@ def detect_feature_server():
     print "Ready to display current status to console"
     fixed_tag_pose_subscriber = rospy.Subscriber('/androidvosopencvros/fixed_tag_pose',std_msgs.msg.String, fixed_tag_pose_callback)
     print "Ready to update fixed tags"
+
+    global pose_publisher
+    pose_publisher = rospy.Publisher("poses_from_requests", PoseStamped, queue_size=50)
+    print "Ready to publish poses"
 
     tfBroadcaster = tf.TransformBroadcaster()
     set_tfBroadcaster(tfBroadcaster)
