@@ -1,0 +1,7 @@
+<launch>
+	<!-- Run the map server (you can run it here or in another terminal) -->
+	 <node name="map_server1" pkg="map_server" type="map_server" args="/mnt/nixbig/data/project_AA1_backup_pioneer3c/lvl11_map2/map.yaml"/>
+	 <node name="map_server2" pkg="map_server" type="map_server" args="/mnt/nixbig/data/project_AA1_backup_pioneer3c/lvl11_map2/cost_map.yaml">
+		<remap from="map" to="cost_map"/>
+	</node>
+</launch>
