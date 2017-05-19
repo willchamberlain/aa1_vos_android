@@ -15,9 +15,17 @@ logger = []
 
 
 
+def log_tf(from_, to_, listener):
+    (trans,rot) = listener.lookupTransform(from_, to_, rospy.Time(0))
+    rospy.loginfo('tf|datetime=|frame_id=%s|parent_id=%s|x=%d|y=%d|z=%d|qx=%d|qy=%d|qz=%d|qw=%d'%(to_,from_,trans[0],trans[1],trans[2],rot[0],rot[1],rot[2],rot[3]))
+    logger.info('tf|datetime=|frame_id=%s|parent_id=%s|x=%d|y=%d|z=%d|qx=%d|qy=%d|qz=%d|qw=%d'%(to_,from_,trans[0],trans[1],trans[2],rot[0],rot[1],rot[2],rot[3]))
+
+
+
+
 if __name__ == '__main__':
     rospy.init_node('tf_logger', log_level=rospy.INFO)  # see  http://wiki.ros.org/rospy/Overview/Logging , http://wiki.ros.org/Verbosity%20Levels
-        
+
     logger = start_logger('file_logger','/mnt/nixbig/ownCloud/project_AA1__1_1/results/111_logs/logit.log')
 
     listener = tf.TransformListener()
@@ -26,21 +34,37 @@ if __name__ == '__main__':
     # for i in range(20):
     #     logger.info('i = %d' % i)
 
-    rate = rospy.Rate(30.0)
+    rate = rospy.Rate(10.0)
     while not rospy.is_shutdown():
         try:
-            (trans,rot) = listener.lookupTransform('/map', '/odom', rospy.Time(0))
-            rospy.loginfo('tf|datetime=|frame_id=%s|parent_id=%s|x=%d|y=%d|z=%d|qx=%d|qy=%d|qz=%d|qw=%d'%(tf.frame_id,tf.parent_id,trans[0],trans[1],trans[2],rot[0],rot[1],rot[2],rot[3]))
+            from_ = '/map'
+            to_   = '/odom'
+            (trans,rot) = listener.lookupTransform(from_, to_, rospy.Time(0))
+            rospy.loginfo('tf|datetime=|frame_id=%s|parent_id=%s|x=%d|y=%d|z=%d|qx=%d|qy=%d|qz=%d|qw=%d'%(to_,from_,trans[0],trans[1],trans[2],rot[0],rot[1],rot[2],rot[3]))
+            logger.info('tf|datetime=|frame_id=%s|parent_id=%s|x=%d|y=%d|z=%d|qx=%d|qy=%d|qz=%d|qw=%d'%(to_,from_,trans[0],trans[1],trans[2],rot[0],rot[1],rot[2],rot[3]))
         except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
             continue
         try:
-            (trans,rot) = listener.lookupTransform('/odom', '/base_link', rospy.Time(0))
-            rospy.loginfo('tf|datetime=|frame_id=%s|parent_id=%s|x=%d|y=%d|z=%d|qx=%d|qy=%d|qz=%d|qw=%d'%(tf.frame_id,tf.parent_id,trans[0],trans[1],trans[2],rot[0],rot[1],rot[2],rot[3]))
+            from_ = '/odom'
+            to_   = '/base_link'
+            (trans,rot) = listener.lookupTransform(from_, to_, rospy.Time(0))
+            rospy.loginfo('tf|datetime=|frame_id=%s|parent_id=%s|x=%d|y=%d|z=%d|qx=%d|qy=%d|qz=%d|qw=%d'%(to_,from_,trans[0],trans[1],trans[2],rot[0],rot[1],rot[2],rot[3]))
+            logger.info('tf|datetime=|frame_id=%s|parent_id=%s|x=%d|y=%d|z=%d|qx=%d|qy=%d|qz=%d|qw=%d'%(to_,from_,trans[0],trans[1],trans[2],rot[0],rot[1],rot[2],rot[3]))
         except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
             continue
+        # try:
+        #     from_ = '/map'
+        #     to_   = '/base_link'
+        #     (trans,rot) = listener.lookupTransform(from_, to_, rospy.Time(0))
+        #     rospy.loginfo('tf|datetime=|frame_id=%s|parent_id=%s|x=%d|y=%d|z=%d|qx=%d|qy=%d|qz=%d|qw=%d'%(to_,from_,trans[0],trans[1],trans[2],rot[0],rot[1],rot[2],rot[3]))
+        #     logger.info('tf|datetime=|frame_id=%s|parent_id=%s|x=%d|y=%d|z=%d|qx=%d|qy=%d|qz=%d|qw=%d'%(to_,from_,trans[0],trans[1],trans[2],rot[0],rot[1],rot[2],rot[3]))
+        # except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
+        #     continue
+
         try:
-            (trans,rot) = listener.lookupTransform('/map', '/base_link', rospy.Time(0))
-            rospy.loginfo('tf|datetime=|frame_id=%s|parent_id=%s|x=%d|y=%d|z=%d|qx=%d|qy=%d|qz=%d|qw=%d'%(tf.frame_id,tf.parent_id,trans[0],trans[1],trans[2],rot[0],rot[1],rot[2],rot[3]))
+            from_ = '/map'
+            to_   = '/base_link'
+            log_tf(from_, to_, listener)
         except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
             continue
 
