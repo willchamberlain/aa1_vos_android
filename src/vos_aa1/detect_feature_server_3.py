@@ -125,7 +125,7 @@ vision_sources = []
 
 marker_publisher  = 1
 pose_publisher    = 1
-poseWCS_publisher = 1
+initialpose_poseWCS_publisher = 1
 
 
 tfBroadcaster__ = []
@@ -432,7 +432,7 @@ def detect_feature_callback(req):
     if 't9250'==t55:
         t55_transrot_from_dum_c2_robot_pose_250 = "dum_%s_trans_rot_to_%s_robot_pose_250"%(c2,t55)
         tfBroadcaster.sendTransform(
-            ( -0.12,0,0),                                   # before rot, step back --> forward
+            ( -0.12, 0, -0.76),                             # before rot, step back --> forward
             (0, 0, 1, 0),                               # 250 is on the back, so turn 180 to face forward
             time_now,
             t55_transrot_from_dum_c2_robot_pose_250,
@@ -442,15 +442,15 @@ def detect_feature_callback(req):
             print "------------------- start publish initialpose 250 ----------------------"
             tfListener.waitForTransform('map', t55_transrot_from_dum_c2_robot_pose_250, rospy.Time(), rospy.Duration(1))
             pos_, quat_ = tfListener.lookupTransform('map', t55_transrot_from_dum_c2_robot_pose_250,  rospy.Time(0))
-            publish_pose_xyz_xyzw_covar(poseWCS_publisher, time_now, '/initialpose', pos_[0], pos_[1], pos_[2], quat_[0], quat_[1], quat_[2], quat_[3], [0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.06853891945200942])  
-            publish_pose_xyz_xyzw(pose_publisher,time_now,  '/map', pos_[0], pos_[1], pos_[2], quat_[0], quat_[1], quat_[2], quat_[3])                   
+            publish_pose_xyz_xyzw_covar(initialpose_poseWCS_publisher, time_now, 'map', pos_[0], pos_[1], pos_[2], quat_[0], quat_[1], quat_[2], quat_[3], [0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.06853891945200942])  
+            publish_pose_xyz_xyzw(pose_publisher,time_now,  'map', pos_[0], pos_[1], pos_[2], quat_[0], quat_[1], quat_[2], quat_[3])                   
             print "------------------- published initialpose 250 ----------------------"     
         except tf.Exception as err:
             print "some tf exception happened 250: {0}".format(err)
     elif 't9290'==t55:
         t55_transrot_from_dum_c2_robot_pose_290 = "dum_%s_trans_rot_to_%s_robot_pose_290"%(c2,t55)
         tfBroadcaster.sendTransform(
-            ( -0.10, 0, 0),                                # before left rot, step back --> left 
+            ( -0.10, 0, -0.76),                             # before left rot, step back --> left 
             (0, 0, 0.7071, 0.7071),                     # 290 is on the right side, so turn left to face forward    
             time_now,
             t55_transrot_from_dum_c2_robot_pose_290,
@@ -460,26 +460,25 @@ def detect_feature_callback(req):
             print "------------------- start publish initialpose 290 ----------------------"
             tfListener.waitForTransform('map', t55_transrot_from_dum_c2_robot_pose_290, rospy.Time(), rospy.Duration(1))
             pos_, quat_ = tfListener.lookupTransform('map', t55_transrot_from_dum_c2_robot_pose_290,  rospy.Time(0))
-            publish_pose_xyz_xyzw_covar(poseWCS_publisher, time_now, '/initialpose', pos_[0], pos_[1], pos_[2], quat_[0], quat_[1], quat_[2], quat_[3], [0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.06853891945200942])    
-            publish_pose_xyz_xyzw(pose_publisher,time_now,  '/map', pos_[0], pos_[1], pos_[2], quat_[0], quat_[1], quat_[2], quat_[3])     
+            publish_pose_xyz_xyzw_covar(initialpose_poseWCS_publisher, time_now, 'map', pos_[0], pos_[1], pos_[2], quat_[0], quat_[1], quat_[2], quat_[3], [0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.06853891945200942])    
+            publish_pose_xyz_xyzw(pose_publisher,time_now,  'map', pos_[0], pos_[1], pos_[2], quat_[0], quat_[1], quat_[2], quat_[3])     
             print "------------------- published initialpose 290 ----------------------"
         except tf.Exception as err:
             print "some tf exception happened 290: {0}".format(err) 
     elif 't9330'==t55:
         t55_transrot_from_dum_c2_robot_pose_330 = "dum_%s_trans_rot_to_%s_robot_pose_330"%(c2,t55)
-        tfBroadcaster.sendTransform(
-            ( -0.10, 0, 0),                                 # before right rot, step back --> right 
+        tfBroadcaster.sendTransform(                     # robot pose, as estimated from the inverse of the base_link-to-tag-330 transform
+            ( -0.10, 0, -0.76),                              # before right rot, step back --> right 
             (0, 0, -0.7071, 0.7071),                     # 330 is on the left side, so turn right to face forward
             time_now,
             t55_transrot_from_dum_c2_robot_pose_330,
             t55_transrot_from_dum_c2_post90y180zneg90z)    
-        #      # from the map origin, to the robot
         try:
             print "------------------- start publish initialpose 330 ----------------------"
             tfListener.waitForTransform('map', t55_transrot_from_dum_c2_robot_pose_330, rospy.Time(), rospy.Duration(1))
             pos_, quat_ = tfListener.lookupTransform('map', t55_transrot_from_dum_c2_robot_pose_330,  rospy.Time(0))
-            publish_pose_xyz_xyzw_covar(poseWCS_publisher, time_now, '/initialpose', pos_[0], pos_[1], pos_[2], quat_[0], quat_[1], quat_[2], quat_[3], [0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.06853891945200942])      
-            publish_pose_xyz_xyzw(pose_publisher,time_now,  '/map', pos_[0], pos_[1], pos_[2], quat_[0], quat_[1], quat_[2], quat_[3])                   
+            publish_pose_xyz_xyzw_covar(initialpose_poseWCS_publisher, time_now, 'map', pos_[0], pos_[1], pos_[2], quat_[0], quat_[1], quat_[2], quat_[3], [0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.06853891945200942])      
+            publish_pose_xyz_xyzw(pose_publisher,time_now,  'map', pos_[0], pos_[1], pos_[2], quat_[0], quat_[1], quat_[2], quat_[3])                   
             print "------------------- published initialpose 330 ----------------------"
         except tf.Exception as err:
             print "some tf exception happened 330: {0}".format(err)
@@ -724,14 +723,14 @@ def publish_pose_xyz_xyzw(pose_publisher,time_now, id_, x, y, z, qx, qy, qz, qw)
     pose_publisher.publish(pose)
     
 # id_ is the frame that this pose is relative to: e.g. if this pose is relative to the map, use "map"
-def publish_pose_xyz_xyzw_covar(poseWCS_publisher,time_now, id_, x, y, z, qx, qy, qz, qw, covariance_):
+def publish_pose_xyz_xyzw_covar(initialpose_poseWCS_publisher,time_now, id_, x, y, z, qx, qy, qz, qw, covariance_):
     # next, we'll publish the pose message over ROS
     poseWCS = PoseWithCovarianceStamped()
     poseWCS.header.stamp = time_now
     poseWCS.header.frame_id = id_
     poseWCS.pose.pose = Pose(Point(x, y, z), Quaternion(qx, qy, qz, qw))
     poseWCS.pose.covariance = covariance_
-    poseWCS_publisher.publish(poseWCS)
+    initialpose_poseWCS_publisher.publish(poseWCS)
 
 
 
@@ -768,8 +767,8 @@ def detect_feature_server():
     pose_publisher = rospy.Publisher("poses_from_requests", PoseStamped, queue_size=50)
     print "Ready to publish poses"
     rospy.loginfo("Ready to publish poses")
-    global poseWCS_publisher
-    poseWCS_publisher = rospy.Publisher("/initialpose", PoseWithCovarianceStamped, queue_size=50)
+    global initialpose_poseWCS_publisher
+    initialpose_poseWCS_publisher = rospy.Publisher("/initialpose", PoseWithCovarianceStamped, queue_size=50, latch=True)  # latch to make sure that AMCL has an intitial pose to use
     print "Ready to publish poses with covariance"
     rospy.loginfo("Ready to publish poses with covariance")
 
