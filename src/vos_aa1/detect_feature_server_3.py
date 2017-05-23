@@ -442,8 +442,8 @@ def detect_feature_callback(req):
             print "------------------- start publish initialpose 250 ----------------------"
             tfListener.waitForTransform('map', t55_transrot_from_dum_c2_robot_pose_250, rospy.Time(), rospy.Duration(1))
             pos_, quat_ = tfListener.lookupTransform('map', t55_transrot_from_dum_c2_robot_pose_250,  rospy.Time(0))
-            publish_pose_xyz_xyzw_covar(poseWCS_publisher, time_now, '/initialpose', pos_[0], pos_[1], pos_[2], quat_[0], quat_[1], quat_[2], quat_[3], [1,0,0,0,0,0, 0,1,0,0,0,0, 0,0,1,0,0,0, 0,0,0,1,0,0, 0,0,0,0,1,0, 0,0,0,0,0,1])             
-            publish_pose_xyz_xyzw_covar(poseWCS_publisher, time_now + rospy.Duration(1), '/initialpose', pos_[0], pos_[1], pos_[2], quat_[0], quat_[1], quat_[2], quat_[3], [1,0,0,0,0,0, 0,1,0,0,0,0, 0,0,1,0,0,0, 0,0,0,1,0,0, 0,0,0,0,1,0, 0,0,0,0,0,1])        
+            publish_pose_xyz_xyzw_covar(poseWCS_publisher, time_now, '/initialpose', pos_[0], pos_[1], pos_[2], quat_[0], quat_[1], quat_[2], quat_[3], [0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.06853891945200942])  
+            publish_pose_xyz_xyzw(pose_publisher,time_now,  '/map', pos_[0], pos_[1], pos_[2], quat_[0], quat_[1], quat_[2], quat_[3])                   
             print "------------------- published initialpose 250 ----------------------"     
         except tf.Exception as err:
             print "some tf exception happened 250: {0}".format(err)
@@ -460,8 +460,8 @@ def detect_feature_callback(req):
             print "------------------- start publish initialpose 290 ----------------------"
             tfListener.waitForTransform('map', t55_transrot_from_dum_c2_robot_pose_290, rospy.Time(), rospy.Duration(1))
             pos_, quat_ = tfListener.lookupTransform('map', t55_transrot_from_dum_c2_robot_pose_290,  rospy.Time(0))
-            publish_pose_xyz_xyzw_covar(poseWCS_publisher, time_now, '/initialpose', pos_[0], pos_[1], pos_[2], quat_[0], quat_[1], quat_[2], quat_[3], [1,0,0,0,0,0, 0,1,0,0,0,0, 0,0,1,0,0,0, 0,0,0,1,0,0, 0,0,0,0,1,0, 0,0,0,0,0,1])             
-            publish_pose_xyz_xyzw_covar(poseWCS_publisher, time_now + rospy.Duration(1), '/initialpose', pos_[0], pos_[1], pos_[2], quat_[0], quat_[1], quat_[2], quat_[3], [1,0,0,0,0,0, 0,1,0,0,0,0, 0,0,1,0,0,0, 0,0,0,1,0,0, 0,0,0,0,1,0, 0,0,0,0,0,1])             
+            publish_pose_xyz_xyzw_covar(poseWCS_publisher, time_now, '/initialpose', pos_[0], pos_[1], pos_[2], quat_[0], quat_[1], quat_[2], quat_[3], [0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.06853891945200942])    
+            publish_pose_xyz_xyzw(pose_publisher,time_now,  '/map', pos_[0], pos_[1], pos_[2], quat_[0], quat_[1], quat_[2], quat_[3])     
             print "------------------- published initialpose 290 ----------------------"
         except tf.Exception as err:
             print "some tf exception happened 290: {0}".format(err) 
@@ -478,8 +478,8 @@ def detect_feature_callback(req):
             print "------------------- start publish initialpose 330 ----------------------"
             tfListener.waitForTransform('map', t55_transrot_from_dum_c2_robot_pose_330, rospy.Time(), rospy.Duration(1))
             pos_, quat_ = tfListener.lookupTransform('map', t55_transrot_from_dum_c2_robot_pose_330,  rospy.Time(0))
-            publish_pose_xyz_xyzw_covar(poseWCS_publisher, time_now, '/initialpose', pos_[0], pos_[1], pos_[2], quat_[0], quat_[1], quat_[2], quat_[3], [1,0,0,0,0,0, 0,1,0,0,0,0, 0,0,1,0,0,0, 0,0,0,1,0,0, 0,0,0,0,1,0, 0,0,0,0,0,1])             
-            publish_pose_xyz_xyzw_covar(poseWCS_publisher, time_now + rospy.Duration(1), '/initialpose', pos_[0], pos_[1], pos_[2], quat_[0], quat_[1], quat_[2], quat_[3], [1,0,0,0,0,0, 0,1,0,0,0,0, 0,0,1,0,0,0, 0,0,0,1,0,0, 0,0,0,0,1,0, 0,0,0,0,0,1])            
+            publish_pose_xyz_xyzw_covar(poseWCS_publisher, time_now, '/initialpose', pos_[0], pos_[1], pos_[2], quat_[0], quat_[1], quat_[2], quat_[3], [0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.06853891945200942])      
+            publish_pose_xyz_xyzw(pose_publisher,time_now,  '/map', pos_[0], pos_[1], pos_[2], quat_[0], quat_[1], quat_[2], quat_[3])                   
             print "------------------- published initialpose 330 ----------------------"
         except tf.Exception as err:
             print "some tf exception happened 330: {0}".format(err)
@@ -703,6 +703,7 @@ def publish_fixed_tags_tf(tfBroadcaster,time_now):
             'fixed_%s%s' % (algorithm_abreviations[fixed_feature.algorithm], fixed_feature.id),     # /map -> fixed_t55
             vos_base_frame_name)
 
+# id_ is the frame that this pose is relative to: e.g. if this pose is relative to the map, use "map"
 def publish_pose_xyz_rpy(pose_publisher,time_now, id_, x, y, z, r, p, yaw):
     # next, we'll publish the pose message over ROS
     pose_quat = tf.transformations.quaternion_from_euler(r,p,yaw)
@@ -713,6 +714,7 @@ def publish_pose_xyz_rpy(pose_publisher,time_now, id_, x, y, z, r, p, yaw):
     pose_publisher.publish(pose)
 
 
+# id_ is the frame that this pose is relative to: e.g. if this pose is relative to the map, use "map"
 def publish_pose_xyz_xyzw(pose_publisher,time_now, id_, x, y, z, qx, qy, qz, qw):
     # next, we'll publish the pose message over ROS
     pose = PoseStamped()
@@ -721,6 +723,7 @@ def publish_pose_xyz_xyzw(pose_publisher,time_now, id_, x, y, z, qx, qy, qz, qw)
     pose.pose = Pose(Point(x, y, z), Quaternion(qx, qy, qz, qw))
     pose_publisher.publish(pose)
     
+# id_ is the frame that this pose is relative to: e.g. if this pose is relative to the map, use "map"
 def publish_pose_xyz_xyzw_covar(poseWCS_publisher,time_now, id_, x, y, z, qx, qy, qz, qw, covariance_):
     # next, we'll publish the pose message over ROS
     poseWCS = PoseWithCovarianceStamped()
