@@ -2,6 +2,7 @@
 # Note: geometry_msgs/PoseStamped rather than geometry_msgs/Pose for VisualFeatureInWorld
 # see https://github.com/RIVeR-Lab/apriltags_ros/blob/indigo-devel/apriltags_ros/msg/AprilTagDetection.msg
 # TODO: make general with string parsing
-string                              algorithm
-int32                               id
-geometry_msgs/PoseStamped           pose
+string                              algorithm       # image processing algorithm to detect and extract the feature - e.g. Apriltags 36h11, BoofCV binary fiducial
+int32                               id              # feature descriptor/id - tag number for AprilTags
+geometry_msgs/PoseStamped           pose            # pose in camera coordinate frame
+time                                time            # time feature observed

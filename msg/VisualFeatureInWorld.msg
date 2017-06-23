@@ -2,6 +2,7 @@
 # Note: geometry_msgs/Pose rather than geometry_msgs/PoseStamped for VisualFeatureObservation
 # see https://github.com/RIVeR-Lab/apriltags_ros/blob/indigo-devel/apriltags_ros/msg/AprilTagDetection.msg
 # TODO: make general with string parsing
-string                              algorithm       # image processing algorithm to detect and extract the feature - e.g. Apriltags 36h11
+string                              algorithm       # image processing algorithm to detect and extract the feature - e.g. Apriltags 36h11, BoofCV binary fiducial
 int32                               id              # feature descriptor/id - tag number for AprilTags
 geometry_msgs/Pose                  pose            # pose in world coordinates - coordinate frame follows the robot coordinate frame convention, with the x axis along the surface normal - TODO work out what that would mean for e.g. intersection-of-occlusions features
+time                                time            # time feature observed
