@@ -3,7 +3,8 @@
 import sys
 import rospy
 import tf
-from geometry_msgs.msg import Point, Pose, Quaternion, Twist, Vector3, PoseStamped, PoseWithCovarianceStamped  # https://gist.github.com/atotto/f2754f75bedb6ea56e3e0264ec405dcf
+from geometry_msgs.msg import Point, Pose, Quaternion, Vector3, PoseStamped, PoseWithCovariance, PoseWithCovarianceStamped, Twist, TwistWithCovariance  # https://gist.github.com/atotto/f2754f75bedb6ea56e3e0264ec405dcf
+from nav_msgs.msg import Odometry
 
 from tf import transformations
 import numpy as np
@@ -12,6 +13,8 @@ import threading
 from pprint import pprint
 import std_msgs
 import time
+
+import load_properties
 
 
 import jsonpickle
@@ -61,7 +64,7 @@ fixed_features = []
 # tag_32.pose.orientation.w=1
 # fixed_features.append(tag_32)
 
-# "2|-0.5|-3|1.15|0|0|-0.7071|0.7071"
+# "2|-0.5|-3|1.15|0|0|-0.70710678118654757|0.70710678118654757"
 tag_2 = VisualFeatureInWorld()
 tag_2.algorithm = 'AprilTags_Kaess_36h11'
 tag_2.id = '2'
@@ -71,8 +74,8 @@ tag_2.pose.position.y=-3
 tag_2.pose.position.z=1.15
 tag_2.pose.orientation.x=0
 tag_2.pose.orientation.y=0
-tag_2.pose.orientation.z=-0.7071
-tag_2.pose.orientation.w=0.7071
+tag_2.pose.orientation.z=-0.707106781
+tag_2.pose.orientation.w=0.707106781
 fixed_features.append(tag_2)
 
 # tag_19 = VisualFeatureInWorld()
@@ -88,7 +91,7 @@ fixed_features.append(tag_2)
 # tag_19.pose.orientation.w=1
 # fixed_features.append(tag_19)
 
-# 0|2.5|-1.5|1.25|0|0|-0.7071|0.7071
+# 0|2.5|-1.5|1.25|0|0|-0.707106781|0.707106781
 tag_0 = VisualFeatureInWorld()
 tag_0.algorithm = 'AprilTags_Kaess_36h11'
 tag_0.id = '0'
@@ -98,8 +101,8 @@ tag_0.pose.position.y=-1.5
 tag_0.pose.position.z=1.25
 tag_0.pose.orientation.x=0
 tag_0.pose.orientation.y=0
-tag_0.pose.orientation.z=-0.7071
-tag_0.pose.orientation.w=0.7071
+tag_0.pose.orientation.z=-0.707106781
+tag_0.pose.orientation.w=0.707106781
 fixed_features.append(tag_0)
 
 tag_210 = VisualFeatureInWorld()
@@ -111,14 +114,14 @@ tag_210.pose.position.y=-3.5
 tag_210.pose.position.z=1.25
 tag_210.pose.orientation.x=0
 tag_210.pose.orientation.y=0
-tag_210.pose.orientation.z=-0.5571
-tag_210.pose.orientation.w=0.7071
+tag_210.pose.orientation.z=-0.619
+tag_210.pose.orientation.w=0.785390985
 fixed_features.append(tag_210)
 
 # features_present = (0,2,3,9)
 # features_present = (170, 210, 250, 290, 330, 370, 410, 450, 490, 530, 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59)
 # features_present = (210, 1210, 2210, 3210, 4210, 5210, 6210, 7210, 8210, 9210, 10210,   22210)
-features_present = (9210 , 9330 , 9250 , 9290 , 7330 , 7250 , 7290 , -9000)
+features_present = (9170 , 9250 , 9290 , 9330 , -9000)
 
 vision_sources = []
 
@@ -126,10 +129,16 @@ vision_sources = []
 marker_publisher  = 1
 pose_publisher    = 1
 initialpose_poseWCS_publisher = 1
-
+fakelocalisation_poseWCS_publisher = 1
 
 tfBroadcaster__ = []
 tfListener      = 1
+
+
+# monitoring
+detection_true_monitoring_publisher = 1
+detection_false_monitoring_publisher = 1
+
 
 def set_tfBroadcaster(tfBroadcaster_):
     tfBroadcaster__.append(tfBroadcaster_)
@@ -288,10 +297,13 @@ def detect_feature_callback(req):
     cN = req.cameraPose.header.frame_id
 
     if req.visualFeature.id not in features_present:
-        print "detect_feature_callback: camera frame_id [%s] : feature id [%d] : feature is not present - is a false positive - not listing as a detection."%(req.cameraPose.header.frame_id, req.visualFeature.id)
+        print "detect_feature_callback: camera frame_id [%s] : feature id [%d] : feature is not present - is a false positive - not listing as a detection."%(req.cameraPose.header.frame_id, req.visualFeature.id)        
+        detection_false_monitoring_publisher.publish("False detection: camera frame_id [%s] : feature id [%d]")
         response = DetectedFeatureResponse()
         response.acknowledgement="feature not present"
-        return response
+        return response        
+
+    detection_true_monitoring_publisher.publish("True detection: camera frame_id [%s] : feature id [%d]")
 
     # # TODO - something about this conversion is not right: the translation and quaternion match those found by AprilTags_Kaess and sent by DetectedFeatureClient, but the RPY are different
     # euler = tf.transformations.euler_from_quaternion([req.visualFeature.pose.pose.orientation.x, req.visualFeature.pose.pose.orientation.y, req.visualFeature.pose.pose.orientation.z, req.visualFeature.pose.pose.orientation.w])
@@ -317,25 +329,75 @@ def detect_feature_callback(req):
     #     map_to_c2,              # to
     #     'map')                  # from
 
+
+# Fixed camera poses - square plus a diagonal
+    # catch-all
+    dum_c2 = "dum_%s"%(c2)
+
+# fixed camera pose
 #   dummy frame for the camera: 1m up away from origin, same orientation - facing toward the lobby
+#   TODO : use load_properties, or jsonpickle, to read - and reload - from file
+#   fixed camera
     if  c2 in ['c10', 'c15']:
         dum_c2 = "dum_%s"%(c2)
         tfBroadcaster.sendTransform(
-            (1.9, -5.75,  1),
-            (0,0,0.7071,0.7071),
+            (1.9, -5.75, 0.57),
+            (0,0,0.707106781,0.707106781),
             time_now,
             dum_c2,                         # to
             'map')                          # from
 
+# fixed camera pose
 #   dummy frame for the camera: 1m up away from origin, facing right - toward S1165
+#   TODO : use load_properties, or jsonpickle, to read - and reload - from file
+#   fixed camera
     if c2 in ['c11', 'c12']:
         dum_c2 = "dum_%s"%(c2)
         tfBroadcaster.sendTransform(
-            (1.9, -5.75,  1),
+            (1.9, -5.75, 0.57),
             (0,0,0,1),
             time_now,
             dum_c2,                         # to
             'map')                          # from
+
+# fixed camera pose
+#   dummy frame for the camera: 1m up away from origin, facing 45 degrees right - toward corner of Michael's office
+#   TODO : use load_properties, or jsonpickle, to read - and reload - from file
+#   fixed camera
+    if c2 in ['c20', 'c21']:
+        dum_c2 = "dum_%s"%(c2)
+        tfBroadcaster.sendTransform(
+            (1.85, -5.95, 0.74),
+            (0, 0, 0.383, 0.92374834235304581),
+            time_now,
+            dum_c2,                         # to
+            'map')                          # from
+         
+# end Fixed camera poses - square plus a diagonal
+
+# Fixed camera poses - two at 120 degrees: tripods back-to-back with feet touching
+
+# toward Michael's office/S1125
+    if c2 in ['c60']:
+        dum_c2 = "dum_%s"%(c2)
+        tfBroadcaster.sendTransform(
+            (1.85, -5.95, 0.74),
+            (0, 0, 0.131, 0.991382368),
+            time_now,
+            dum_c2,                         # to
+            'map')                          # from
+# toward lobby/paper wall
+    if c2 in ['c70']:
+        dum_c2 = "dum_%s"%(c2)
+        tfBroadcaster.sendTransform(
+            (1.85, -5.95, 0.74),    
+            (0, 0, 0.609, 0.793170221),
+            time_now,
+            dum_c2,                         # to
+            'map')                          # from
+
+# end Fixed camera poses - two at 120 degrees: tripods back-to-back with feet touching
+
 
     # just as the visual feature is reported from the camera/robot
     t55_trans_from_dum_c2 = "dum_%s_trans_to_%s"%(c2,t55)
@@ -376,7 +438,7 @@ def detect_feature_callback(req):
     t55_transrot_from_dum_c2_pre90y = "dum_%s_trans_rot_to_%s_pre90y"%(c2,t55)
     tfBroadcaster.sendTransform(
         (0,0,0),
-        (0, 0.7071, 0, 0.7071),
+        (0, 0.707106781, 0, 0.707106781),
         time_now,
         t55_transrot_from_dum_c2_pre90y,
         t55_trans_from_dum_c2)
@@ -384,7 +446,7 @@ def detect_feature_callback(req):
     t55_transrot_from_dum_c2_pre90y90z = "dum_%s_trans_rot_to_%s_pre90y90z"%(c2,t55)
     tfBroadcaster.sendTransform(
         (0,0,0),
-        (0, 0, 0.7071, 0.7071),
+        (0, 0, 0.707106781, 0.707106781),
         time_now,
         t55_transrot_from_dum_c2_pre90y90z,
         t55_transrot_from_dum_c2_pre90y)
@@ -424,65 +486,88 @@ def detect_feature_callback(req):
     t55_transrot_from_dum_c2_post90y180zneg90z = "dum_%s_trans_rot_to_%s_post90y180zneg90z"%(c2,t55)
     tfBroadcaster.sendTransform(
         (0,0,0),
-        (0, 0, -0.7071, 0.7071),
+        (0, 0, -0.707106781, 0.707106781),
         time_now,
         t55_transrot_from_dum_c2_post90y180zneg90z,
         t55_transrot_from_dum_c2_post90y180z)
-        
-    if 't9250'==t55:
+
+    #  TODO - load from file with load_properties or jsonpickle, and also move into the robot's request
+    #  ROBOT VISUAL MODEL / robot model if 't9250'==t55:
+    if 't9170'==t55:
+        t55_transrot_from_dum_c2_robot_pose_170 = "dum_%s_trans_rot_to_%s_robot_pose_170"%(c2,t55)
+        tfBroadcaster.sendTransform(
+            # pioneer - the tall one ( -0.12, 0, -0.76),                             # before rot, step back --> forward
+            ( 0.12-0.18, 0, -0.61),                     # forward of centre of tag box, tag box centre is 18cm rear of base_link (Pioneer2)
+            (0, 0, 0, 1),                               # 170 is on the front
+            time_now,
+            t55_transrot_from_dum_c2_robot_pose_170,
+            t55_transrot_from_dum_c2_post90y180zneg90z)
+#        tfListener.waitForTransform('map', t55_transrot_from_dum_c2_robot_pose_250, rospy.Time(), rospy.Duration(0))      # from the map origin, to the robot
+        try:  #  TODO - produce a unified pose estimate from this set of observations of this robot model, on the phone side - in this case average the quaternions, see https://stackoverflow.com/questions/12374087/average-of-multiple-quaternions
+            print "------------------- start publish initialpose 250 ----------------------"
+            tfListener.waitForTransform('map', t55_transrot_from_dum_c2_robot_pose_170, rospy.Time(), rospy.Duration(1))
+            pos_, quat_ = tfListener.lookupTransform('map', t55_transrot_from_dum_c2_robot_pose_170,  rospy.Time(0))
+            publish_pose_xyz_xyzw_covar(initialpose_poseWCS_publisher, fakelocalisation_poseWCS_publisher, time_now, 'map', pos_[0], pos_[1], pos_[2], quat_[0], quat_[1], quat_[2], quat_[3], [0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.06853891945200942])
+            publish_pose_xyz_xyzw(pose_publisher,time_now,  'map', pos_[0], pos_[1], pos_[2], quat_[0], quat_[1], quat_[2], quat_[3])
+            
+            print "------------------- published initialpose 250 ----------------------"
+        except tf.Exception as err:
+            print "some tf exception happened 250: {0}".format(err)
+    elif 't9250'==t55:
         t55_transrot_from_dum_c2_robot_pose_250 = "dum_%s_trans_rot_to_%s_robot_pose_250"%(c2,t55)
         tfBroadcaster.sendTransform(
-            ( -0.12, 0, -0.76),                             # before rot, step back --> forward
+            # pioneer - the tall one ( -0.12, 0, -0.76),                             # before rot, step back --> forward
+            ( -0.12-0.18, 0, -0.64),                    # before rot, step back --> forward , tag box centre is 18cm rear of base_link (Pioneer2)
             (0, 0, 1, 0),                               # 250 is on the back, so turn 180 to face forward
             time_now,
             t55_transrot_from_dum_c2_robot_pose_250,
-            t55_transrot_from_dum_c2_post90y180zneg90z)    
+            t55_transrot_from_dum_c2_post90y180zneg90z)
 #        tfListener.waitForTransform('map', t55_transrot_from_dum_c2_robot_pose_250, rospy.Time(), rospy.Duration(0))      # from the map origin, to the robot
         try:
             print "------------------- start publish initialpose 250 ----------------------"
             tfListener.waitForTransform('map', t55_transrot_from_dum_c2_robot_pose_250, rospy.Time(), rospy.Duration(1))
             pos_, quat_ = tfListener.lookupTransform('map', t55_transrot_from_dum_c2_robot_pose_250,  rospy.Time(0))
-            publish_pose_xyz_xyzw_covar(initialpose_poseWCS_publisher, time_now, 'map', pos_[0], pos_[1], pos_[2], quat_[0], quat_[1], quat_[2], quat_[3], [0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.06853891945200942])  
-            publish_pose_xyz_xyzw(pose_publisher,time_now,  'map', pos_[0], pos_[1], pos_[2], quat_[0], quat_[1], quat_[2], quat_[3])                   
-            print "------------------- published initialpose 250 ----------------------"     
+            publish_pose_xyz_xyzw_covar(initialpose_poseWCS_publisher, fakelocalisation_poseWCS_publisher, time_now, 'map', pos_[0], pos_[1], pos_[2], quat_[0], quat_[1], quat_[2], quat_[3], [0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.06853891945200942])
+            publish_pose_xyz_xyzw(pose_publisher,time_now,  'map', pos_[0], pos_[1], pos_[2], quat_[0], quat_[1], quat_[2], quat_[3])
+            print "------------------- published initialpose 250 ----------------------"
         except tf.Exception as err:
             print "some tf exception happened 250: {0}".format(err)
     elif 't9290'==t55:
         t55_transrot_from_dum_c2_robot_pose_290 = "dum_%s_trans_rot_to_%s_robot_pose_290"%(c2,t55)
         tfBroadcaster.sendTransform(
-            ( -0.10, 0, -0.76),                             # before left rot, step back --> left 
-            (0, 0, 0.7071, 0.7071),                     # 290 is on the right side, so turn left to face forward    
+            ( -0.10, 0-(-0.18), -0.64),                 # before left rot, step back --> left , tag box centre is 18cm rear of base_link (Pioneer2)
+            (0, 0, 0.707106781, 0.707106781),                     # 290 is on the right side, so turn left to face forward
             time_now,
             t55_transrot_from_dum_c2_robot_pose_290,
-            t55_transrot_from_dum_c2_post90y180zneg90z)  
+            t55_transrot_from_dum_c2_post90y180zneg90z)
 #        tfListener.waitForTransform('map', t55_transrot_from_dum_c2_robot_pose_290, rospy.Time(), rospy.Duration(0))      # from the map origin, to the robot
         try:
             print "------------------- start publish initialpose 290 ----------------------"
             tfListener.waitForTransform('map', t55_transrot_from_dum_c2_robot_pose_290, rospy.Time(), rospy.Duration(1))
             pos_, quat_ = tfListener.lookupTransform('map', t55_transrot_from_dum_c2_robot_pose_290,  rospy.Time(0))
-            publish_pose_xyz_xyzw_covar(initialpose_poseWCS_publisher, time_now, 'map', pos_[0], pos_[1], pos_[2], quat_[0], quat_[1], quat_[2], quat_[3], [0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.06853891945200942])    
-            publish_pose_xyz_xyzw(pose_publisher,time_now,  'map', pos_[0], pos_[1], pos_[2], quat_[0], quat_[1], quat_[2], quat_[3])     
+            publish_pose_xyz_xyzw_covar(initialpose_poseWCS_publisher, fakelocalisation_poseWCS_publisher, time_now, 'map', pos_[0], pos_[1], pos_[2], quat_[0], quat_[1], quat_[2], quat_[3], [0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.06853891945200942])
+            publish_pose_xyz_xyzw(pose_publisher,time_now,  'map', pos_[0], pos_[1], pos_[2], quat_[0], quat_[1], quat_[2], quat_[3])
             print "------------------- published initialpose 290 ----------------------"
         except tf.Exception as err:
-            print "some tf exception happened 290: {0}".format(err) 
+            print "some tf exception happened 290: {0}".format(err)
     elif 't9330'==t55:
         t55_transrot_from_dum_c2_robot_pose_330 = "dum_%s_trans_rot_to_%s_robot_pose_330"%(c2,t55)
         tfBroadcaster.sendTransform(                     # robot pose, as estimated from the inverse of the base_link-to-tag-330 transform
-            ( -0.10, 0, -0.76),                              # before right rot, step back --> right 
-            (0, 0, -0.7071, 0.7071),                     # 330 is on the left side, so turn right to face forward
+            ( -0.10, 0-0.18, -0.64),                              # before right rot, step back --> right , tag box centre is 18cm rear of base_link (Pioneer2)
+            (0, 0, -0.707106781, 0.707106781),                     # 330 is on the left side, so turn right to face forward
             time_now,
             t55_transrot_from_dum_c2_robot_pose_330,
-            t55_transrot_from_dum_c2_post90y180zneg90z)    
+            t55_transrot_from_dum_c2_post90y180zneg90z)
         try:
             print "------------------- start publish initialpose 330 ----------------------"
             tfListener.waitForTransform('map', t55_transrot_from_dum_c2_robot_pose_330, rospy.Time(), rospy.Duration(1))
             pos_, quat_ = tfListener.lookupTransform('map', t55_transrot_from_dum_c2_robot_pose_330,  rospy.Time(0))
-            publish_pose_xyz_xyzw_covar(initialpose_poseWCS_publisher, time_now, 'map', pos_[0], pos_[1], pos_[2], quat_[0], quat_[1], quat_[2], quat_[3], [0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.06853891945200942])      
-            publish_pose_xyz_xyzw(pose_publisher,time_now,  'map', pos_[0], pos_[1], pos_[2], quat_[0], quat_[1], quat_[2], quat_[3])                   
+            publish_pose_xyz_xyzw_covar(initialpose_poseWCS_publisher, fakelocalisation_poseWCS_publisher, time_now, 'map', pos_[0], pos_[1], pos_[2], quat_[0], quat_[1], quat_[2], quat_[3], [0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.06853891945200942])
+            publish_pose_xyz_xyzw(pose_publisher,time_now,  'map', pos_[0], pos_[1], pos_[2], quat_[0], quat_[1], quat_[2], quat_[3])
             print "------------------- published initialpose 330 ----------------------"
         except tf.Exception as err:
             print "some tf exception happened 330: {0}".format(err)
-               
+
     ori = req.visualFeature.pose.pose.orientation
     pos = req.visualFeature.pose.pose.position
 
@@ -553,7 +638,20 @@ def register_vision_source_callback(req_registerVisionSource):
     new_vision_source = VisionSource(req_registerVisionSource.vision_source_id,req_registerVisionSource.vision_source_base_url)
     vision_sources.append(new_vision_source)
     response = RegisterVisionSourceResponse()
-    response.acknowledgement = 'registered'
+    if  new_vision_source.vision_source_id in ['c10', 'c15']:
+        #   dummy frame for the camera: 1m up away from origin, same orientation - facing toward the lobby
+        #   fixed camera pose
+        response.acknowledgement = 'registered vos_id=%s x=1.9 y=-5.75 z=0.57 qx=0 qy=0 qz=0.70710678118654757 qw=0.70710678118654757'%(new_vision_source.vision_source_id)
+    elif new_vision_source.vision_source_id in ['c11', 'c12']:
+        #   dummy frame for the camera: 1m up away from origin, facing right - toward S1165
+        #   fixed camera pose
+        response.acknowledgement = 'registered vos_id=%s x=1.9 y=-5.75 z=0.57 qx=0 qy=0 qz=0 qw=1'%(new_vision_source.vision_source_id)
+    elif new_vision_source.vision_source_id in ['c20', 'c21']:
+        #   dummy frame for the camera: 1m up away from origin, facing 45 degrees right - toward corner of Michael's office
+        #   fixed camera pose
+        response.acknowledgement = 'registered vos_id=%s x=1.9 y=-5.75 z=0.57 qx=0 qy=0 qz=0.383 qw=0.92374834235304581'%(new_vision_source.vision_source_id)
+    else:
+        response.acknowledgement = 'registered'
     rospy.loginfo('register_vision_source_callback: registered vision source %s with base URL %s',new_vision_source.vision_source_id, new_vision_source.base_url)
     print vision_sources
     return response
@@ -721,9 +819,9 @@ def publish_pose_xyz_xyzw(pose_publisher,time_now, id_, x, y, z, qx, qy, qz, qw)
     pose.header.frame_id = id_
     pose.pose = Pose(Point(x, y, z), Quaternion(qx, qy, qz, qw))
     pose_publisher.publish(pose)
-    
+
 # id_ is the frame that this pose is relative to: e.g. if this pose is relative to the map, use "map"
-def publish_pose_xyz_xyzw_covar(initialpose_poseWCS_publisher,time_now, id_, x, y, z, qx, qy, qz, qw, covariance_):
+def publish_pose_xyz_xyzw_covar(initialpose_poseWCS_publisher, fakelocalisation_poseWCS_publisher, time_now, id_, x, y, z, qx, qy, qz, qw, covariance_):
     # next, we'll publish the pose message over ROS
     poseWCS = PoseWithCovarianceStamped()
     poseWCS.header.stamp = time_now
@@ -731,6 +829,19 @@ def publish_pose_xyz_xyzw_covar(initialpose_poseWCS_publisher,time_now, id_, x, 
     poseWCS.pose.pose = Pose(Point(x, y, z), Quaternion(qx, qy, qz, qw))
     poseWCS.pose.covariance = covariance_
     initialpose_poseWCS_publisher.publish(poseWCS)
+    
+    poseWC = PoseWithCovariance()
+    poseWC.pose = Pose(Point(x, y, z), Quaternion(qx, qy, qz, qw))
+    poseWC.covariance = covariance_
+    twistWC = TwistWithCovariance()
+    twistWC.twist = Twist(Vector3(0.0,0.0,0.0),Vector3(0.0,0.0,0.0))
+    twistWC.covariance = covariance_
+    odom = Odometry()
+    odom.header.stamp = time_now
+    odom.header.frame_id = id_
+    odom.pose = poseWC
+    odom.twist = twistWC
+    fakelocalisation_poseWCS_publisher.publish(odom)
 
 
 
@@ -767,10 +878,17 @@ def detect_feature_server():
     pose_publisher = rospy.Publisher("poses_from_requests", PoseStamped, queue_size=50)
     print "Ready to publish poses"
     rospy.loginfo("Ready to publish poses")
+    
     global initialpose_poseWCS_publisher
     initialpose_poseWCS_publisher = rospy.Publisher("/initialpose", PoseWithCovarianceStamped, queue_size=50, latch=True)  # latch to make sure that AMCL has an intitial pose to use
     print "Ready to publish poses with covariance"
     rospy.loginfo("Ready to publish poses with covariance")
+    
+    global fakelocalisation_poseWCS_publisher
+    fakelocalisation_poseWCS_publisher = rospy.Publisher("/base_pose_ground_truth", Odometry, queue_size=50, latch=True)  # latch to make sure that AMCL has an intitial pose to use
+    print "Ready to publish /base_pose_ground_truth for fake_localization"
+    rospy.loginfo( "Ready to publish /base_pose_ground_truth for fake_localization" )
+    
 
     tfBroadcaster = tf.TransformBroadcaster()
     set_tfBroadcaster(tfBroadcaster)
@@ -784,6 +902,16 @@ def detect_feature_server():
     print "Done: publish_map_to_vos_base_frame_tf"
     publish_fixed_tags_tf(tfBroadcaster, time_now)
     print "Done: publish_fixed_tags_tf"
+    
+    
+    # monitoring
+    global detection_true_monitoring_publisher
+    detection_true_monitoring_publisher = rospy.Publisher("/monitoring/detections_true", std_msgs.msg.String, queue_size=2, latch=True)
+    print "Ready to publish /monitoring/detections_true for monitoring true detections"
+    
+    global detection_false_monitoring_publisher
+    detection_false_monitoring_publisher = rospy.Publisher("/monitoring/detections_false", std_msgs.msg.String, queue_size=2, latch=True)
+    print "Ready to publish /monitoring/detections_false for monitoring false detections"
 
     rospy.spin()
 
@@ -814,7 +942,7 @@ if __name__ == "__main__":
 #     # t55_from_dum_c2_negz
 #     tfBroadcaster.sendTransform(
 #         (0.0, 0.0, 0.0),
-#         ( 0.0, 0.0, -0.7071, 0.7071 ), #  http://www.euclideanspace.com/maths/geometry/rotations/conversions/eulerToQuaternion/steps/index.htm
+#         ( 0.0, 0.0, -0.70710678118654757, 0.70710678118654757 ), #  http://www.euclideanspace.com/maths/geometry/rotations/conversions/eulerToQuaternion/steps/index.htm
 #         time_now,
 #         t55_transrot_from_dum_c2 + 'negz' ,  # to
 #         t55_transrot_from_dum_c2 )        # from
@@ -823,7 +951,7 @@ if __name__ == "__main__":
 #     # t55_from_dum_c2_negznegy
 #     tfBroadcaster.sendTransform(
 #         (0.0, 0.0, 0.0),
-#         ( 0.0, -0.7071, 0.0, 0.7071 ), #  http://www.euclideanspace.com/maths/geometry/rotations/conversions/eulerToQuaternion/steps/index.htm
+#         ( 0.0, -0.70710678118654757, 0.0, 0.70710678118654757 ), #  http://www.euclideanspace.com/maths/geometry/rotations/conversions/eulerToQuaternion/steps/index.htm
 #         time_now,
 #         t55_transrot_from_dum_c2 + 'negznegy' ,  # to
 #         t55_transrot_from_dum_c2 + 'negz' )        # from
@@ -841,7 +969,7 @@ if __name__ == "__main__":
 #     # t55_from_dum_c2_negzposx
 #     tfBroadcaster.sendTransform(
 #         (0.0, 0.0, 0.0),
-#         ( 0.7071, 0.0, 0.0, 0.7071 ), #  http://www.euclideanspace.com/maths/geometry/rotations/conversions/eulerToQuaternion/steps/index.htm
+#         ( 0.70710678118654757, 0.0, 0.0, 0.70710678118654757 ), #  http://www.euclideanspace.com/maths/geometry/rotations/conversions/eulerToQuaternion/steps/index.htm
 #         time_now,
 #         t55_transrot_from_dum_c2 + 'negzposx' ,  # to
 #         t55_transrot_from_dum_c2 + 'negz' )        # from
@@ -905,7 +1033,7 @@ if __name__ == "__main__":
 #     # create the robot-convention camera body frame, step 1 : +90Y
 #     tfBroadcaster.sendTransform(
 #         (0.0, 0.0, 0.0),
-#         ( 0.0, 0.7071, 0.0, 0.7071 ), #  http://www.euclideanspace.com/maths/geometry/rotations/conversions/eulerToQuaternion/steps/index.htm
+#         ( 0.0, 0.70710678118654757, 0.0, 0.70710678118654757 ), #  http://www.euclideanspace.com/maths/geometry/rotations/conversions/eulerToQuaternion/steps/index.htm
 #         time_now,
 #         req.cameraPose.header.frame_id + 'y' ,  # to
 #         req.cameraPose.header.frame_id )        # from
@@ -913,7 +1041,7 @@ if __name__ == "__main__":
 #     # create the robot-convention camera body frame, step 2 : +90Z
 #     tfBroadcaster.sendTransform(
 #         (0.0, 0.0, 0.0),
-#         ( 0.0, 0.0, 0.7071, 0.7071 ), #  http://www.euclideanspace.com/maths/geometry/rotations/conversions/eulerToQuaternion/steps/index.htm
+#         ( 0.0, 0.0, 0.70710678118654757, 0.70710678118654757 ), #  http://www.euclideanspace.com/maths/geometry/rotations/conversions/eulerToQuaternion/steps/index.htm
 #         time_now,
 #         req.cameraPose.header.frame_id + 'yz' ,  # to
 #         req.cameraPose.header.frame_id + 'y' )        # from
