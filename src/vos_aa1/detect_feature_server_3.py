@@ -13,6 +13,7 @@ import threading
 from pprint import pprint
 import std_msgs
 import time
+import threading
 
 import load_properties
 
@@ -30,6 +31,12 @@ from vos_aa1.srv import LocaliseFromAFeatureResponse
 from vos_aa1.srv import RegisterVisionSource
 from vos_aa1.srv import RegisterVisionSourceRequest
 from vos_aa1.srv import RegisterVisionSourceResponse
+from vos_aa1.srv import there_is_alg_desc
+from vos_aa1.srv import there_is_alg_descRequest
+from vos_aa1.srv import there_is_alg_descResponse
+from vos_aa1.srv import where_is_alg_desc
+from vos_aa1.srv import where_is_alg_descRequest
+from vos_aa1.srv import where_is_alg_descResponse
 from vos_aa1.msg import VisualFeatureInWorld
 from vos_aa1.msg import VisualFeatureObservation
 
@@ -375,7 +382,7 @@ def detect_feature_callback(req):
          
 # end Fixed camera poses - square plus a diagonal
 
-# Fixed camera poses - two at 120 degrees: tripods back-to-back with feet touching
+# Fixed camera poses Configuration B - two at 120 degrees: tripods back-to-back with feet touching
 
 # toward Michael's office/S1125
     if c2 in ['c60']:
@@ -845,8 +852,13 @@ def publish_pose_xyz_xyzw_covar(initialpose_poseWCS_publisher, fakelocalisation_
 
 
 
-def detect_feature_server():
+def detect_feature_server1():
+    print "---------- detect_feature_server1(): start ----------"
     rospy.init_node('detect_feature_server')
+    print "---------- detect_feature_server1(): end ----------"
+    
+def detect_feature_server2():
+    print "---------- detect_feature_server2(): start ----------"
 
 #######    write_fixed_tags_to_file("/tmp/fixed_tags")
 #######    load_fixed_tags_from_file("/tmp/fixed_tags")
@@ -913,12 +925,76 @@ def detect_feature_server():
     detection_false_monitoring_publisher = rospy.Publisher("/monitoring/detections_false", std_msgs.msg.String, queue_size=2, latch=True)
     print "Ready to publish /monitoring/detections_false for monitoring false detections"
 
-    rospy.spin()
+    print "---------- detect_feature_server2(): before rospy.spin() ----------"
+    
+    
+    # rospy.spin()  # spin() simply keeps python from exiting until this node is stopped  -  https://svn.jderobot.org/users/mmoya/tfm/trunk/jderobot_ros/scripts/camera_dumper  -  http://answers.ros.org/question/252545/interrupting-rospyspin-or-writing-a-custom-loop-that-does-the-equivalent/
+    
+    
+    print "---------- detect_feature_server2(): after rospy.spin() ----------"
 
+
+RETURN_URL_OF_ROBOT_AS_SERVICE_NAME = "robot/vos_whereis/return"
+
+def detect_feature_server3():
+    print "---------- start detect_feature_server3() ----------"
+    
+    connected_ = False
+    VOS_SERVER__WHERE_IS__SERVICE_NAME = "whereis"
+    C60__WHERE_IS__SERVICE_NAME = "/cam_60/where_is"      # TODO - from the registered cameras as necessary to service robot's requests 
+    
+    while not rospy.core.is_shutdown():
+        #  do stuff
+        if not connected_:
+            try:
+                rospy.wait_for_service(C60__WHERE_IS__SERVICE_NAME, 1.0)
+                try:
+                    pose_of_feature_from_base = Pose()
+                    pose_of_feature_from_base = Pose(Point(0.10, 0.18, 0.64), Quaternion(0, 0, 0.707106781, 0.707106781))  # NOTE: '*' means turn into a list of arguments or some such
+                    #        ( -0.10, 0-0.18, -0.64),                              # before right rot, step back --> right , tag box centre is 18cm rear of base_link (Pioneer2)
+                    #        (0, 0, -0.707106781, 0.707106781),                     # 330 is on the left side, so turn right to face forward
+                    request_id = "9000"
+                    whereis = rospy.ServiceProxy(C60__WHERE_IS__SERVICE_NAME, where_is_alg_desc)
+                    resp1 = whereis("BoofCV Binary", "width=14.0|id=330", request_id,
+                        pose_of_feature_from_base, RETURN_URL_OF_ROBOT_AS_SERVICE_NAME, rospy.Time.now(), 0, 0, 0)
+                    connected_ = True
+                    return resp1.result
+                except rospy.exceptions.ROSException, e:
+                    print "FAILED:  rospy.wait_for_service(VOS_SERVER__WHERE_IS__SERVICE_NAME, 1.0) failed: %s"%e 
+                except rospy.ServiceException, e:
+                    print "FAILED:  Service call failed: %s"%e
+            except rospy.exceptions.ROSException, e:
+                print "FAILED:  rospy.wait_for_service(VOS_SERVER__WHERE_IS__SERVICE_NAME, 1.0) failed: %s"%e                        
+            except rospy.ServiceException, e:
+                print "FAILED:  rospy.wait_for_service(VOS_SERVER__WHERE_IS__SERVICE_NAME, 1.0) failed: %s"%e
+                    
+        rospy.rostime.wallsleep(0.5)    
+    
+    print "---------- end detect_feature_server3() ----------"
+    
+    
+def keep_loop_open():       # http://answers.ros.org/question/252545/interrupting-rospyspin-or-writing-a-custom-loop-that-does-the-equivalent/
+    while not rospy.core.is_shutdown():
+        rospy.rostime.wallsleep(0.5)    
 
 
 if __name__ == "__main__":
-    detect_feature_server()
+    detect_feature_server1()
+    thread1 = threading.Thread(target = detect_feature_server2(), args=[])
+    thread2 = threading.Thread(target = detect_feature_server3(), args=[])
+    thread2.start()
+    print "---------- after thread2.start() ----------"
+    thread2.join()
+    print "---------- after thread2.join() ----------"
+    
+    thread1.start()
+    print "---------- after thread1.start() ----------"
+    
+    thread1.join()
+    print "---------- after thread1.join() ----------"
+    
+#    thread = Thread(target = threaded_function, args = (10, ))
+    
 
 
 
