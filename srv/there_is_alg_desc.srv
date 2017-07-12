@@ -1,0 +1,4 @@
+string                                      request_id      # id of the request provided by the Vision OS client in the where_is_alg_desc request
+geometry_msgs/PoseWithCovarianceStamped     pose            # the estimated location of the feature, or the base_frame if relation_to_base is not null
+---
+string                                      acknowledgment  # null, empty string, or 'OK' denote successful receipt of the request, other values denote some issue with handling the request.

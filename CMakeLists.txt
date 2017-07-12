@@ -65,6 +65,8 @@ add_service_files(
     FindItems.srv
     RegisterVisionSource.srv
     SetPose.srv
+    where_is_alg_desc.srv
+    there_is_alg_desc.srv
 )
 
 ## Generate actions in the 'action' folder
