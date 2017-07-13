@@ -34,6 +34,7 @@ from vos_aa1.srv import RegisterVisionSourceResponse
 from vos_aa1.srv import there_is_alg_desc
 from vos_aa1.srv import there_is_alg_descRequest
 from vos_aa1.srv import there_is_alg_descResponse
+from vos_aa1.msg import WhereIsAsPub
 from vos_aa1.srv import where_is_alg_desc
 from vos_aa1.srv import where_is_alg_descRequest
 from vos_aa1.srv import where_is_alg_descResponse
@@ -636,13 +637,26 @@ def axisMarker(marker_id_,parent_frame_id_):
 
 
 class VisionSource:
-    def __init__(self, vision_source_id_, base_url_):
+    def __init__(self, vision_source_id_, base_url_, publisher_topic_):
         self.vision_source_id = vision_source_id_
         self.base_url         = base_url_
+        self.publisher_topic  = publisher_topic_
 
+
+def setupPublisherForPhoneCamera(phone_camera_id_string_):  # problem with Android phones being able to serve ROS services: set up a pulisher from this 'Server', and set up a subscriber on the phone 
+    topic_name = "/phone_cam_communications/" + phone_camera_id_string_
+    new_publisher = rospy.Publisher(topic_name, WhereIsAsPub, queue_size=2, latch=True)
+    print "set up publisher for " + topic_name + " : problem with Android phones being able to serve ROS services: set up a pulisher from this 'Server', and set up a subscriber on the phone"
+    return new_publisher
+    
 
 def register_vision_source_callback(req_registerVisionSource):
-    new_vision_source = VisionSource(req_registerVisionSource.vision_source_id,req_registerVisionSource.vision_source_base_url)
+    print "start register_vision_source_callback(req_registerVisionSource)"
+    print "start register_vision_source_callback("+req_registerVisionSource.vision_source_base_url+")"
+    print "start register_vision_source_callback("+str(req_registerVisionSource.vision_source_base_url)+")"
+    print req_registerVisionSource.vision_source_base_url
+    phone_publisher = setupPublisherForPhoneCamera(req_registerVisionSource.vision_source_base_url)
+    new_vision_source = VisionSource(req_registerVisionSource.vision_source_id, req_registerVisionSource.vision_source_base_url, phone_publisher)
     vision_sources.append(new_vision_source)
     response = RegisterVisionSourceResponse()
     if  new_vision_source.vision_source_id in ['c10', 'c15']:
@@ -944,29 +958,29 @@ def detect_feature_server3():
     C60__WHERE_IS__SERVICE_NAME = "/cam_60/where_is"      # TODO - from the registered cameras as necessary to service robot's requests 
     
     while not rospy.core.is_shutdown():
-        #  do stuff
-        if not connected_:
-            try:
-                rospy.wait_for_service(C60__WHERE_IS__SERVICE_NAME, 1.0)
-                try:
-                    pose_of_feature_from_base = Pose()
-                    pose_of_feature_from_base = Pose(Point(0.10, 0.18, 0.64), Quaternion(0, 0, 0.707106781, 0.707106781))  # NOTE: '*' means turn into a list of arguments or some such
+        #  problem with ROSJava and setting up service server on the phones 
+#        if not connected_:
+#            try:
+#                rospy.wait_for_service(C60__WHERE_IS__SERVICE_NAME, 1.0)
+#                try:
+#                    pose_of_feature_from_base = Pose()
+#                    pose_of_feature_from_base = Pose(Point(0.10, 0.18, 0.64), Quaternion(0, 0, 0.707106781, 0.707106781))  # NOTE: '*' means turn into a list of arguments or some such
                     #        ( -0.10, 0-0.18, -0.64),                              # before right rot, step back --> right , tag box centre is 18cm rear of base_link (Pioneer2)
                     #        (0, 0, -0.707106781, 0.707106781),                     # 330 is on the left side, so turn right to face forward
-                    request_id = "9000"
-                    whereis = rospy.ServiceProxy(C60__WHERE_IS__SERVICE_NAME, where_is_alg_desc)
-                    resp1 = whereis("BoofCV Binary", "width=14.0|id=330", request_id,
-                        pose_of_feature_from_base, RETURN_URL_OF_ROBOT_AS_SERVICE_NAME, rospy.Time.now(), 0, 0, 0)
-                    connected_ = True
-                    return resp1.result
-                except rospy.exceptions.ROSException, e:
-                    print "FAILED:  rospy.wait_for_service(VOS_SERVER__WHERE_IS__SERVICE_NAME, 1.0) failed: %s"%e 
-                except rospy.ServiceException, e:
-                    print "FAILED:  Service call failed: %s"%e
-            except rospy.exceptions.ROSException, e:
-                print "FAILED:  rospy.wait_for_service(VOS_SERVER__WHERE_IS__SERVICE_NAME, 1.0) failed: %s"%e                        
-            except rospy.ServiceException, e:
-                print "FAILED:  rospy.wait_for_service(VOS_SERVER__WHERE_IS__SERVICE_NAME, 1.0) failed: %s"%e
+#                    request_id = "9000"
+#                    whereis = rospy.ServiceProxy(C60__WHERE_IS__SERVICE_NAME, where_is_alg_desc)
+#                    resp1 = whereis("BoofCV Binary", "width=14.0|id=330", request_id,
+#                        pose_of_feature_from_base, RETURN_URL_OF_ROBOT_AS_SERVICE_NAME, rospy.Time.now(), 0, 0, 0)
+#                    connected_ = True
+#                    return resp1.result
+#                except rospy.exceptions.ROSException, e:
+#                    print "FAILED:  rospy.wait_for_service(VOS_SERVER__WHERE_IS__SERVICE_NAME, 1.0) failed: %s"%e 
+#                except rospy.ServiceException, e:
+#                    print "FAILED:  Service call failed: %s"%e
+#            except rospy.exceptions.ROSException, e:
+#                print "FAILED:  rospy.wait_for_service(VOS_SERVER__WHERE_IS__SERVICE_NAME, 1.0) failed: %s"%e                        
+#            except rospy.ServiceException, e:
+#                print "FAILED:  rospy.wait_for_service(VOS_SERVER__WHERE_IS__SERVICE_NAME, 1.0) failed: %s"%e
                     
         rospy.rostime.wallsleep(0.5)    
     

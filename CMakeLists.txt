@@ -53,6 +53,7 @@ add_message_files(
   FILES
   VisualFeatureInWorld.msg
   VisualFeatureObservation.msg
+  WhereIsAsPub.msg
 )
 
 ## Generate services in the 'srv' folder
