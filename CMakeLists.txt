@@ -68,6 +68,7 @@ add_service_files(
     SetPose.srv
     where_is_alg_desc.srv
     there_is_alg_desc.srv
+    RobotTaskDemandManualManagement.srv
 )
 
 ## Generate actions in the 'action' folder
@@ -168,23 +169,26 @@ install(
 # add_library(vos_aa1
 #   src/${PROJECT_NAME}/vos_aa1.cpp
 # )
-
-## Add cmake target dependencies of the library
-## as an example, code may need to be generated before libraries
-## either from message generation or dynamic reconfigure
+  ## Add cmake target dependencies of the library - as an example, code may need to be generated before libraries - either from message generation or dynamic reconfigure
 # add_dependencies(vos_aa1 ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-
-## Declare a C++ executable
-# add_executable(vos_aa1_node src/vos_aa1_node.cpp)
-
-## Add cmake target dependencies of the executable
-## same as for the library above
-# add_dependencies(vos_aa1_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-
-## Specify libraries to link a library or executable target against
+  ## Specify libraries to link a library or executable target against
 # target_link_libraries(vos_aa1_node
 #   ${catkin_LIBRARIES}
 # )
+
+## Declare a C++ executable
+add_executable( RobotTaskDemandManager  src/RobotTaskDemandManager.cpp )
+## Specify libraries to link a library or executable target against
+target_link_libraries(RobotTaskDemandManager
+  ${catkin_LIBRARIES}
+)
+  ## Add cmake target dependencies of the executable
+add_dependencies(RobotTaskDemandManager
+  vos_aa1_gencpp                  # generate cpp ?? - see http://wiki.ros.org/ROS/Tutorials/WritingServiceClient%28c%2B%2B%29#roscpp_tutorials.2BAC8-Tutorials.2BAC8-WritingServiceClient.Writing_a_Service_Node
+  vos_aa1_generate_messages_cpp   # generation of messages, services, actions
+  ${${PROJECT_NAME}_EXPORTED_TARGETS}
+  ${catkin_EXPORTED_TARGETS}
+)
 
 #############
 ## Install ##
