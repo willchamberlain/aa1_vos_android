@@ -106,7 +106,7 @@ int main(int argc, char **argv)
       add_robot_taskDemand("330",1);  // find target tag once
     }
 
-    if(max_iterations_ > 0 && ( robot_model_iteration_ >= max_iterations_) || (target_model_iteration_ >= max_iterations_) ) { // cut off after enough calls to one model or another, rather than base iterations
+    if(max_iterations_ > 0 && ( robot_model_iteration_ >= max_iterations_ || target_model_iteration_ >= max_iterations_) ) { // cut off after enough calls to one model or another, rather than base iterations
       should_continue = false;
     }
 
