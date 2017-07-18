@@ -190,6 +190,21 @@ add_dependencies(RobotTaskDemandManager
   ${catkin_EXPORTED_TARGETS}
 )
 
+
+## Declare a C++ executable
+add_executable( RobotTaskDemandManagerPioneer2  src/RobotTaskDemandManagerPioneer2.cpp )
+## Specify libraries to link a library or executable target against
+target_link_libraries(RobotTaskDemandManagerPioneer2
+  ${catkin_LIBRARIES}
+)
+  ## Add cmake target dependencies of the executable
+add_dependencies(RobotTaskDemandManagerPioneer2
+  vos_aa1_gencpp                  # generate cpp ?? - see http://wiki.ros.org/ROS/Tutorials/WritingServiceClient%28c%2B%2B%29#roscpp_tutorials.2BAC8-Tutorials.2BAC8-WritingServiceClient.Writing_a_Service_Node
+  vos_aa1_generate_messages_cpp   # generation of messages, services, actions
+  ${${PROJECT_NAME}_EXPORTED_TARGETS}
+  ${catkin_EXPORTED_TARGETS}
+)
+
 #############
 ## Install ##
 #############

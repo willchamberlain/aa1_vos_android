@@ -605,7 +605,7 @@ def detect_feature_callback(req):
             print "------------------- start check 210 as target ----------------------"
             tfListener.waitForTransform('map',              t55_transrot_from_dum_c2_post90y180zneg90z,  rospy.Time(),  rospy.Duration(1))
             pos_, quat_ = tfListener.lookupTransform('map', t55_transrot_from_dum_c2_post90y180zneg90z,  rospy.Time(0)  )
-            if abs(tag_210_target_pose.pose.position.x - pos_[0]) > 0.2  or  abs(tag_210_target_pose.pose.position.y - pos_[1]) > 0.2 : 
+            if abs(tag_210_target_pose.position.x - pos_[0]) > 0.2  or  abs(tag_210_target_pose.position.y - pos_[1]) > 0.2 :
                 tag_210_target_pose.position.x = pos_[0]
                 tag_210_target_pose.position.y = pos_[1]    
                 publish_pose_xyz_xyzw(tag_210_target_publisher,time_now,  'map', pos_[0], pos_[1], 0.0, quat_[0], quat_[1], 0-quat_[2], quat_[3])  # NOTE: z is zero for ground robots, qz is negated to make it run up against the tag
@@ -949,7 +949,7 @@ def detect_feature_server2():
     rospy.loginfo("Ready to publish poses")
     
     global tag_210_target_publisher
-    pose_publisher = rospy.Publisher("/move_base_simple/goal", PoseStamped, queue_size=1)
+    tag_210_target_publisher = rospy.Publisher("/move_base_simple/goal", PoseStamped, queue_size=1)
     #pose_publisher = rospy.Publisher("/move_base/goal", move_base_msgs.MoveBaseActionGoal, queue_size=1)
     print "Ready to publish tag 210 as target poses"
     rospy.loginfo("Ready to publish tag 210 as target poses")
