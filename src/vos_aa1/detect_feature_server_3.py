@@ -154,6 +154,8 @@ where_is_server = 1
 
 
 # monitoring
+management_subscriber = 1
+retarget_requested = False
 detection_true_monitoring_publisher = 1
 detection_false_monitoring_publisher = 1
 
@@ -605,10 +607,12 @@ def detect_feature_callback(req):
             print "------------------- start check 210 as target ----------------------"
             tfListener.waitForTransform('map',              t55_transrot_from_dum_c2_post90y180zneg90z,  rospy.Time(),  rospy.Duration(1))
             pos_, quat_ = tfListener.lookupTransform('map', t55_transrot_from_dum_c2_post90y180zneg90z,  rospy.Time(0)  )
-            if abs(tag_210_target_pose.position.x - pos_[0]) > 0.2  or  abs(tag_210_target_pose.position.y - pos_[1]) > 0.2 :
+            global retarget_requested
+            if retarget_requested or abs(tag_210_target_pose.position.x - pos_[0]) > 0.2  or  abs(tag_210_target_pose.position.y - pos_[1]) > 0.2 :
+                retarget_requested = False                # reset the flag
                 tag_210_target_pose.position.x = pos_[0]
                 tag_210_target_pose.position.y = pos_[1]    
-                publish_pose_xyz_xyzw(tag_210_target_publisher,time_now,  'map', pos_[0], pos_[1], 0.0, quat_[0], quat_[1], 0-quat_[2], quat_[3])  # NOTE: z is zero for ground robots, qz is negated to make it run up against the tag
+                publish_pose_xyz_xyzw(tag_210_target_publisher,time_now,  'map', pos_[0], pos_[1], 0.0, 0.0, 0.0, quat_[2], quat_[3])  # NOTE: z is zero for ground robots, and it likes zero roll and pitch  :  move_base.cpp "ROS_ERROR("Quaternion is invalid... for navigation the z-axis of the quaternion must be close to vertical.")"
                 print "------------------- 210 re-published as target ----------------------"                
             else :
                 print "------------------- 210 not changed enough to re-publish as target ----------------------"                
@@ -715,6 +719,12 @@ def register_vision_source_callback(req_registerVisionSource):
     print vision_sources
     return response
 
+
+def management_input(req_management):
+  if 're-target' in req_management.data:
+    print "management_input(%s): re-target"%(req_management)
+    global retarget_requested
+    retarget_requested = True   # set the flag
 
 
 
@@ -936,6 +946,13 @@ def detect_feature_server2():
     vision_source_registration_server = rospy.Service('/androidvosopencvros/register_vision_source',RegisterVisionSource,register_vision_source_callback)
     print "Ready to register vision sources"
     rospy.loginfo("Ready to register vision sources")
+
+    global management_subscriber
+    global retarget_requested
+    management_subscriber = rospy.Subscriber('/management',std_msgs.msg.String, management_input)
+    retarget_requested = False
+    print "Ready to accept management input"
+
     display_status_subscriber = rospy.Subscriber('/androidvosopencvros/display_status',std_msgs.msg.String, display_status_callback)
     print "Ready to display current status to console"
     rospy.loginfo("Ready to display current status to console")
