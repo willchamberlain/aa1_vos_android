@@ -223,14 +223,14 @@ def localise_from_a_feature_callback(req):
     time_now = rospy.Time.now()
     response = LocaliseFromAFeatureResponse()
     print "----------------------------------------------"
-    print "localise_from_a_feature_callback: "
+    print "localise_from_a_feature_callback: %d"%(req.visualFeature.id)
     cN = req.visualFeature.pose.header.frame_id
     visual_feature_descriptor = req.visualFeature.id
 
     #  1) set up the tf names to use as variables
     #  2) use those variables to pull the tfs and respond to the camera self-localisation request
-    for x in fixed_features:
-        print '---- fixed_feature exists with id "',x.id,'"'
+    #    for x in fixed_features:
+    #        print '---- fixed_feature exists with id "',x.id,'"'
 
     if any( x.id == visual_feature_descriptor or str(x.id) == str(visual_feature_descriptor) for x in fixed_features):
         print '---- localise_from_a_feature_callback: fixed feature "',x,'" matches descriptor "',visual_feature_descriptor,'"'
@@ -302,7 +302,7 @@ def distribute_to_visionsources(return_url_,visual_feature_descriptor_,fov_):
 
 
 def where_is_callback(request):
-  print "where_is_callback: algorithm=%s, descriptor=%s, rate=%d"%(request.algorithm,request.descriptor,request.rate)
+  # print "where_is_callback: algorithm=%s, descriptor=%s, rate=%d"%(request.algorithm,request.descriptor,request.rate)
 
   for vision_source in vision_sources:
     whereIsAsPub = WhereIsAsPub()
@@ -612,7 +612,7 @@ def detect_feature_callback(req):
                 retarget_requested = False                # reset the flag
                 tag_210_target_pose.position.x = pos_[0]
                 tag_210_target_pose.position.y = pos_[1]    
-                publish_pose_xyz_xyzw(tag_210_target_publisher,time_now,  'map', pos_[0], pos_[1], 0.0, 0.0, 0.0, quat_[2], quat_[3])  # NOTE: z is zero for ground robots, and it likes zero roll and pitch  :  move_base.cpp "ROS_ERROR("Quaternion is invalid... for navigation the z-axis of the quaternion must be close to vertical.")"
+                publish_pose_xyz_xyzw(tag_210_target_publisher,time_now,  'map', pos_[0], pos_[1], 0.0, 0.0, 0.0, 0.0-quat_[2], quat_[3])  # NOTE: z is zero for ground robots, and it likes zero roll and pitch  :  move_base.cpp "ROS_ERROR("Quaternion is invalid... for navigation the z-axis of the quaternion must be close to vertical.")"
                 print "------------------- 210 re-published as target ----------------------"                
             else :
                 print "------------------- 210 not changed enough to re-publish as target ----------------------"                
