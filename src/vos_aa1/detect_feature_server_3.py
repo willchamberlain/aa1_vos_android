@@ -430,6 +430,39 @@ def detect_feature_callback(req):
             time_now,
             dum_c2,                         # to
             'map')                          # from
+            
+    if c2 in ['c35']:
+        dum_c2 = "dum_%s"%(c2)
+        tfBroadcaster.sendTransform(
+            ( 1.28985595703, 2.43800625801,  0.979),    
+            (0.033861 , 0.152731 , -0.213782 , 0.964274),
+            time_now,
+            dum_c2,                         # to
+            'map')                          # from            
+    if c2 in ['c45']:
+        dum_c2 = "dum_%s"%(c2)
+        tfBroadcaster.sendTransform(
+            ( 1.28985595703, 2.33800625801,  0.979),    
+            (-0.089342 , 0.215681 , 0.372121 , 0.898346),
+            time_now,
+            dum_c2,                         # to
+            'map')                          # from            
+    if c2 in ['c30']:
+        dum_c2 = "dum_%s"%(c2)
+        tfBroadcaster.sendTransform(
+            (1.28985595703, 2.33800625801-0.689+0.1,  0.56),    
+            (0,     0,      -0.382392469,   0.924),
+            time_now,
+            dum_c2,                         # to
+            'map')                          # from            
+    if c2 in ['c40']:
+        dum_c2 = "dum_%s"%(c2)
+        tfBroadcaster.sendTransform(
+            (1.28985595703, 2.33800625801-0.689,  0.56),    
+            (0,     0,      -0.707106781,   0.707106781),
+            time_now,
+            dum_c2,                         # to
+            'map')                          # from
 
 # end Fixed camera poses - two at 120 degrees: tripods back-to-back with feet touching
 
@@ -612,7 +645,7 @@ def detect_feature_callback(req):
                 retarget_requested = False                # reset the flag
                 tag_210_target_pose.position.x = pos_[0]
                 tag_210_target_pose.position.y = pos_[1]    
-                publish_pose_xyz_xyzw(tag_210_target_publisher,time_now,  'map', pos_[0], pos_[1], 0.0, 0.0, 0.0, 0.0-quat_[2], quat_[3])  # NOTE: z is zero for ground robots, and it likes zero roll and pitch  :  move_base.cpp "ROS_ERROR("Quaternion is invalid... for navigation the z-axis of the quaternion must be close to vertical.")"
+                publish_pose_xyz_xyzw(tag_210_target_publisher,time_now,  'map', pos_[0], pos_[1], 0.0, 0.0, 0.0, quat_[2], quat_[3])  # NOTE: z is zero for ground robots, and it likes zero roll and pitch  :  move_base.cpp "ROS_ERROR("Quaternion is invalid... for navigation the z-axis of the quaternion must be close to vertical.")"
                 print "------------------- 210 re-published as target ----------------------"                
             else :
                 print "------------------- 210 not changed enough to re-publish as target ----------------------"                
