@@ -47,6 +47,8 @@ algorithm_abreviations = {'AprilTags_Kaess_36h11':'t'}
 
 #
 fixed_features = []
+robotPoseHistory = []
+targetPoseHistory = []
 
 # tag_55 = VisualFeatureInWorld()
 # tag_55.algorithm = 'AprilTags_Kaess_36h11'
@@ -74,18 +76,18 @@ fixed_features = []
 # fixed_features.append(tag_32)
 
 # "2|-0.5|-3|1.15|0|0|-0.70710678118654757|0.70710678118654757"
-tag_2 = VisualFeatureInWorld()
-tag_2.algorithm = 'AprilTags_Kaess_36h11'
-tag_2.id = '2'
-tag_2.pose = Pose()
-tag_2.pose.position.x=-0.5
-tag_2.pose.position.y=-3
-tag_2.pose.position.z=1.15
-tag_2.pose.orientation.x=0
-tag_2.pose.orientation.y=0
-tag_2.pose.orientation.z=-0.707106781
-tag_2.pose.orientation.w=0.707106781
-fixed_features.append(tag_2)
+# tag_2 = VisualFeatureInWorld()
+# tag_2.algorithm = 'AprilTags_Kaess_36h11'
+# tag_2.id = '2'
+# tag_2.pose = Pose()
+# tag_2.pose.position.x=-0.5
+# tag_2.pose.position.y=-3
+# tag_2.pose.position.z=1.15
+# tag_2.pose.orientation.x=0
+# tag_2.pose.orientation.y=0
+# tag_2.pose.orientation.z=-0.707106781
+# tag_2.pose.orientation.w=0.707106781
+# fixed_features.append(tag_2)
 
 # tag_19 = VisualFeatureInWorld()
 # tag_19.algorithm = 'AprilTags_Kaess_36h11'
@@ -101,18 +103,18 @@ fixed_features.append(tag_2)
 # fixed_features.append(tag_19)
 
 # 0|2.5|-1.5|1.25|0|0|-0.707106781|0.707106781
-tag_0 = VisualFeatureInWorld()
-tag_0.algorithm = 'AprilTags_Kaess_36h11'
-tag_0.id = '0'
-tag_0.pose = Pose()
-tag_0.pose.position.x=2.5
-tag_0.pose.position.y=-1.5
-tag_0.pose.position.z=1.25
-tag_0.pose.orientation.x=0
-tag_0.pose.orientation.y=0
-tag_0.pose.orientation.z=-0.707106781
-tag_0.pose.orientation.w=0.707106781
-fixed_features.append(tag_0)
+# tag_0 = VisualFeatureInWorld()
+# tag_0.algorithm = 'AprilTags_Kaess_36h11'
+# tag_0.id = '0'
+# tag_0.pose = Pose()
+# tag_0.pose.position.x=2.5
+# tag_0.pose.position.y=-1.5
+# tag_0.pose.position.z=1.25
+# tag_0.pose.orientation.x=0
+# tag_0.pose.orientation.y=0
+# tag_0.pose.orientation.z=-0.707106781
+# tag_0.pose.orientation.w=0.707106781
+# fixed_features.append(tag_0)
 
 tag_210 = VisualFeatureInWorld()
 tag_210.algorithm = 'AprilTags_Kaess_36h11'
@@ -127,10 +129,25 @@ tag_210.pose.orientation.z=-0.619
 tag_210.pose.orientation.w=0.785390985
 fixed_features.append(tag_210)
 
+ #tag_1650 = VisualFeatureInWorld()
+ #tag_1650.algorithm = 'AprilTags_Kaess_36h11'
+ #tag_1650.id = '901650'
+ #tag_1650.pose = Pose()
+ #tag_1650.pose.position.x=2.86400270462
+ #tag_1650.pose.position.y=-7.83424139023
+ #tag_1650.pose.position.z=1.000
+ #tag_1650.pose.orientation.x=0
+ #tag_1650.pose.orientation.y=0
+ #tag_1650.pose.orientation.z=-0.707106781
+ #tag_1650.pose.orientation.w=0.707106781
+ #fixed_features.append(tag_1650)
+
+
+
 # features_present = (0,2,3,9)
 # features_present = (170, 210, 250, 290, 330, 370, 410, 450, 490, 530, 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59)
 # features_present = (210, 1210, 2210, 3210, 4210, 5210, 6210, 7210, 8210, 9210, 10210,   22210)
-features_present = ( 9170 , 9250 , 9290 , 9330 , -9000 , 9555 , 9210  )
+features_present = ( 90170 , 90250 , 90290 , 90330 , -90000 , 90555 , 90210 , 91610 , 91690 , 91730 , 91650 )
 
 tag_210_target_publisher    = 1
 tag_210_target_pose = Pose()
@@ -233,7 +250,7 @@ def localise_from_a_feature_callback(req):
     #        print '---- fixed_feature exists with id "',x.id,'"'
 
     if any( x.id == visual_feature_descriptor or str(x.id) == str(visual_feature_descriptor) for x in fixed_features):
-        print '---- localise_from_a_feature_callback: fixed feature "',x,'" matches descriptor "',visual_feature_descriptor,'"'
+        print '---- localise_from_a_feature_callback: fixed feature "',req.visualFeature.id,'" matches descriptor "',visual_feature_descriptor,'"'
         tag_same_fixed = '%s%s'%(algorithm_abreviations[req.visualFeature.algorithm], req.visualFeature.id)
         c2_from_fixed_t55 = '%s_from_fixed_%s'%(cN,tag_same_fixed)
         try:
@@ -328,15 +345,19 @@ def detect_feature_callback(req):
     # print '  feature frame_id : %s_%s%s' % (req.cameraPose.header.frame_id, algorithm_abreviations[req.visualFeature.algorithm], req.visualFeature.id)
     # print "  feature translation [%.4f,%.4f,%.4f] : "%(req.visualFeature.pose.pose.position.x, req.visualFeature.pose.pose.position.y, req.visualFeature.pose.pose.position.z)
     # print "  feature orientation (quaternion) [%.4f,%.4f,%.4f,%.4f] "%(req.visualFeature.pose.pose.orientation.x, req.visualFeature.pose.pose.orientation.y, req.visualFeature.pose.pose.orientation.z, req.visualFeature.pose.pose.orientation.w)
+    global robotPoseHistory
+    global targetPoseHistory
 
     cN = req.cameraPose.header.frame_id
 
     if req.visualFeature.id not in features_present:
-        print "detect_feature_callback: camera frame_id [%s] : feature id [%d] : feature is not present - is a false positive - not listing as a detection."%(req.cameraPose.header.frame_id, req.visualFeature.id)        
+        print "detect_feature_callback: camera frame_id [%s] : feature id [%d] : feature is not present - is a false positive - not listing as a detection."%(req.cameraPose.header.frame_id, req.visualFeature.id)
         detection_false_monitoring_publisher.publish("False detection: camera frame_id [%s] : feature id [%d]")
         response = DetectedFeatureResponse()
         response.acknowledgement="feature not present"
-        return response        
+        return response
+    else:
+        print "detect_feature_callback: camera frame_id [%s] : feature id [%d] : feature is present - is a true positive - listing as a detection."%(req.cameraPose.header.frame_id, req.visualFeature.id)
 
     detection_true_monitoring_publisher.publish("True detection: camera frame_id [%s] : feature id [%d]")
 
@@ -407,7 +428,7 @@ def detect_feature_callback(req):
             time_now,
             dum_c2,                         # to
             'map')                          # from
-         
+
 # end Fixed camera poses - square plus a diagonal
 
 # Fixed camera poses Configuration B - two at 120 degrees: tripods back-to-back with feet touching
@@ -425,41 +446,58 @@ def detect_feature_callback(req):
     if c2 in ['c70']:
         dum_c2 = "dum_%s"%(c2)
         tfBroadcaster.sendTransform(
-            (1.85, -5.95, 0.74),    
+            (1.85, -5.95, 0.74),
             (0, 0, 0.609, 0.793170221),
             time_now,
             dum_c2,                         # to
             'map')                          # from
-            
+
     if c2 in ['c35']:
         dum_c2 = "dum_%s"%(c2)
         tfBroadcaster.sendTransform(
-            ( 1.28985595703, 2.43800625801,  0.979),    
+            ( 1.28985595703, 2.43800625801,  0.979),
             (0.033861 , 0.152731 , -0.213782 , 0.964274),
             time_now,
             dum_c2,                         # to
-            'map')                          # from            
+            'map')                          # from
     if c2 in ['c45']:
         dum_c2 = "dum_%s"%(c2)
         tfBroadcaster.sendTransform(
-            ( 1.28985595703, 2.33800625801,  0.979),    
+            ( 1.28985595703, 2.33800625801,  0.979),
             (-0.089342 , 0.215681 , 0.372121 , 0.898346),
             time_now,
             dum_c2,                         # to
-            'map')                          # from            
+            'map')                          # from
     if c2 in ['c30']:
         dum_c2 = "dum_%s"%(c2)
         tfBroadcaster.sendTransform(
-            (1.28985595703, 2.33800625801-0.689+0.1,  0.56),    
+            (1.28985595703, 2.33800625801-0.689+0.1,  0.56),
             (0,     0,      -0.382392469,   0.924),
             time_now,
             dum_c2,                         # to
-            'map')                          # from            
+            'map')                          # from
     if c2 in ['c40']:
         dum_c2 = "dum_%s"%(c2)
         tfBroadcaster.sendTransform(
-            (1.28985595703, 2.33800625801-0.689,  0.56),    
+            (1.28985595703, 2.33800625801-0.689,  0.56),
             (0,     0,      -0.707106781,   0.707106781),
+            time_now,
+            dum_c2,                         # to
+            'map')                          # from
+            
+    if c2 in ['c100']:                      # VOS check Nexus 6 accuracy - Nexus 6
+        dum_c2 = "dum_%s"%(c2)
+        tfBroadcaster.sendTransform(
+            (2.74980449677, -9.07514190674,  0.88 ),
+            (0,     0,      0,   1),
+            time_now,
+            dum_c2,                         # to
+            'map')                          # from
+    if c2 in ['c110']:                      # VOS check Nexus 6 accuracy - Samsung Galaxy 3
+        dum_c2 = "dum_%s"%(c2)
+        tfBroadcaster.sendTransform(
+            (2.84980449677, -9.07514190674,  0.84 ),
+            (0,     0,      0,   1),
             time_now,
             dum_c2,                         # to
             'map')                          # from
@@ -559,9 +597,11 @@ def detect_feature_callback(req):
         t55_transrot_from_dum_c2_post90y180zneg90z,
         t55_transrot_from_dum_c2_post90y180z)
 
+
+
     #  TODO - load from file with load_properties or jsonpickle, and also move into the robot's request
     #  ROBOT VISUAL MODEL / robot model if 't9250'==t55:
-    if 't9170'==t55:
+    if 't90170'==t55:
         t55_transrot_from_dum_c2_robot_pose_170 = "dum_%s_trans_rot_to_%s_robot_pose_170"%(c2,t55)
         tfBroadcaster.sendTransform(
             # pioneer - the tall one ( -0.12, 0, -0.76),                             # before rot, step back --> forward
@@ -572,16 +612,17 @@ def detect_feature_callback(req):
             t55_transrot_from_dum_c2_post90y180zneg90z)
 #        tfListener.waitForTransform('map', t55_transrot_from_dum_c2_robot_pose_250, rospy.Time(), rospy.Duration(0))      # from the map origin, to the robot
         try:  #  TODO - produce a unified pose estimate from this set of observations of this robot model, on the phone side - in this case average the quaternions, see https://stackoverflow.com/questions/12374087/average-of-multiple-quaternions
-            print "------------------- start publish initialpose 250 ----------------------"
+            print "------------------- start publish initialpose 170 ----------------------"
             tfListener.waitForTransform('map', t55_transrot_from_dum_c2_robot_pose_170, rospy.Time(), rospy.Duration(1))
             pos_, quat_ = tfListener.lookupTransform('map', t55_transrot_from_dum_c2_robot_pose_170,  rospy.Time(0))
             publish_pose_xyz_xyzw_covar(initialpose_poseWCS_publisher, fakelocalisation_poseWCS_publisher, time_now, 'map', pos_[0], pos_[1], pos_[2], quat_[0], quat_[1], quat_[2], quat_[3], [0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.06853891945200942])
             publish_pose_xyz_xyzw(pose_publisher,time_now,  'map', pos_[0], pos_[1], pos_[2], quat_[0], quat_[1], quat_[2], quat_[3])
-            
-            print "------------------- published initialpose 250 ----------------------"
+            robotPoseHistory.append([pos_[0], pos_[1]])
+
+            print "------------------- published initialpose 170 ----------------------"
         except tf.Exception as err:
-            print "some tf exception happened 250: {0}".format(err)
-    elif 't9250'==t55:
+            print "some tf exception happened 170: {0}".format(err)
+    elif 't90250'==t55:
         t55_transrot_from_dum_c2_robot_pose_250 = "dum_%s_trans_rot_to_%s_robot_pose_250"%(c2,t55)
         tfBroadcaster.sendTransform(
             # pioneer - the tall one ( -0.12, 0, -0.76),                             # before rot, step back --> forward
@@ -597,10 +638,11 @@ def detect_feature_callback(req):
             pos_, quat_ = tfListener.lookupTransform('map', t55_transrot_from_dum_c2_robot_pose_250,  rospy.Time(0))
             publish_pose_xyz_xyzw_covar(initialpose_poseWCS_publisher, fakelocalisation_poseWCS_publisher, time_now, 'map', pos_[0], pos_[1], pos_[2], quat_[0], quat_[1], quat_[2], quat_[3], [0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.06853891945200942])
             publish_pose_xyz_xyzw(pose_publisher,time_now,  'map', pos_[0], pos_[1], pos_[2], quat_[0], quat_[1], quat_[2], quat_[3])
+            robotPoseHistory.append([pos_[0], pos_[1]])
             print "------------------- published initialpose 250 ----------------------"
         except tf.Exception as err:
             print "some tf exception happened 250: {0}".format(err)
-    elif 't9290'==t55:
+    elif 't90290'==t55:
         t55_transrot_from_dum_c2_robot_pose_290 = "dum_%s_trans_rot_to_%s_robot_pose_290"%(c2,t55)
         tfBroadcaster.sendTransform(
             ( -0.10, 0-(-0.18), -0.64),                 # before left rot, step back --> left , tag box centre is 18cm rear of base_link (Pioneer2)
@@ -615,10 +657,11 @@ def detect_feature_callback(req):
             pos_, quat_ = tfListener.lookupTransform('map', t55_transrot_from_dum_c2_robot_pose_290,  rospy.Time(0))
             publish_pose_xyz_xyzw_covar(initialpose_poseWCS_publisher, fakelocalisation_poseWCS_publisher, time_now, 'map', pos_[0], pos_[1], pos_[2], quat_[0], quat_[1], quat_[2], quat_[3], [0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.06853891945200942])
             publish_pose_xyz_xyzw(pose_publisher,time_now,  'map', pos_[0], pos_[1], pos_[2], quat_[0], quat_[1], quat_[2], quat_[3])
+            robotPoseHistory.append([pos_[0], pos_[1]])
             print "------------------- published initialpose 290 ----------------------"
         except tf.Exception as err:
             print "some tf exception happened 290: {0}".format(err)
-    elif 't9330'==t55:
+    elif 't90330'==t55:
         t55_transrot_from_dum_c2_robot_pose_330 = "dum_%s_trans_rot_to_%s_robot_pose_330"%(c2,t55)
         tfBroadcaster.sendTransform(                     # robot pose, as estimated from the inverse of the base_link-to-tag-330 transform
             ( -0.10, 0-0.18, -0.64),                              # before right rot, step back --> right , tag box centre is 18cm rear of base_link (Pioneer2)
@@ -632,10 +675,11 @@ def detect_feature_callback(req):
             pos_, quat_ = tfListener.lookupTransform('map', t55_transrot_from_dum_c2_robot_pose_330,  rospy.Time(0))
             publish_pose_xyz_xyzw_covar(initialpose_poseWCS_publisher, fakelocalisation_poseWCS_publisher, time_now, 'map', pos_[0], pos_[1], pos_[2], quat_[0], quat_[1], quat_[2], quat_[3], [0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.06853891945200942])
             publish_pose_xyz_xyzw(pose_publisher,time_now,  'map', pos_[0], pos_[1], pos_[2], quat_[0], quat_[1], quat_[2], quat_[3])
+            robotPoseHistory.append([pos_[0], pos_[1]])
             print "------------------- published initialpose 330 ----------------------"
         except tf.Exception as err:
             print "some tf exception happened 330: {0}".format(err)
-    elif 't9210'==t55:                                  # tag 210 is the target tag : if it moves more than 20cm from last posn, publish an updated target 
+    elif 't90210'==t55:                                  # tag 210 is the target tag : if it moves more than 20cm from last posn, publish an updated target
         try:
             print "------------------- start check 210 as target ----------------------"
             tfListener.waitForTransform('map',              t55_transrot_from_dum_c2_post90y180zneg90z,  rospy.Time(),  rospy.Duration(1))
@@ -644,13 +688,32 @@ def detect_feature_callback(req):
             if retarget_requested or abs(tag_210_target_pose.position.x - pos_[0]) > 0.2  or  abs(tag_210_target_pose.position.y - pos_[1]) > 0.2 :
                 retarget_requested = False                # reset the flag
                 tag_210_target_pose.position.x = pos_[0]
-                tag_210_target_pose.position.y = pos_[1]    
+                tag_210_target_pose.position.y = pos_[1]
                 publish_pose_xyz_xyzw(tag_210_target_publisher,time_now,  'map', pos_[0], pos_[1], 0.0, 0.0, 0.0, quat_[2], quat_[3])  # NOTE: z is zero for ground robots, and it likes zero roll and pitch  :  move_base.cpp "ROS_ERROR("Quaternion is invalid... for navigation the z-axis of the quaternion must be close to vertical.")"
-                print "------------------- 210 re-published as target ----------------------"                
+                targetPoseHistory.append([pos_[0], pos_[1]])
+                print "------------------- 210 re-published as target ----------------------"
             else :
-                print "------------------- 210 not changed enough to re-publish as target ----------------------"                
+                print "------------------- 210 not changed enough to re-publish as target ----------------------"
         except tf.Exception as err:
-            print "some tf exception happened 210: {0}".format(err)        
+            print "some tf exception happened 210: {0}".format(err)
+    elif 't91650'==t55:
+        t55_transrot_from_dum_c2_robot_pose_1650 = "dum_%s_trans_rot_to_%s_robot_pose_1650"%(c2,t55)
+        tfBroadcaster.sendTransform(
+            ( 0.1, 0.0, 0.0),
+            (0, 0, 0, 1),                     
+            time_now,
+            t55_transrot_from_dum_c2_robot_pose_1650,
+            t55_transrot_from_dum_c2_post90y180zneg90z)
+        try:
+            print "------------------- start publish initialpose _dummy_ 1650 ----------------------"
+            tfListener.waitForTransform('map', t55_transrot_from_dum_c2_robot_pose_1650, rospy.Time(), rospy.Duration(1))
+            pos_, quat_ = tfListener.lookupTransform('map', t55_transrot_from_dum_c2_robot_pose_1650,  rospy.Time(0))
+            publish_pose_xyz_xyzw_covar(initialpose_poseWCS_publisher, fakelocalisation_poseWCS_publisher, time_now, 'map', pos_[0], pos_[1], pos_[2], quat_[0], quat_[1], quat_[2], quat_[3], [0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0])
+            publish_pose_xyz_xyzw(pose_publisher,time_now,  'map', pos_[0], pos_[1], pos_[2], quat_[0], quat_[1], quat_[2], quat_[3])
+            robotPoseHistory.append([pos_[0], pos_[1]])
+            print "------------------- published initialpose _dummy_ 1650 ----------------------"
+        except tf.Exception as err:
+            print "some tf exception happened 1650: {0}".format(err)
 
     ori = req.visualFeature.pose.pose.orientation
     pos = req.visualFeature.pose.pose.position
@@ -723,12 +786,15 @@ def phone_whereis_setupPublisherForPhoneCamera(phone_camera_id_string_):  # prob
     new_publisher = rospy.Publisher(topic_name, WhereIsAsPub, queue_size=2, latch=True)
     print "set up publisher for " + topic_name + " : problem with Android phones being able to serve ROS services: set up a pulisher from this 'Server', and set up a subscriber on the phone"
     return new_publisher
-    
+
 
 def register_vision_source_callback(req_registerVisionSource):
+    print "---------------------------------------------------------------------"
     print "start register_vision_source_callback(req_registerVisionSource)"
     print "start register_vision_source_callback("+req_registerVisionSource.vision_source_base_url+")"
     print "start register_vision_source_callback("+str(req_registerVisionSource.vision_source_base_url)+")"
+    print "registering vision source '%s'"%(req_registerVisionSource.vision_source_id)
+    print "---------------------------------------------------------------------"
     print req_registerVisionSource.vision_source_base_url
     publisher_to_phone = phone_whereis_setupPublisherForPhoneCamera(req_registerVisionSource.vision_source_base_url)
     new_vision_source = VisionSource(req_registerVisionSource.vision_source_id, req_registerVisionSource.vision_source_base_url, publisher_to_phone)
@@ -931,7 +997,7 @@ def publish_pose_xyz_xyzw_covar(initialpose_poseWCS_publisher, fakelocalisation_
     poseWCS.pose.pose = Pose(Point(x, y, z), Quaternion(qx, qy, qz, qw))
     poseWCS.pose.covariance = covariance_
     initialpose_poseWCS_publisher.publish(poseWCS)
-    
+
     poseWC = PoseWithCovariance()
     poseWC.pose = Pose(Point(x, y, z), Quaternion(qx, qy, qz, qw))
     poseWC.covariance = covariance_
@@ -951,7 +1017,7 @@ def detect_feature_server1():
     print "---------- detect_feature_server1(): start ----------"
     rospy.init_node('detect_feature_server')
     print "---------- detect_feature_server1(): end ----------"
-    
+
 def detect_feature_server2():
     print "---------- detect_feature_server2(): start ----------"
 
@@ -997,23 +1063,23 @@ def detect_feature_server2():
     pose_publisher = rospy.Publisher("poses_from_requests", PoseStamped, queue_size=50)
     print "Ready to publish poses"
     rospy.loginfo("Ready to publish poses")
-    
+
     global tag_210_target_publisher
     tag_210_target_publisher = rospy.Publisher("/move_base_simple/goal", PoseStamped, queue_size=1)
     #pose_publisher = rospy.Publisher("/move_base/goal", move_base_msgs.MoveBaseActionGoal, queue_size=1)
     print "Ready to publish tag 210 as target poses"
     rospy.loginfo("Ready to publish tag 210 as target poses")
-    
+
     global initialpose_poseWCS_publisher
     initialpose_poseWCS_publisher = rospy.Publisher("/initialpose", PoseWithCovarianceStamped, queue_size=50, latch=True)  # latch to make sure that AMCL has an intitial pose to use
     print "Ready to publish poses with covariance"
     rospy.loginfo("Ready to publish poses with covariance")
-    
+
     global fakelocalisation_poseWCS_publisher
     fakelocalisation_poseWCS_publisher = rospy.Publisher("/base_pose_ground_truth", Odometry, queue_size=50, latch=True)  # latch to make sure that AMCL has an intitial pose to use
     print "Ready to publish /base_pose_ground_truth for fake_localization"
     rospy.loginfo( "Ready to publish /base_pose_ground_truth for fake_localization" )
-    
+
 
     tfBroadcaster = tf.TransformBroadcaster()
     set_tfBroadcaster(tfBroadcaster)
@@ -1027,27 +1093,27 @@ def detect_feature_server2():
     print "Done: publish_map_to_vos_base_frame_tf"
     publish_fixed_tags_tf(tfBroadcaster, time_now)
     print "Done: publish_fixed_tags_tf"
-    
+
 
     # VosServer internal interfaces to other nodes of VosServer
 #    global list_vision_sources_publisher
 #    list_vision_sources_publisher = rospy.Publisher();
-    
+
     # monitoring
     global detection_true_monitoring_publisher
     detection_true_monitoring_publisher = rospy.Publisher("/monitoring/detections_true", std_msgs.msg.String, queue_size=2, latch=True)
     print "Ready to publish /monitoring/detections_true for monitoring true detections"
-    
+
     global detection_false_monitoring_publisher
     detection_false_monitoring_publisher = rospy.Publisher("/monitoring/detections_false", std_msgs.msg.String, queue_size=2, latch=True)
     print "Ready to publish /monitoring/detections_false for monitoring false detections"
 
     print "---------- detect_feature_server2(): before rospy.spin() ----------"
-    
-    
+
+
     # rospy.spin()  # spin() simply keeps python from exiting until this node is stopped  -  https://svn.jderobot.org/users/mmoya/tfm/trunk/jderobot_ros/scripts/camera_dumper  -  http://answers.ros.org/question/252545/interrupting-rospyspin-or-writing-a-custom-loop-that-does-the-equivalent/
-    
-    
+
+
     print "---------- detect_feature_server2(): after rospy.spin() ----------"
 
 
@@ -1055,13 +1121,13 @@ RETURN_URL_OF_ROBOT_AS_SERVICE_NAME = "robot/vos_whereis/return"
 
 def detect_feature_server3():
     print "---------- start detect_feature_server3() ----------"
-    
+
     connected_ = False
     VOS_SERVER__WHERE_IS__SERVICE_NAME = "whereis"
-    C60__WHERE_IS__SERVICE_NAME = "/cam_60/where_is"      # TODO - from the registered cameras as necessary to service robot's requests 
-    
+    C60__WHERE_IS__SERVICE_NAME = "/cam_60/where_is"      # TODO - from the registered cameras as necessary to service robot's requests
+
     while not rospy.core.is_shutdown():
-        #  problem with ROSJava and setting up service server on the phones 
+        #  problem with ROSJava and setting up service server on the phones
 #        if not connected_:
 #            try:
 #                rospy.wait_for_service(C60__WHERE_IS__SERVICE_NAME, 1.0)
@@ -1077,22 +1143,22 @@ def detect_feature_server3():
 #                    connected_ = True
 #                    return resp1.result
 #                except rospy.exceptions.ROSException, e:
-#                    print "FAILED:  rospy.wait_for_service(VOS_SERVER__WHERE_IS__SERVICE_NAME, 1.0) failed: %s"%e 
+#                    print "FAILED:  rospy.wait_for_service(VOS_SERVER__WHERE_IS__SERVICE_NAME, 1.0) failed: %s"%e
 #                except rospy.ServiceException, e:
 #                    print "FAILED:  Service call failed: %s"%e
 #            except rospy.exceptions.ROSException, e:
-#                print "FAILED:  rospy.wait_for_service(VOS_SERVER__WHERE_IS__SERVICE_NAME, 1.0) failed: %s"%e                        
+#                print "FAILED:  rospy.wait_for_service(VOS_SERVER__WHERE_IS__SERVICE_NAME, 1.0) failed: %s"%e
 #            except rospy.ServiceException, e:
 #                print "FAILED:  rospy.wait_for_service(VOS_SERVER__WHERE_IS__SERVICE_NAME, 1.0) failed: %s"%e
-                    
-        rospy.rostime.wallsleep(0.5)    
-    
+
+        rospy.rostime.wallsleep(0.5)
+
     print "---------- end detect_feature_server3() ----------"
-    
-    
+
+
 def keep_loop_open():       # http://answers.ros.org/question/252545/interrupting-rospyspin-or-writing-a-custom-loop-that-does-the-equivalent/
     while not rospy.core.is_shutdown():
-        rospy.rostime.wallsleep(0.5)    
+        rospy.rostime.wallsleep(0.5)
 
 
 if __name__ == "__main__":
@@ -1103,15 +1169,15 @@ if __name__ == "__main__":
     print "---------- after thread2.start() ----------"
     thread2.join()
     print "---------- after thread2.join() ----------"
-    
+
     thread1.start()
     print "---------- after thread1.start() ----------"
-    
+
     thread1.join()
     print "---------- after thread1.join() ----------"
-    
+
 #    thread = Thread(target = threaded_function, args = (10, ))
-    
+
 
 
 
