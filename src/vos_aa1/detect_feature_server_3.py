@@ -147,7 +147,7 @@ fixed_features.append(tag_210)
 # features_present = (0,2,3,9)
 # features_present = (170, 210, 250, 290, 330, 370, 410, 450, 490, 530, 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59)
 # features_present = (210, 1210, 2210, 3210, 4210, 5210, 6210, 7210, 8210, 9210, 10210,   22210)
-features_present = ( 90170 , 90250 , 90290 , 90330 , -90000 , 90555 , 90210 , 91610 , 91690 , 91730 , 91650 )
+features_present = ( 90170 , 90250 , 90290 , 90330 , -90000 , 90555 , 90210 , 91610 , 91690 , 91730 , 91650 , 90057 , 90157 , 90257 , 90357 , 90457 , 90557 )
 
 tag_210_target_publisher    = 1
 tag_210_target_pose = Pose()
@@ -489,18 +489,21 @@ def detect_feature_callback(req):
         dum_c2 = "dum_%s"%(c2)
         tfBroadcaster.sendTransform(
             (2.74980449677, -9.07514190674,  0.88 ),
-            (0,     0,      0,   1),
+            (0,     0,      0.707106781,   0.707106781),
             time_now,
             dum_c2,                         # to
             'map')                          # from
     if c2 in ['c110']:                      # VOS check Nexus 6 accuracy - Samsung Galaxy 3
+        cam_110_translation = (2.84980449677, -9.07514190674,  0.84 )
+        cam_110_rotation    = (0,     0,      0.707106781,   0.707106781)
+        cam_110_parent_frame = 'map'
         dum_c2 = "dum_%s"%(c2)
         tfBroadcaster.sendTransform(
-            (2.84980449677, -9.07514190674,  0.84 ),
-            (0,     0,      0,   1),
+            cam_110_translation, #(2.84980449677, -9.07514190674,  0.84 ),
+            cam_110_rotation,    #(0,     0,      0.707106781,   0.707106781),
             time_now,
             dum_c2,                         # to
-            'map')                          # from
+            cam_110_parent_frame)                          # from
 
 # end Fixed camera poses - two at 120 degrees: tripods back-to-back with feet touching
 
@@ -714,6 +717,24 @@ def detect_feature_callback(req):
             print "------------------- published initialpose _dummy_ 1650 ----------------------"
         except tf.Exception as err:
             print "some tf exception happened 1650: {0}".format(err)
+    elif t55 in ",".join ( ['t90057','t90157','t90257','t90357','t90457','t90557'] ) :
+        t55_transrot_from_dum_c2_robot_pose_57 = "dum_%s_trans_rot_to_%s_robot_pose_57"%(c2,t55)
+        tfBroadcaster.sendTransform(
+            ( 0.1, 0.0, 0.0),
+            (0, 0, 0, 1),                     
+            time_now,
+            t55_transrot_from_dum_c2_robot_pose_57,
+            t55_transrot_from_dum_c2_post90y180zneg90z)
+        try:
+            print "------------------- start publish initialpose _dummy_ 57 ----------------------"
+            tfListener.waitForTransform('map', t55_transrot_from_dum_c2_robot_pose_57, rospy.Time(), rospy.Duration(1))
+            pos_, quat_ = tfListener.lookupTransform('map', t55_transrot_from_dum_c2_robot_pose_57,  rospy.Time(0))
+            publish_pose_xyz_xyzw_covar(initialpose_poseWCS_publisher, fakelocalisation_poseWCS_publisher, time_now, 'map', pos_[0], pos_[1], pos_[2], quat_[0], quat_[1], quat_[2], quat_[3], [0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0])
+            publish_pose_xyz_xyzw(pose_publisher,time_now,  'map', pos_[0], pos_[1], pos_[2], quat_[0], quat_[1], quat_[2], quat_[3])
+            robotPoseHistory.append([pos_[0], pos_[1]])
+            print "------------------- published initialpose _dummy_ 57 ----------------------"
+        except tf.Exception as err:
+            print "some tf exception happened 57: {0}".format(err)
 
     ori = req.visualFeature.pose.pose.orientation
     pos = req.visualFeature.pose.pose.position
