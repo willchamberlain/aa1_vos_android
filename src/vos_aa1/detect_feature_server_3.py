@@ -42,6 +42,8 @@ from vos_aa1.srv import where_is_alg_descResponse
 from vos_aa1.msg import VisualFeatureInWorld
 from vos_aa1.msg import VisualFeatureObservation
 
+from file_checker import *
+
 algorithm_abreviations = {'AprilTags_Kaess_36h11':'t'}
 
 
@@ -129,18 +131,18 @@ tag_210.pose.orientation.z=-0.619
 tag_210.pose.orientation.w=0.785390985
 fixed_features.append(tag_210)
 
- #tag_1650 = VisualFeatureInWorld()
- #tag_1650.algorithm = 'AprilTags_Kaess_36h11'
- #tag_1650.id = '901650'
- #tag_1650.pose = Pose()
- #tag_1650.pose.position.x=2.86400270462
- #tag_1650.pose.position.y=-7.83424139023
- #tag_1650.pose.position.z=1.000
- #tag_1650.pose.orientation.x=0
- #tag_1650.pose.orientation.y=0
- #tag_1650.pose.orientation.z=-0.707106781
- #tag_1650.pose.orientation.w=0.707106781
- #fixed_features.append(tag_1650)
+# tag_557 = VisualFeatureInWorld()
+# tag_557.algorithm = 'AprilTags_Kaess_36h11'
+# tag_557.id = '90557'
+# tag_557.pose = Pose()
+# tag_557.pose.position.x=4.49931383133
+# tag_557.pose.position.y=-6.48350381851
+# tag_557.pose.position.z=0.2
+# tag_557.pose.orientation.x=0
+# tag_557.pose.orientation.y=0
+# tag_557.pose.orientation.z=-0.707106781
+# tag_557.pose.orientation.w=0.707106781
+# fixed_features.append(tag_557)
 
 
 
@@ -369,6 +371,21 @@ def detect_feature_callback(req):
     time_now      = rospy.Time.now()
 
 
+    ### fixed feature / fixed tag / fixed marker 
+    for fixed_feature in fixed_features:
+        tfBroadcaster.sendTransform(
+            (fixed_feature.pose.position.x, fixed_feature.pose.position.y, fixed_feature.pose.position.z ),
+            (fixed_feature.pose.orientation.x, fixed_feature.pose.orientation.y, fixed_feature.pose.orientation.z, fixed_feature.pose.orientation.w),
+            time_now,
+            '%s%s' % (algorithm_abreviations[fixed_feature.algorithm], fixed_feature.id),
+            'map')
+        tfBroadcaster.sendTransform(
+            (fixed_feature.pose.position.x, fixed_feature.pose.position.y, fixed_feature.pose.position.z ),
+            (fixed_feature.pose.orientation.x, fixed_feature.pose.orientation.y, fixed_feature.pose.orientation.z, fixed_feature.pose.orientation.w),
+            time_now,
+            'fixed_%s%s' % (algorithm_abreviations[fixed_feature.algorithm], fixed_feature.id),
+            'map')
+
 
 # working through BoofCV transforms and orientations: BoofCV uses yet another frame for tags
     c2 = req.cameraPose.header.frame_id                          # c2, c11, ... , cN     : DOES include the 'c'
@@ -505,6 +522,31 @@ def detect_feature_callback(req):
             dum_c2,                         # to
             cam_110_parent_frame)                          # from
 
+    if c2 in ['c110','c210','c310','c410','c510','c610','c606']:                      # End of S1130 by Sarah Allen desk. Facing toward PC office.    x: -7.20502614975  y: -8.07002162933
+        cam_translation = (-7.20502614975, -8.07002162933,  0.84 )
+        cam_rotation    = (0,     0,      0,   1)
+        cam_parent_frame = 'map'
+        dum_c2 = "dum_%s"%(c2)
+        tfBroadcaster.sendTransform(
+            cam_translation, #(2.84980449677, -9.07514190674,  0.84 ),
+            cam_rotation,    #(0,     0,      0.707106781,   0.707106781),
+            time_now,
+            dum_c2,                         # to
+            cam_parent_frame)                          # from
+    if c2 in ['c220']:                      # End of S1130 by Sarah Allen desk. Facing toward PC office.      x: 3.11342740059 y: -8.03106594086
+        cam_translation = (3.11342740059, -8.03106594086,  0.84 )
+        cam_rotation    = (0,     0,      0,   1)
+        cam_parent_frame = 'map'
+        dum_c2 = "dum_%s"%(c2)
+        tfBroadcaster.sendTransform(
+            cam_translation, #(2.84980449677, -9.07514190674,  0.84 ),
+            cam_rotation,    #(0,     0,      0.707106781,   0.707106781),
+            time_now,
+            dum_c2,                         # to
+            cam_parent_frame)                          # from
+                        
+            
+
 # end Fixed camera poses - two at 120 degrees: tripods back-to-back with feet touching
 
 
@@ -604,7 +646,7 @@ def detect_feature_callback(req):
 
     #  TODO - load from file with load_properties or jsonpickle, and also move into the robot's request
     #  ROBOT VISUAL MODEL / robot model if 't9250'==t55:
-    if 't90170'==t55:
+    if 't90171'==t55: # 't90170'==t55:
         t55_transrot_from_dum_c2_robot_pose_170 = "dum_%s_trans_rot_to_%s_robot_pose_170"%(c2,t55)
         tfBroadcaster.sendTransform(
             # pioneer - the tall one ( -0.12, 0, -0.76),                             # before rot, step back --> forward
@@ -682,23 +724,6 @@ def detect_feature_callback(req):
             print "------------------- published initialpose 330 ----------------------"
         except tf.Exception as err:
             print "some tf exception happened 330: {0}".format(err)
-    elif 't90210'==t55:                                  # tag 210 is the target tag : if it moves more than 20cm from last posn, publish an updated target
-        try:
-            print "------------------- start check 210 as target ----------------------"
-            tfListener.waitForTransform('map',              t55_transrot_from_dum_c2_post90y180zneg90z,  rospy.Time(),  rospy.Duration(1))
-            pos_, quat_ = tfListener.lookupTransform('map', t55_transrot_from_dum_c2_post90y180zneg90z,  rospy.Time(0)  )
-            global retarget_requested
-            if retarget_requested or abs(tag_210_target_pose.position.x - pos_[0]) > 0.2  or  abs(tag_210_target_pose.position.y - pos_[1]) > 0.2 :
-                retarget_requested = False                # reset the flag
-                tag_210_target_pose.position.x = pos_[0]
-                tag_210_target_pose.position.y = pos_[1]
-                publish_pose_xyz_xyzw(tag_210_target_publisher,time_now,  'map', pos_[0], pos_[1], 0.0, 0.0, 0.0, quat_[2], quat_[3])  # NOTE: z is zero for ground robots, and it likes zero roll and pitch  :  move_base.cpp "ROS_ERROR("Quaternion is invalid... for navigation the z-axis of the quaternion must be close to vertical.")"
-                targetPoseHistory.append([pos_[0], pos_[1]])
-                print "------------------- 210 re-published as target ----------------------"
-            else :
-                print "------------------- 210 not changed enough to re-publish as target ----------------------"
-        except tf.Exception as err:
-            print "some tf exception happened 210: {0}".format(err)
     elif 't91650'==t55:
         t55_transrot_from_dum_c2_robot_pose_1650 = "dum_%s_trans_rot_to_%s_robot_pose_1650"%(c2,t55)
         tfBroadcaster.sendTransform(
@@ -735,25 +760,93 @@ def detect_feature_callback(req):
             print "------------------- published initialpose _dummy_ 57 ----------------------"
         except tf.Exception as err:
             print "some tf exception happened 57: {0}".format(err)
+    ### _target_ pose publisher ##################################################################################        
+    #elif 't90210'==t55:                                  # tag 210 is the target tag : if it moves more than 20cm from last posn, publish an updated target
+    elif t55 in ",".join ( ['t90210','t90557'] ) :
+        try:
+            print "------------------- start check 210 as target ----------------------"
+            tfListener.waitForTransform('map',              t55_transrot_from_dum_c2_post90y180zneg90z,  rospy.Time(),  rospy.Duration(1))
+            pos_, quat_ = tfListener.lookupTransform('map', t55_transrot_from_dum_c2_post90y180zneg90z,  rospy.Time(0)  )
+            global retarget_requested
+            if retarget_requested or abs(tag_210_target_pose.position.x - pos_[0]) > 0.2  or  abs(tag_210_target_pose.position.y - pos_[1]) > 0.2 :
+                retarget_requested = False                # reset the flag
+                tag_210_target_pose.position.x = pos_[0]
+                tag_210_target_pose.position.y = pos_[1]
+                publish_pose_xyz_xyzw(tag_210_target_publisher,time_now,  'map', pos_[0], pos_[1], 0.0, 0.0, 0.0, quat_[2], quat_[3])  # NOTE: z is zero for ground robots, and it likes zero roll and pitch  :  move_base.cpp "ROS_ERROR("Quaternion is invalid... for navigation the z-axis of the quaternion must be close to vertical.")"
+                targetPoseHistory.append([pos_[0], pos_[1]])
+                print "------------------- 210 re-published as target ----------------------"
+            else :
+                print "------------------- 210 not changed enough to re-publish as target ----------------------"
+        except tf.Exception as err:
+            print "some tf exception happened 210: {0}".format(err)
+            
+            
+    ### load fixed tags from file ##########################################################################################################
+    # ...
+    # ...
+    # ...
+    # ...
+    
+            
+    ### load robot model tags from file ##########################################################################################################
+    robot_tag_poses       = [ ('t90157', {'x':0.16,'y':0.0,'z':0.2, 'qx':0, 'qy':0, 'qz':0, 'qw':1}) , ('t90257', {'x':0.05,'y':0.0,'z':0.2, 'qx':0, 'qy':0, 'qz':1, 'qw':0}) ] # 157 faces forward, 257 faces backward # developing - see https://stackoverflow.com/questions/16021571/iterating-quickly-through-list-of-tuples
+    robot_tag_poses_dict  = dict(robot_tag_poses)
+    print 'load robot_tag_poses from file for t55=%s'%(t55)
+    # robot_tag_tuple       = robot_tag_poses_dict.get(t55)
+    # print robot_tag_tuple
+    # robot_tag_as_dict     = robot_tag_tuple[1]
+    if t55 in robot_tag_poses_dict:
+        robot_tag_as_dict       = robot_tag_poses_dict.get(t55)
+        print robot_tag_as_dict
+        
+        t55_transrot_from_dum_c2_robot_pose_fixed_robot_tag = "dum_%s_trans_rot_to_%s_robot_pose_57"%(c2,t55)
+        tfBroadcaster.sendTransform(
+            ( robot_tag_as_dict['x'], robot_tag_as_dict['y'], robot_tag_as_dict['z'] ),
+            ( robot_tag_as_dict['qx'], robot_tag_as_dict['qy'], robot_tag_as_dict['qz'], robot_tag_as_dict['qw']),                     
+            time_now,
+            t55_transrot_from_dum_c2_robot_pose_fixed_robot_tag,
+            t55_transrot_from_dum_c2_post90y180zneg90z)
+        try:
+            print "------------------- start publish initialpose _dummy_ fixed_robot_tag ----------------------"
+            tfListener.waitForTransform('map', t55_transrot_from_dum_c2_robot_pose_fixed_robot_tag, rospy.Time(), rospy.Duration(1))
+            pos_, quat_ = tfListener.lookupTransform('map', t55_transrot_from_dum_c2_robot_pose_fixed_robot_tag,  rospy.Time(0))
+            publish_pose_xyz_xyzw_covar(initialpose_poseWCS_publisher, fakelocalisation_poseWCS_publisher, time_now, 'map', pos_[0], pos_[1], pos_[2], quat_[0], quat_[1], quat_[2], quat_[3], [0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0])
+            publish_pose_xyz_xyzw(pose_publisher,time_now,  'map', pos_[0], pos_[1], pos_[2], quat_[0], quat_[1], quat_[2], quat_[3])
+            robotPoseHistory.append([pos_[0], pos_[1]])
+            print "------------------- published initialpose _dummy_ fixed_robot_tag ----------------------"
+        except tf.Exception as err:
+            print "some tf exception happened fixed_robot_tag: {0}".format(err)
+            
+            
+    ### load fixed camera poses from file ##########################################################################################################
+    camera_poses       = [] # ('c110',{'x':1.5,'y':-7.0,'z':1.1}) ] # , ('c111',1.5,-7.5,1.15) , ('c112',1.55,-8.0,1.1) ] # developing - see https://stackoverflow.com/questions/16021571/iterating-quickly-through-list-of-tuples
+    camera_poses_dict  = dict(camera_poses)
+    if c2 in camera_poses_dict:
+        camera_as_dict             = camera_poses_dict.get(c2)
+        
+        t55_transrot_from_dum_c2_robot_pose_fixed_camera = "dum_%s_trans_rot_to_%s_robot_pose_57"%(c2,t55)
+        tfBroadcaster.sendTransform(
+            ( camera_as_dict['x'], camera_as_dict['y'], camera_as_dict['z'] ),
+            ( camera_as_dict['qx'], camera_as_dict['qy'], camera_as_dict['qz'], camera_as_dict['qw']), 
+            time_now,
+            t55_transrot_from_dum_c2_robot_pose_fixed_camera,
+            t55_transrot_from_dum_c2_post90y180zneg90z)
+        try:
+            print "------------------- start publish initialpose _dummy_ fixed_camera ----------------------"
+            tfListener.waitForTransform('map', t55_transrot_from_dum_c2_robot_pose_fixed_camera, rospy.Time(), rospy.Duration(1))
+            pos_, quat_ = tfListener.lookupTransform('map', t55_transrot_from_dum_c2_robot_pose_fixed_camera,  rospy.Time(0))
+            publish_pose_xyz_xyzw_covar(initialpose_poseWCS_publisher, fakelocalisation_poseWCS_publisher, time_now, 'map', pos_[0], pos_[1], pos_[2], quat_[0], quat_[1], quat_[2], quat_[3], [0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0])
+            publish_pose_xyz_xyzw(pose_publisher,time_now,  'map', pos_[0], pos_[1], pos_[2], quat_[0], quat_[1], quat_[2], quat_[3])
+            robotPoseHistory.append([pos_[0], pos_[1]])
+            print "------------------- published initialpose _dummy_ fixed_camera ----------------------"
+        except tf.Exception as err:
+            print "some tf exception happened fixed_camera: {0}".format(err)
 
+    #############################################################################################################
     ori = req.visualFeature.pose.pose.orientation
     pos = req.visualFeature.pose.pose.position
 
 # removed tf transforms code is at the bottom of this file
-
-    for fixed_feature in fixed_features:
-        tfBroadcaster.sendTransform(
-            (fixed_feature.pose.position.x, fixed_feature.pose.position.y, fixed_feature.pose.position.z ),
-            (fixed_feature.pose.orientation.x, fixed_feature.pose.orientation.y, fixed_feature.pose.orientation.z, fixed_feature.pose.orientation.w),
-            time_now,
-            '%s%s' % (algorithm_abreviations[fixed_feature.algorithm], fixed_feature.id),
-            'map')
-        tfBroadcaster.sendTransform(
-            (fixed_feature.pose.position.x, fixed_feature.pose.position.y, fixed_feature.pose.position.z ),
-            (fixed_feature.pose.orientation.x, fixed_feature.pose.orientation.y, fixed_feature.pose.orientation.z, fixed_feature.pose.orientation.w),
-            time_now,
-            'fixed_%s%s' % (algorithm_abreviations[fixed_feature.algorithm], fixed_feature.id),
-            'map')
 
     if 'c3'==cN:
         try:
@@ -829,7 +922,7 @@ def register_vision_source_callback(req_registerVisionSource):
         #   dummy frame for the camera: 1m up away from origin, facing right - toward S1165
         #   fixed camera pose
         response.acknowledgement = 'registered vos_id=%s x=1.9 y=-5.75 z=0.57 qx=0 qy=0 qz=0 qw=1'%(new_vision_source.vision_source_id)
-    elif new_vision_source.vision_source_id in ['c20', 'c21']:
+    elif new_vision_source.vision_source_id in ['c20', 'c21','c606']:
         #   dummy frame for the camera: 1m up away from origin, facing 45 degrees right - toward corner of Michael's office
         #   fixed camera pose
         response.acknowledgement = 'registered vos_id=%s x=1.9 y=-5.75 z=0.57 qx=0 qy=0 qz=0.383 qw=0.92374834235304581'%(new_vision_source.vision_source_id)
@@ -1183,6 +1276,7 @@ def keep_loop_open():       # http://answers.ros.org/question/252545/interruptin
 
 
 if __name__ == "__main__":
+    an_instance = ConfigLoader('/mnt/nixbig/build_workspaces/aa1_vos_android_catkin_ws/src/vos_aa1/src/vos_aa1/config.txt')
     detect_feature_server1()
     thread1 = threading.Thread(target = detect_feature_server2(), args=[])
     thread2 = threading.Thread(target = detect_feature_server3(), args=[])
@@ -1397,6 +1491,10 @@ if __name__ == "__main__":
 #     # Problem is the once-off localisation against the fixed tag
 #         # NOTE 1:  t55 from c2  is  [ +z -x -y +w ]
 #         # NOTE 2:  c2 from t55  is  inverse( [ +z -x -y +w ] )
+
+
+# camera from fixed tags - might work
+
 #     quat_t55_from_c2 = [req.visualFeature.pose.pose.orientation.z, -req.visualFeature.pose.pose.orientation.x, -req.visualFeature.pose.pose.orientation.y, req.visualFeature.pose.pose.orientation.w]
 #     quat_c2_from_t55 = inverse(quat_t55_from_c2)
 #     c2_from_t55_from_c2_180x = '%s_from_%s'%(cN,t55_from_c2_180x)
@@ -1442,6 +1540,10 @@ if __name__ == "__main__":
 #         c2_from_fixed_t55,              # to
 #         c2_from_fixed_t55_tmp)          # from
 #     axisMarker(req.visualFeature.id,c2_from_fixed_t55)
+
+
+# camera from fixed tags - might work - end
+
 #
 #
 #
