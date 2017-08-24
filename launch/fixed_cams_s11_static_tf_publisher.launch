@@ -12,7 +12,7 @@
 
 
   <node  name="c608__fixed_cam__static_tf"
-      args="16.6673793793 2.47259044647 1.2     0 0 -0.996199 0.087105  map dum_c608 20" 
+      args="16.6673793793 2.47259044647 1.2     0 0 0.953730 0.300665  map dum_c608 20" 
       pkg="tf"  type="static_transform_publisher"      />
       
 
