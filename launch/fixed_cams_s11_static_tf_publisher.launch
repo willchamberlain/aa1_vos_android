@@ -16,6 +16,13 @@
       pkg="tf"  type="static_transform_publisher"      />
 
 
+
+  <node  name="c607__fixed_cam__static_tf"
+      args="19.6833705902 -3.55735754967  1.2     0  0  0.906324   0.422583  map dum_c607 20"      
+      pkg="tf"  type="static_transform_publisher"      />
+
+
+
   <node  name="c608__fixed_cam__static_tf"
       args="16.6673793793 2.47259044647 1.2     0 0 0.953730 0.300665  map dum_c608 20" 
       pkg="tf"  type="static_transform_publisher"      />
