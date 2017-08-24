@@ -819,18 +819,27 @@ def detect_feature_callback(req):
             
             
     ### load fixed camera poses from file ##########################################################################################################
-    camera_poses       = [] # ('c110',{'x':1.5,'y':-7.0,'z':1.1}) ] # , ('c111',1.5,-7.5,1.15) , ('c112',1.55,-8.0,1.1) ] # developing - see https://stackoverflow.com/questions/16021571/iterating-quickly-through-list-of-tuples
+# 612
+# point - from map - first ARCAA sofa, facing down Mobile Lab toward S1130 - has angle down open edge of Mobile Lab, and to separator between Jason's office (S1110) Frederik's office (S1111) and: 
+#   x: 1.1440243721
+#   y: 6.53061819077
+#   z: 0.000180721282959
+
+#    camera_poses = [('c',{'x':,'y':,'z':,'qx':,'qy':,'qz':,'qw': })]
+#    camera_poses       = [] # ('c110',{'x':1.5,'y':-7.0,'z':1.1}) ] # , ('c111',1.5,-7.5,1.15) , ('c112',1.55,-8.0,1.1) ] # developing - see https://stackoverflow.com/questions/16021571/iterating-quickly-through-list-of-tuples
+    camera_poses = [('c605',{'x':1.1440243721,'y':6.53061819077,'z':0.000180721282959,'qx':0,'qy':0,'qz':0,'qw':1 })]
     camera_poses_dict  = dict(camera_poses)
     if c2 in camera_poses_dict:
         camera_as_dict             = camera_poses_dict.get(c2)
+        camera_frame_label = "dum_%s"%(c2)
         
         t55_transrot_from_dum_c2_robot_pose_fixed_camera = "dum_%s_trans_rot_to_%s_robot_pose_57"%(c2,t55)
         tfBroadcaster.sendTransform(
             ( camera_as_dict['x'], camera_as_dict['y'], camera_as_dict['z'] ),
             ( camera_as_dict['qx'], camera_as_dict['qy'], camera_as_dict['qz'], camera_as_dict['qw']), 
-            time_now,
-            t55_transrot_from_dum_c2_robot_pose_fixed_camera,
-            t55_transrot_from_dum_c2_post90y180zneg90z)
+            time_now,            
+            camera_frame_label,     # to camera
+            '/map')                  # from map
         try:
             print "------------------- start publish initialpose _dummy_ fixed_camera ----------------------"
             tfListener.waitForTransform('map', t55_transrot_from_dum_c2_robot_pose_fixed_camera, rospy.Time(), rospy.Duration(1))
