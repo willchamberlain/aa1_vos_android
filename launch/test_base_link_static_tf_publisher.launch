@@ -1,0 +1,5 @@
+<launch> <!-- http://wiki.ros.org/tf#static_transform_publisher -->
+  <node  pkg="tf"  type="static_transform_publisher"
+      name="base_link_static_tf_broadcaster_for_testing"
+      args="1.9 -5.75  0.05   0 0 0.7071 0.7071  map base_link 30" />
+</launch>

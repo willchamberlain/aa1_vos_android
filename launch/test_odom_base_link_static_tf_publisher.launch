@@ -1,0 +1,5 @@
+<launch> <!-- http://wiki.ros.org/tf#static_transform_publisher -->
+  <node  pkg="tf"  type="static_transform_publisher"
+      name="odom_base_link_static_tf_broadcaster_for_testing"
+      args="1.9 -5.75  1   0 0 0 1  odom base_link 30" />
+</launch>

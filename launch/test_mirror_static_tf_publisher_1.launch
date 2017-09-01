@@ -1,0 +1,19 @@
+<launch>
+<node pkg="tf" type="static_transform_publisher" name="link1_broadcaster" args="10 3 2             -0.003 -0.846  0.282  0.453 map link1 10" />
+<node pkg="tf" type="static_transform_publisher" name="link1a_broadcaster" args="10 2 1.5             -0.003 -0.846  0.282  0.453 map link1a 10" />
+<node pkg="tf" type="static_transform_publisher" name="link1_reflect_broadcaster" args="-10 3 2     0.003 -0.846  0.282  0.453 map link1_reflect 10" /> 
+
+<node pkg="tf" type="static_transform_publisher" name="link1_2_broadcaster" args="  2 3 10  0 0 0 1 link1 link1_trans_back 10"/>
+
+<node pkg="tf" type="static_transform_publisher" name="link2_broadcaster" args="0 0 0       0.003  0.846  0.282  0.453 link1 link1_negx_negy 10" />       <!-- should be a mirror -->
+<node pkg="tf" type="static_transform_publisher" name="link2_2_broadcaster" args="10 -3 -2  0 0 0 1 link1_negx_negy link1_negx_negy_trans_back 10"/>
+
+<node pkg="tf" type="static_transform_publisher" name="link3_broadcaster"   args="0 0 0       0.003  0.846 -0.282  0.453 link1 link1_negx_negy_negz 10" />  <!-- successfully reverts link1 rotation --> 
+<node pkg="tf" type="static_transform_publisher" name="link3_2_broadcaster" args="0 0 0       0 0 0 -1 link1_negx_negy_negz link1_negx_negy_negz_negw 10" />  <!-- successfully reverts link1 rotation --> 
+
+<node pkg="tf" type="static_transform_publisher" name="link4_broadcaster" args="0 0 0       0.003  0.846  0.282  0.453 link1 link1__negx_negy 10" />
+<node pkg="tf" type="static_transform_publisher" name="link5_broadcaster" args="0 0 0      -0.003 -0.846 -0.282  0.453 link1 link1___negx_negy 10" />
+
+<node pkg="tf" type="static_transform_publisher" name="link50_broadcaster" args="5 3 2     -0.214   0.576  -0.425  0.664 map link50 10" />
+<node pkg="tf" type="static_transform_publisher" name="link51_broadcaster" args="0 0 0      0.214  -0.576   0.425  0.664 link50 link50_negx_negy_negz 10" />  <!-- successfully reverts link50 rotation --> 
+</launch>
