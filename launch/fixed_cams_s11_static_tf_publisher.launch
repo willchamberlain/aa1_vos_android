@@ -2,7 +2,7 @@
 
 
   <node  name="c603__fixed_cam__static_tf"
-      args="-1.06922471523 -5.47118854523 1.2     0 0 -0.087159 0.996194  map dum_c603 20"      
+      args="-1.06922471523 -5.58983325958 1.2     0  0  0.147814   0.989015  map dum_c603 20"      
       pkg="tf"  type="static_transform_publisher"      />
 
 
