@@ -128,7 +128,7 @@ tag_210.pose.position.z=1.25
 tag_210.pose.orientation.x=0
 tag_210.pose.orientation.y=0
 tag_210.pose.orientation.z=-0.619
-tag_210.pose.orientation.w=0.785390985
+tag_210.pose.orientation.w=0.785390985 
 fixed_features.append(tag_210)
 
 # tag_557 = VisualFeatureInWorld()
@@ -149,7 +149,7 @@ fixed_features.append(tag_210)
 # features_present = (0,2,3,9)
 # features_present = (170, 210, 250, 290, 330, 370, 410, 450, 490, 530, 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59)
 # features_present = (210, 1210, 2210, 3210, 4210, 5210, 6210, 7210, 8210, 9210, 10210,   22210)
-features_present = ( 90170 , 90250 , 90290 , 90330 , -90000 , 90555 , 90210 , 91610 , 91690 , 91730 , 91650 , 90057 , 90157 , 90257 , 90357 , 90457 , 90557 )
+features_present = ( 90170 , 90250 , 90290 , 90330 , -90000 , 90555 , 90210 , 91610 , 91690 , 91730 , 91650 , 90057 , 90157 , 90257 , 90357 , 90457 , 90557 , 90000+999999 , 70170 , 60170) # , 80170 )
 
 tag_210_target_publisher    = 1
 tag_210_target_pose = Pose()
@@ -522,7 +522,7 @@ def detect_feature_callback(req):
             dum_c2,                         # to
             cam_110_parent_frame)                          # from
 
-    if c2 in ['c110','c210','c310','c410','c510','c610','c606']:                      # End of S1130 by Sarah Allen desk. Facing toward PC office.    x: -7.20502614975  y: -8.07002162933
+    if c2 in ['c110','c210','c310','c410','c510']:                      # End of S1130 by Sarah Allen desk. Facing toward PC office.    x: -7.20502614975  y: -8.07002162933
         cam_translation = (-7.20502614975, -8.07002162933,  0.84 )
         cam_rotation    = (0,     0,      0,   1)
         cam_parent_frame = 'map'
@@ -560,14 +560,14 @@ def detect_feature_callback(req):
         t55_trans_from_dum_c2,                          # to   tag-from-camera-body t55_from_c2
         dum_c2)                                         # from camera-body c2
 
-    t55_trans_from_dum_c2__drop = "z_dum_%s_trans_to_%s__drop"%(c2,t55)
-    tfBroadcaster.sendTransform(
-        (req.visualFeature.pose.pose.position.x, req.visualFeature.pose.pose.position.y,0),
-        (0,0,0,1),
-        time_now,
-        t55_trans_from_dum_c2__drop,                          # to   tag-from-camera-body t55_from_c2
-        '/map')                                         # from camera-body c2
-    axisMarker(req.visualFeature.id,t55_trans_from_dum_c2__drop)
+#    t55_trans_from_dum_c2__drop = "z_dum_%s_trans_to_%s__drop"%(c2,t55)
+#    tfBroadcaster.sendTransform(
+#        (req.visualFeature.pose.pose.position.x, req.visualFeature.pose.pose.position.y,0),
+#        (0,0,0,1),
+#        time_now,
+#        t55_trans_from_dum_c2__drop,                          # to   tag-from-camera-body t55_from_c2
+#        '/map')                                         # from camera-body c2
+#    axisMarker(req.visualFeature.id,t55_trans_from_dum_c2__drop)
 
 
     t55_transrot_from_dum_c2 = "dum_%s_trans_rot_to_%s"%(c2,t55)
@@ -578,13 +578,21 @@ def detect_feature_callback(req):
         t55_transrot_from_dum_c2,
         t55_trans_from_dum_c2)
 
-    t55_transrot_from_dum_c2_b = "dum_%s_trans_rot_to_%s_b"%(c2,t55)
+    t55_transrot_from_dum_c2_180x = "dum_%s_trans_rot_to_%s_180x"%(c2,t55)
     tfBroadcaster.sendTransform(
         (0,0,0),
-        (req.visualFeature.pose.pose.orientation.x, -req.visualFeature.pose.pose.orientation.y, -req.visualFeature.pose.pose.orientation.z, req.visualFeature.pose.pose.orientation.w),
+        (1,0,0,0),
         time_now,
-        t55_transrot_from_dum_c2_b,
-        t55_transrot_from_dum_c2 )
+        t55_transrot_from_dum_c2_180x,
+        t55_transrot_from_dum_c2)
+
+#    t55_transrot_from_dum_c2_b = "dum_%s_trans_rot_to_%s_b"%(c2,t55)
+#    tfBroadcaster.sendTransform(
+#        (0,0,0),
+#        (req.visualFeature.pose.pose.orientation.x, -req.visualFeature.pose.pose.orientation.y, -req.visualFeature.pose.pose.orientation.z, req.visualFeature.pose.pose.orientation.w),
+#        time_now,
+#        t55_transrot_from_dum_c2_b,
+#        t55_transrot_from_dum_c2 )
 
     t55_transrot_from_dum_c2_pre90y = "dum_%s_trans_rot_to_%s_pre90y"%(c2,t55)
     tfBroadcaster.sendTransform(
@@ -742,11 +750,16 @@ def detect_feature_callback(req):
             print "------------------- published initialpose _dummy_ 1650 ----------------------"
         except tf.Exception as err:
             print "some tf exception happened 1650: {0}".format(err)
-    elif t55 in ",".join ( ['t90057','t90157','t90257','t90357','t90457','t90557'] ) :
+            
+    print '------------ ???? ---------------------------------- ??? 90557 for robot tag ??? --------------------------------'
+    print ' if \'90557\' == t55 :  t55 == %s'%(t55)        
+            
+    if 't90557' == t55: # front, lower
+        print '---------------------------------------------- 90557 for robot tag --------------------------------'
         t55_transrot_from_dum_c2_robot_pose_57 = "dum_%s_trans_rot_to_%s_robot_pose_57"%(c2,t55)
         tfBroadcaster.sendTransform(
-            ( 0.1, 0.0, 0.0),
-            (0, 0, 0, 1),                     
+            ( 0, 0.0, 0.42),                # tag centre 42cm above robot base, but is inverted, so going up here is going down after the rotation
+            ( 0, 1, 0, 0),                  # inverted 
             time_now,
             t55_transrot_from_dum_c2_robot_pose_57,
             t55_transrot_from_dum_c2_post90y180zneg90z)
@@ -760,9 +773,103 @@ def detect_feature_callback(req):
             print "------------------- published initialpose _dummy_ 57 ----------------------"
         except tf.Exception as err:
             print "some tf exception happened 57: {0}".format(err)
+    if 't90457' == t55: # front, upper
+        t55_transrot_from_dum_c2_robot_pose_57 = "dum_%s_trans_rot_to_%s_robot_pose_57"%(c2,t55)
+        tfBroadcaster.sendTransform(
+            ( 0, 0.0, -0.79),                # tag centre 79cm above robot base
+            (0, 0, 0, 1),                   # 
+            time_now,
+            t55_transrot_from_dum_c2_robot_pose_57,
+            t55_transrot_from_dum_c2_post90y180zneg90z)
+        try:
+            print "------------------- start publish initialpose _dummy_ 57 ----------------------"
+            tfListener.waitForTransform('map', t55_transrot_from_dum_c2_robot_pose_57, rospy.Time(), rospy.Duration(1))
+            pos_, quat_ = tfListener.lookupTransform('map', t55_transrot_from_dum_c2_robot_pose_57,  rospy.Time(0))
+            publish_pose_xyz_xyzw_covar(initialpose_poseWCS_publisher, fakelocalisation_poseWCS_publisher, time_now, 'map', pos_[0], pos_[1], pos_[2], quat_[0], quat_[1], quat_[2], quat_[3], [0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0])
+            publish_pose_xyz_xyzw(pose_publisher,time_now,  'map', pos_[0], pos_[1], pos_[2], quat_[0], quat_[1], quat_[2], quat_[3])
+            robotPoseHistory.append([pos_[0], pos_[1]])
+            print "------------------- published initialpose _dummy_ 57 ----------------------"
+        except tf.Exception as err:
+            print "some tf exception happened 57: {0}".format(err)
+            
+    if 't90357' == t55: # left, lower
+        t55_transrot_from_dum_c2_robot_pose_57 = "dum_%s_trans_rot_to_%s_robot_pose_57"%(c2,t55)
+        tfBroadcaster.sendTransform(
+            ( 0, 0.0, -0.42),                # tag centre 42cm above robot base
+            ( 0,   0, -0.866043, 0.499969),  # rotate right to go from left side to centreline 
+            time_now,
+            t55_transrot_from_dum_c2_robot_pose_57,
+            t55_transrot_from_dum_c2_post90y180zneg90z)
+        try:
+            print "------------------- start publish initialpose _dummy_ 57 ----------------------"
+            tfListener.waitForTransform('map', t55_transrot_from_dum_c2_robot_pose_57, rospy.Time(), rospy.Duration(1))
+            pos_, quat_ = tfListener.lookupTransform('map', t55_transrot_from_dum_c2_robot_pose_57,  rospy.Time(0))
+            publish_pose_xyz_xyzw_covar(initialpose_poseWCS_publisher, fakelocalisation_poseWCS_publisher, time_now, 'map', pos_[0], pos_[1], pos_[2], quat_[0], quat_[1], quat_[2], quat_[3], [0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0])
+            publish_pose_xyz_xyzw(pose_publisher,time_now,  'map', pos_[0], pos_[1], pos_[2], quat_[0], quat_[1], quat_[2], quat_[3])
+            robotPoseHistory.append([pos_[0], pos_[1]])
+            print "------------------- published initialpose _dummy_ 57 ----------------------"
+        except tf.Exception as err:
+            print "some tf exception happened 57: {0}".format(err)
+    if 't90257' == t55: # left, upper
+        t55_transrot_from_dum_c2_robot_pose_57 = "dum_%s_trans_rot_to_%s_robot_pose_57"%(c2,t55)
+        tfBroadcaster.sendTransform(
+            ( 0, 0.0, -0.79),                # tag centre 78cm above robot base
+            (0, 0, 0.866043, 0.499969),      # rotate right to go from left side to centreline 
+            time_now,
+            t55_transrot_from_dum_c2_robot_pose_57,
+            t55_transrot_from_dum_c2_post90y180zneg90z)
+        try:
+            print "------------------- start publish initialpose _dummy_ 57 ----------------------"
+            tfListener.waitForTransform('map', t55_transrot_from_dum_c2_robot_pose_57, rospy.Time(), rospy.Duration(1))
+            pos_, quat_ = tfListener.lookupTransform('map', t55_transrot_from_dum_c2_robot_pose_57,  rospy.Time(0))
+            publish_pose_xyz_xyzw_covar(initialpose_poseWCS_publisher, fakelocalisation_poseWCS_publisher, time_now, 'map', pos_[0], pos_[1], pos_[2], quat_[0], quat_[1], quat_[2], quat_[3], [0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0])
+            publish_pose_xyz_xyzw(pose_publisher,time_now,  'map', pos_[0], pos_[1], pos_[2], quat_[0], quat_[1], quat_[2], quat_[3])
+            robotPoseHistory.append([pos_[0], pos_[1]])
+            print "------------------- published initialpose _dummy_ 57 ----------------------"
+        except tf.Exception as err:
+            print "some tf exception happened 57: {0}".format(err)
+            
+    if 't90057' == t55: # right, upper
+        t55_transrot_from_dum_c2_robot_pose_57 = "dum_%s_trans_rot_to_%s_robot_pose_57"%(c2,t55)
+        tfBroadcaster.sendTransform(
+            ( 0, 0.0, -0.79),                # tag centre 79cm above robot base
+            ( 0,   0, 0.866043, 0.499969),     # rotate left to go from right side to centreline 
+            time_now,
+            t55_transrot_from_dum_c2_robot_pose_57,
+            t55_transrot_from_dum_c2_post90y180zneg90z)
+        try:
+            print "------------------- start publish initialpose _dummy_ 57 ----------------------"
+            tfListener.waitForTransform('map', t55_transrot_from_dum_c2_robot_pose_57, rospy.Time(), rospy.Duration(1))
+            pos_, quat_ = tfListener.lookupTransform('map', t55_transrot_from_dum_c2_robot_pose_57,  rospy.Time(0))
+            publish_pose_xyz_xyzw_covar(initialpose_poseWCS_publisher, fakelocalisation_poseWCS_publisher, time_now, 'map', pos_[0], pos_[1], pos_[2], quat_[0], quat_[1], quat_[2], quat_[3], [0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0])
+            publish_pose_xyz_xyzw(pose_publisher,time_now,  'map', pos_[0], pos_[1], pos_[2], quat_[0], quat_[1], quat_[2], quat_[3])
+            robotPoseHistory.append([pos_[0], pos_[1]])
+            print "------------------- published initialpose _dummy_ 57 ----------------------"
+        except tf.Exception as err:
+            print "some tf exception happened 57: {0}".format(err)
+    if 't90157' == t55: # right, lower
+        t55_transrot_from_dum_c2_robot_pose_57 = "dum_%s_trans_rot_to_%s_robot_pose_57"%(c2,t55)
+        tfBroadcaster.sendTransform(
+            ( 0, 0.0, -0.42),                # tag centre 42cm above robot base
+            ( 0,   0,  0.866043, 0.499969),  # rotate left to go from right side to centreline
+            time_now,
+            t55_transrot_from_dum_c2_robot_pose_57,
+            t55_transrot_from_dum_c2_post90y180zneg90z)
+        try:
+            print "------------------- start publish initialpose _dummy_ 57 ----------------------"
+            tfListener.waitForTransform('map', t55_transrot_from_dum_c2_robot_pose_57, rospy.Time(), rospy.Duration(1))
+            pos_, quat_ = tfListener.lookupTransform('map', t55_transrot_from_dum_c2_robot_pose_57,  rospy.Time(0))
+            publish_pose_xyz_xyzw_covar(initialpose_poseWCS_publisher, fakelocalisation_poseWCS_publisher, time_now, 'map', pos_[0], pos_[1], pos_[2], quat_[0], quat_[1], quat_[2], quat_[3], [0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0])
+            publish_pose_xyz_xyzw(pose_publisher,time_now,  'map', pos_[0], pos_[1], pos_[2], quat_[0], quat_[1], quat_[2], quat_[3])
+            robotPoseHistory.append([pos_[0], pos_[1]])
+            print "------------------- published initialpose _dummy_ 57 ----------------------"
+        except tf.Exception as err:
+            print "some tf exception happened 57: {0}".format(err)
+            
+            
     ### _target_ pose publisher ##################################################################################        
     #elif 't90210'==t55:                                  # tag 210 is the target tag : if it moves more than 20cm from last posn, publish an updated target
-    elif t55 in ",".join ( ['t90210','t90557'] ) :
+    if t55 in ",".join ( ['t90210','t9099999999210'] ) :
         try:
             print "------------------- start check 210 as target ----------------------"
             tfListener.waitForTransform('map',              t55_transrot_from_dum_c2_post90y180zneg90z,  rospy.Time(),  rospy.Duration(1))
@@ -789,7 +896,7 @@ def detect_feature_callback(req):
     
             
     ### load robot model tags from file ##########################################################################################################
-    robot_tag_poses       = [ ('t90157', {'x':0.16,'y':0.0,'z':0.2, 'qx':0, 'qy':0, 'qz':0, 'qw':1}) , ('t90257', {'x':0.05,'y':0.0,'z':0.2, 'qx':0, 'qy':0, 'qz':1, 'qw':0}) ] # 157 faces forward, 257 faces backward # developing - see https://stackoverflow.com/questions/16021571/iterating-quickly-through-list-of-tuples
+    robot_tag_poses       = [ ('t90999999999157', {'x':0.16,'y':0.0,'z':0.2, 'qx':0, 'qy':0, 'qz':0, 'qw':1}) , ('t909999999999257', {'x':0.05,'y':0.0,'z':0.2, 'qx':0, 'qy':0, 'qz':1, 'qw':0}) ] # 157 faces forward, 257 faces backward # developing - see https://stackoverflow.com/questions/16021571/iterating-quickly-through-list-of-tuples
     robot_tag_poses_dict  = dict(robot_tag_poses)
     print 'load robot_tag_poses from file for t55=%s'%(t55)
     # robot_tag_tuple       = robot_tag_poses_dict.get(t55)
@@ -827,7 +934,7 @@ def detect_feature_callback(req):
 
 #    camera_poses = [('c',{'x':,'y':,'z':,'qx':,'qy':,'qz':,'qw': })]
 #    camera_poses       = [] # ('c110',{'x':1.5,'y':-7.0,'z':1.1}) ] # , ('c111',1.5,-7.5,1.15) , ('c112',1.55,-8.0,1.1) ] # developing - see https://stackoverflow.com/questions/16021571/iterating-quickly-through-list-of-tuples
-    camera_poses = [('c605',{'x':1.1440243721,'y':6.53061819077,'z':0.000180721282959,'qx':0,'qy':0,'qz':0,'qw':1 })]
+    camera_poses = [('c999393939',{'x':1.1440243721,'y':6.53061819077,'z':0.000180721282959,'qx':0,'qy':0,'qz':0,'qw':1 })]
     camera_poses_dict  = dict(camera_poses)
     if c2 in camera_poses_dict:
         camera_as_dict             = camera_poses_dict.get(c2)
