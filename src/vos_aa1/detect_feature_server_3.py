@@ -64,59 +64,6 @@ targetPoseHistory = []
 # tag_55.pose.orientation.z=0
 # tag_55.pose.orientation.w=1
 # fixed_features.append(tag_55)
-# tag_32 = VisualFeatureInWorld()
-# tag_32.algorithm = 'AprilTags_Kaess_36h11'
-# tag_32.id = '32'
-# tag_32.pose = Pose()
-# tag_32.pose.position.x=0
-# tag_32.pose.position.y=0
-# tag_32.pose.position.z=1.18
-# tag_32.pose.orientation.x=0
-# tag_32.pose.orientation.y=0
-# tag_32.pose.orientation.z=0
-# tag_32.pose.orientation.w=1
-# fixed_features.append(tag_32)
-
-# "2|-0.5|-3|1.15|0|0|-0.70710678118654757|0.70710678118654757"
-# tag_2 = VisualFeatureInWorld()
-# tag_2.algorithm = 'AprilTags_Kaess_36h11'
-# tag_2.id = '2'
-# tag_2.pose = Pose()
-# tag_2.pose.position.x=-0.5
-# tag_2.pose.position.y=-3
-# tag_2.pose.position.z=1.15
-# tag_2.pose.orientation.x=0
-# tag_2.pose.orientation.y=0
-# tag_2.pose.orientation.z=-0.707106781
-# tag_2.pose.orientation.w=0.707106781
-# fixed_features.append(tag_2)
-
-# tag_19 = VisualFeatureInWorld()
-# tag_19.algorithm = 'AprilTags_Kaess_36h11'
-# tag_19.id = '19'
-# tag_19.pose = Pose()
-# tag_19.pose.position.x=0
-# tag_19.pose.position.y=0
-# tag_19.pose.position.z=1.18
-# tag_19.pose.orientation.x=0
-# tag_19.pose.orientation.y=0
-# tag_19.pose.orientation.z=0
-# tag_19.pose.orientation.w=1
-# fixed_features.append(tag_19)
-
-# 0|2.5|-1.5|1.25|0|0|-0.707106781|0.707106781
-# tag_0 = VisualFeatureInWorld()
-# tag_0.algorithm = 'AprilTags_Kaess_36h11'
-# tag_0.id = '0'
-# tag_0.pose = Pose()
-# tag_0.pose.position.x=2.5
-# tag_0.pose.position.y=-1.5
-# tag_0.pose.position.z=1.25
-# tag_0.pose.orientation.x=0
-# tag_0.pose.orientation.y=0
-# tag_0.pose.orientation.z=-0.707106781
-# tag_0.pose.orientation.w=0.707106781
-# fixed_features.append(tag_0)
 
 tag_210 = VisualFeatureInWorld()
 tag_210.algorithm = 'AprilTags_Kaess_36h11'
@@ -130,21 +77,6 @@ tag_210.pose.orientation.y=0
 tag_210.pose.orientation.z=-0.619
 tag_210.pose.orientation.w=0.785390985 
 fixed_features.append(tag_210)
-
-# tag_557 = VisualFeatureInWorld()
-# tag_557.algorithm = 'AprilTags_Kaess_36h11'
-# tag_557.id = '90557'
-# tag_557.pose = Pose()
-# tag_557.pose.position.x=4.49931383133
-# tag_557.pose.position.y=-6.48350381851
-# tag_557.pose.position.z=0.2
-# tag_557.pose.orientation.x=0
-# tag_557.pose.orientation.y=0
-# tag_557.pose.orientation.z=-0.707106781
-# tag_557.pose.orientation.w=0.707106781
-# fixed_features.append(tag_557)
-
-
 
 # features_present = (0,2,3,9)
 # features_present = (170, 210, 250, 290, 330, 370, 410, 450, 490, 530, 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59)
