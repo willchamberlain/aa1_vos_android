@@ -9,6 +9,7 @@
 # urdf_parser_py.
 import roslib; roslib.load_manifest('urdfdom_py')
 import rospy
+from geometry_msgs.msg import Point, Pose, Quaternion
 
 # Import the module
 
@@ -21,7 +22,7 @@ from vos_aa1.msg import WhereIsAsPub
 
 # setup ROS nodes, subscribers, etc 
 
-visiontask_subscriber = rospy.Publisher('/cam_607/vos_task_assignment_subscriber',WhereIsAsPub, queue_size=1)
+visiontask_publisher = rospy.Publisher('/cam_607/vos_task_assignment_subscriber',WhereIsAsPub, queue_size=1)
 
 
 
@@ -72,10 +73,29 @@ print "..."
 print "..."
 print "receive a VOS request for localise_me(my_URDF)"
 
+
+rospy.init_node("dev_python_URDF_file_to_WhereIsAsPub_messages")
+
+
 appearance_num_ = 0
 for appearance in robot.links[0].appearances:
     print "appearance number %d"%(appearance_num_)
     print "  allocate the task to camera(s) as a LocaliseFromView containing a set of VisualFeatureObservation[]"
+    whereis_message = WhereIsAsPub()
+    whereis_message.request_id   = "90001"
+    whereis_message.algorithm    = appearance.algorithm #"BoofCV | binary square fiducial | 0.257 "
+    whereis_message.descriptor   = appearance.descriptor
+    pose_ = Pose()
+    pose_.position.x=appearance.origin.position.x
+    pose_.position.y=appearance.origin.position.x
+    pose_.position.z=appearance.origin.position.x
+    pose_.orientation.x=appearance.origin.orientation.x
+    pose_.orientation.y=appearance.origin.orientation.y
+    pose_.orientation.z=appearance.origin.orientation.z
+    pose_.orientation.w=appearance.origin.orientation.w
+    whereis_message.relation_to_base = pose_
+    whereis_message.rate = 1
+    visiontask_publisher.publish(whereis_message)
     appearance_num_ = appearance_num_ + 1
     
 
