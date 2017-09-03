@@ -10,6 +10,7 @@
 import roslib; roslib.load_manifest('urdfdom_py')
 import rospy
 from geometry_msgs.msg import Point, Pose, Quaternion
+import tf
 
 # Import the module
 
@@ -22,27 +23,9 @@ from vos_aa1.msg import WhereIsAsPub
 
 # setup ROS nodes, subscribers, etc 
 
-visiontask_publisher = rospy.Publisher('/cam_607/vos_task_assignment_subscriber',WhereIsAsPub, queue_size=1)
+# visiontask_publisher = rospy.Publisher('/cam_607/vos_task_assignment_subscriber',WhereIsAsPub, queue_size=1)
 
-
-
-# 1. Parse a string containing the robot description in URDF.
-# Pro: no need to have a roscore running.
-# Cons: n/a
-# Note: it is rare to receive the robot model as a string.
-print "--------------- URDF from XML string: ---------------"
-robot = URDF.from_xml_string("<robot name='myrobot'></robot>")
-print "-----------------------------------------------------"
-
-
-print "--------------- Minimal URDF from file: ---------------"
-robot = URDF.from_xml_file("/mnt/nixbig/build_workspaces/aa1_vos_android_catkin_ws/src/vos_aa1/scripts/test_urdf_parser_py_minimal_urdf.xml")
-print "     --------------------------     "
-print "-- now exploring the model: "
-print "-- robot has %d link elements."%(len(robot.links))
-print "-----------------------------------------------------"
-
-# - OR -
+visiontask_publisher = rospy.Publisher('/cam_607/vos_task_assignment_subscriber',WhereIsAsPub, queue_size=10, latch=True)
 
 # 2. Load the module from a file.
 # Pro: no need to have a roscore running.
@@ -57,8 +40,6 @@ print "-- robot has %d link elements."%(len(robot.links))
 print "     --------------------------     "
 print "-- now exploring the model: "
 print "-- robot link[0] has %d appearance elements."%(len(robot.links[0].appearances))
-print "-- robot link[0].appearances[0] has '%s' descriptor."%(robot.links[0].appearances[0].descriptor)
-print "-- robot link[0].appearances[1] has '%s' descriptor."%(robot.links[0].appearances[1].descriptor)
 print "-----------------------------------------------------"
 
 
@@ -81,52 +62,44 @@ appearance_num_ = 0
 for appearance in robot.links[0].appearances:
     print "appearance number %d"%(appearance_num_)
     print "  allocate the task to camera(s) as a LocaliseFromView containing a set of VisualFeatureObservation[]"
+    print appearance.origin
+    print appearance.origin.rpy
+    print appearance.origin.rpy[0]
+    print appearance.origin.xyz
     whereis_message = WhereIsAsPub()
-    whereis_message.request_id   = "90001"
+    whereis_message.request_id   = "900999991"
     whereis_message.algorithm    = appearance.algorithm #"BoofCV | binary square fiducial | 0.257 "
     whereis_message.descriptor   = appearance.descriptor
     pose_ = Pose()
-    pose_.position.x=appearance.origin.position.x
-    pose_.position.y=appearance.origin.position.x
-    pose_.position.z=appearance.origin.position.x
-    pose_.orientation.x=appearance.origin.orientation.x
-    pose_.orientation.y=appearance.origin.orientation.y
-    pose_.orientation.z=appearance.origin.orientation.z
-    pose_.orientation.w=appearance.origin.orientation.w
+    pose_.position.x=appearance.origin.xyz[0]
+    pose_.position.y=appearance.origin.xyz[1]
+    pose_.position.z=appearance.origin.xyz[2]
+    quaternion = tf.transformations.quaternion_from_euler(appearance.origin.rpy[0], appearance.origin.rpy[1], appearance.origin.rpy[2])
+    print "quaternion = %d %d %d %d"%(quaternion[0],quaternion[1],quaternion[2],quaternion[3]) 
+    print quaternion
+    pose_.orientation.x=  1.000000 # quaternion[0]
+    pose_.orientation.y=  0.000000 # quaternion[1]
+    pose_.orientation.z=  0.000000 # quaternion[2]
+    pose_.orientation.w= -0.000054 # quaternion[3]
     whereis_message.relation_to_base = pose_
-    whereis_message.rate = 1
+    whereis_message.rate = 10
+    whereis_message.return_url = 'bob'
+    print "publish appearance number %d"%(appearance_num_)
     visiontask_publisher.publish(whereis_message)
+    print "published appearance number %d"%(appearance_num_)
     appearance_num_ = appearance_num_ + 1
-    
+# having published, now need to give ROSJava time to pick up the messages - don't assume that the subscriber can pick up immediately, e.g. there may be latency due to the smart camera controller or network communications 
+print "... tick ... having published, now need to give ROSJava time to pick up the messages - don't assume that the subscriber can pick up immediately, e.g. there may be latency due to the smart camera controller or network communications "
+rospy.rostime.wallsleep(0.5)    
+print "... tock ... tick ..."
+rospy.rostime.wallsleep(0.5)    
+print "... tock ... now complete."
 
-
-#filepath = "/mnt/nixbig/downloads/ros_amr-ros-config/amr-ros-config/description/urdf/pioneer3dx.urdf"
-#print "------------- URDF from Omron Adept MobileRobots Pioneer 3DX URDF file (%s): ---------------"%(filepath)
-#robot = URDF.from_xml_file(filepath)
-#print "-----------------------------------------------------"
-
-# - OR -
-
-# 3. Load the module from the parameter server.
-# Pro: automatic, no arguments are needed, consistent
-#      with other ROS nodes.
-# Cons: need roscore to be running and the parameter to
-#      to be set beforehand (through a roslaunch file for
-#      instance).
-#print "------------- URDF from parameter server: ---------------"
-#robot = URDF.from_parameter_server()
-#print "-----------------------------------------------------"
-
-# Print the robot
-# print(robot)
-
-
-
-# keep thread alive
-while not rospy.core.is_shutdown():    
-    # do stuff 
-    print "... tick ..."
-    rospy.rostime.wallsleep(0.5)
+## keep thread alive
+#while not rospy.core.is_shutdown():    
+#    # do stuff 
+#    print "... tick ..."
+#    rospy.rostime.wallsleep(0.5)
 
 
 # end
