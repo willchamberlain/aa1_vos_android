@@ -77,12 +77,13 @@ for appearance in robot.links[0].appearances:
     quaternion = tf.transformations.quaternion_from_euler(appearance.origin.rpy[0], appearance.origin.rpy[1], appearance.origin.rpy[2])
     print "quaternion = %d %d %d %d"%(quaternion[0],quaternion[1],quaternion[2],quaternion[3]) 
     print quaternion
-    pose_.orientation.x=  1.000000 # quaternion[0]
-    pose_.orientation.y=  0.000000 # quaternion[1]
-    pose_.orientation.z=  0.000000 # quaternion[2]
-    pose_.orientation.w= -0.000054 # quaternion[3]
+    pose_.orientation.x=  quaternion[0]
+    pose_.orientation.y=  quaternion[1]
+    pose_.orientation.z=  quaternion[2]
+    pose_.orientation.w=  quaternion[3]
+    print pose_.orientation
     whereis_message.relation_to_base = pose_
-    whereis_message.rate = 10
+    whereis_message.rate = 1000
     whereis_message.return_url = 'bob'
     print "publish appearance number %d"%(appearance_num_)
     visiontask_publisher.publish(whereis_message)

@@ -78,7 +78,7 @@ tag_210.pose.orientation.z=-0.619
 tag_210.pose.orientation.w=0.785390985 
 fixed_features.append(tag_210)
 
-features_present = ( 90170 , 90250 , 90290 , 90330 , -90000 , 90555 , 90210 , 91610 , 91690 , 91730 , 91650 , 90057 , 90157 , 90257 , 90357 , 90457 , 90557 , 90000+999999 , 70170 , 60170) # , 80170 )
+features_present = ( 90170 , 90250 , 90290 , 90330 , -90000 , 90555 , 90210 , 91610 , 91690 , 91730 , 91650 , 90057 , 90157 , 90257 , 90357 , 90457 , 90557 , 90000+999999 , 70170 , 60170 , 50170  , 80557 , 70557 , 60557 , 50557, 40557) # , 80170 )
 
 tag_210_target_publisher    = 1
 tag_210_target_pose = Pose()
@@ -314,6 +314,8 @@ def detect_feature_callback(req):
             time_now,
             'fixed_%s%s' % (algorithm_abreviations[fixed_feature.algorithm], fixed_feature.id),
             'map')
+            
+            
 
 
 # working through BoofCV transforms and orientations: BoofCV uses yet another frame for tags
@@ -321,6 +323,44 @@ def detect_feature_callback(req):
     t = algorithm_abreviations[req.visualFeature.algorithm]     # 't'
     t_id = req.visualFeature.id                                 # 0, 2, 170, 210,       : does NOT include any 't'
     t55 = "%s%s"%(t,t_id)
+    
+    
+    print "-------------"
+    print "-------------"
+    print "-------------"
+    print "-------------"
+    print "-------------"
+    print " c2='%s' , t55='%s' "%(c2, t55)
+    print "-------------"
+    print "-------------"
+    print "-------------"
+    print "-------------"
+    print "-------------"
+    # camera reporting robot pose rather than feature - TODO - move this to another service than DetectedFeature
+    if  t55 in ['t50557', 't40557']:    #  t40557 is the world-to-camera  , t50557 is the world-to-marker , t60557 is the camera-to-marker , t70557 is the camera-to-robot-base 
+        dum_c2_map_to_robot_via_t55_trans = "dum_%s_map_to_robot_via_%s_trans"%(c2,t55)
+        print " t55 in ['50557', 't40557'] : t55='%s' : publishing tf from /map to %s "%(t55 , dum_c2_map_to_robot_via_t55_trans)
+        tfBroadcaster.sendTransform(
+            (req.visualFeature.pose.pose.position.x, req.visualFeature.pose.pose.position.y, req.visualFeature.pose.pose.position.z),
+            (0,0,0,1),                          # apply the translation first ...
+            time_now,
+            dum_c2_map_to_robot_via_t55_trans,  # to
+            'map')                              # from    
+
+        dum_c2_map_to_robot_via_t55_trans_rot = "dum_%s_map_to_robot_via_%s_trans_rot"%(c2,t55)
+        print " t55 in ['50557', 't40557'] : t55='%s' : publishing tf from %s to %s "%(t55 , dum_c2_map_to_robot_via_t55_trans , dum_c2_map_to_robot_via_t55_trans_rot)
+        tfBroadcaster.sendTransform(
+            (0,0,0),                            # ... then apply the rotation - because the Python does things _differently_. 
+            (req.visualFeature.pose.pose.orientation.x, req.visualFeature.pose.pose.orientation.y, req.visualFeature.pose.pose.orientation.z, req.visualFeature.pose.pose.orientation.w),
+            time_now,
+            dum_c2_map_to_robot_via_t55_trans_rot,    # to
+            dum_c2_map_to_robot_via_t55_trans)        # from
+            
+#        response = DetectedFeatureResponse()
+#        response.acknowledgement="bob"
+#        return response
+    # back to the other tags         
+        
 
 # the camera's self-reported pose in the world after localisation
     # map_to_c2 = "map_to_%s"%(c2)
