@@ -15,6 +15,7 @@ from pprint import pprint
 import std_msgs
 import time
 import threading
+from itertools import chain
 
 import load_properties
 
@@ -78,7 +79,21 @@ tag_210.pose.orientation.z=-0.619
 tag_210.pose.orientation.w=0.785390985 
 fixed_features.append(tag_210)
 
-features_present = ( 90170 , 90250 , 90290 , 90330 , -90000 , 90555 , 90210 , 91610 , 91690 , 91730 , 91650 , 90057 , 90157 , 90257 , 90357 , 90457 , 90557 , 90000+999999 , 70170 , 60170 , 50170  , 80557 , 70557 , 60557 , 50557, 40557) # , 80170 )
+robot_features_via_tf = (80557 , 70557 , 60557)
+robot_features_on_cam = (50057, 40057, 50157, 40157, 50257, 40257, 50357, 40357, 50457, 40457, 50557, 40557)
+features_present_list_of_tuples = [robot_features_via_tf,robot_features_on_cam]
+robot_features_present = tuple(chain.from_iterable(features_present_list_of_tuples))
+print "robot_features_present=%s"%(str(robot_features_present))
+other_features_present = ( 90170 , 90250 , 90290 , 90330 , -90000 , 90555 , 90210 , 91610 , 91690 , 91730 , 91650 , 90057 , 90157 , 90257 , 90357 , 90457 , 90557 , 90000+999999 , 70170 , 60170 , 50170 )
+print "other_features_present=%s"%(str(other_features_present)) 
+features_present_list_of_tuples = [robot_features_present,other_features_present]
+print "features_present_list_of_tuples=%s"%(features_present_list_of_tuples)
+features_present = tuple(chain.from_iterable(features_present_list_of_tuples))
+features_present = tuple(sorted(features_present))
+print "features_present=%s"%(str(features_present))
+type(features_present[0])
+print "features_present(0)=%s of type=%s"%(features_present[0],type(features_present[0]))
+
 
 tag_210_target_publisher    = 1
 tag_210_target_pose = Pose()
@@ -322,6 +337,7 @@ def detect_feature_callback(req):
     c2 = req.cameraPose.header.frame_id                          # c2, c11, ... , cN     : DOES include the 'c'
     t = algorithm_abreviations[req.visualFeature.algorithm]     # 't'
     t_id = req.visualFeature.id                                 # 0, 2, 170, 210,       : does NOT include any 't'
+    marker_tag_id = t_id
     t55 = "%s%s"%(t,t_id)
     
     
@@ -337,7 +353,7 @@ def detect_feature_callback(req):
     print "-------------"
     print "-------------"
     # camera reporting robot pose rather than feature - TODO - move this to another service than DetectedFeature
-    if  t55 in ['t50557', 't40557']:    #  t40557 is the world-to-camera  , t50557 is the world-to-marker , t60557 is the camera-to-marker , t70557 is the camera-to-robot-base 
+    if  marker_tag_id in robot_features_on_cam: # ['t50557', 't40557']:    #  t40557 is the world-to-camera  , t50557 is the world-to-marker , t60557 is the camera-to-marker , t70557 is the camera-to-robot-base 
         dum_c2_map_to_robot_via_t55_trans = "dum_%s_map_to_robot_via_%s_trans"%(c2,t55)
         print " t55 in ['50557', 't40557'] : t55='%s' : publishing tf from /map to %s "%(t55 , dum_c2_map_to_robot_via_t55_trans)
         tfBroadcaster.sendTransform(
@@ -1274,7 +1290,7 @@ def detect_feature_server2():
     print "Ready to publish poses with covariance"
     rospy.loginfo("Ready to publish poses with covariance")
 
-    global fakelocalisation_poseWCS_publisher
+    global fakelocalisation_poseWCS_publisher  # fake_localisation / fake_localization
     fakelocalisation_poseWCS_publisher = rospy.Publisher("/base_pose_ground_truth", Odometry, queue_size=50, latch=True)  # latch to make sure that AMCL has an intitial pose to use
     print "Ready to publish /base_pose_ground_truth for fake_localization"
     rospy.loginfo( "Ready to publish /base_pose_ground_truth for fake_localization" )

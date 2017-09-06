@@ -25,7 +25,14 @@ from vos_aa1.msg import WhereIsAsPub
 
 # visiontask_publisher = rospy.Publisher('/cam_607/vos_task_assignment_subscriber',WhereIsAsPub, queue_size=1)
 
-visiontask_publisher = rospy.Publisher('/cam_607/vos_task_assignment_subscriber',WhereIsAsPub, queue_size=10, latch=True)
+visiontask_publisher_605 = rospy.Publisher('/cam_605/vos_task_assignment_subscriber',WhereIsAsPub, queue_size=10, latch=True)
+visiontask_publisher_606 = rospy.Publisher('/cam_606/vos_task_assignment_subscriber',WhereIsAsPub, queue_size=10, latch=True)
+visiontask_publisher_607 = rospy.Publisher('/cam_607/vos_task_assignment_subscriber',WhereIsAsPub, queue_size=10, latch=True)
+visiontask_publisher_608 = rospy.Publisher('/cam_608/vos_task_assignment_subscriber',WhereIsAsPub, queue_size=10, latch=True)
+visiontask_publisher_609 = rospy.Publisher('/cam_609/vos_task_assignment_subscriber',WhereIsAsPub, queue_size=10, latch=True)
+visiontask_publisher_611 = rospy.Publisher('/cam_611/vos_task_assignment_subscriber',WhereIsAsPub, queue_size=10, latch=True)
+visiontask_publisher_612 = rospy.Publisher('/cam_612/vos_task_assignment_subscriber',WhereIsAsPub, queue_size=10, latch=True)
+visiontask_publisher_list = [visiontask_publisher_605,visiontask_publisher_606,visiontask_publisher_607,visiontask_publisher_608,visiontask_publisher_609,visiontask_publisher_611,visiontask_publisher_612] 
 
 # 2. Load the module from a file.
 # Pro: no need to have a roscore running.
@@ -86,8 +93,14 @@ for appearance in robot.links[0].appearances:
     whereis_message.rate = 1000
     whereis_message.return_url = 'bob'
     print "publish appearance number %d"%(appearance_num_)
-    visiontask_publisher.publish(whereis_message)
-    print "published appearance number %d"%(appearance_num_)
+    for visiontask_publisher_ in visiontask_publisher_list:
+        visiontask_publisher_.publish(whereis_message)
+        print "published appearance number %d"%(appearance_num_)
+        print "... tick ... having published, now need to give ROSJava time to pick up the messages - don't assume that the subscriber can pick up immediately, e.g. there may be latency due to the smart camera controller or network communications "
+        rospy.rostime.wallsleep(0.5)    
+        print "... tock ... tick ..."
+        rospy.rostime.wallsleep(0.5)    
+        print "... tock ... now complete."
     appearance_num_ = appearance_num_ + 1
 # having published, now need to give ROSJava time to pick up the messages - don't assume that the subscriber can pick up immediately, e.g. there may be latency due to the smart camera controller or network communications 
 print "... tick ... having published, now need to give ROSJava time to pick up the messages - don't assume that the subscriber can pick up immediately, e.g. there may be latency due to the smart camera controller or network communications "
