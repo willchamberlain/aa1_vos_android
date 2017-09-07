@@ -1,0 +1,14 @@
+<launch> <!-- http://wiki.ros.org/tf#static_transform_publisher -->
+  <node  pkg="tf"  type="static_transform_publisher"
+      name="t330_base_link_static_tf_broadcaster"
+      args="0     0.1  0.7   0 0 0.7071 0.7071  base_link t330 30" />  <!-- up, left, facing left  -->
+  <node  pkg="tf"  type="static_transform_publisher"
+      name="t250_base_link_static_tf_broadcaster"
+      args="-0.12 0    0.7   0 0 1      0       base_link t250 30" />  <!-- up, behind, facing rear -->
+  <node  pkg="tf"  type="static_transform_publisher"
+      name="t290_base_link_static_tf_broadcaster"
+      args="0    -0.1  0.7   0 0 -0.7071 0.7071  base_link t290 30" />  <!-- up, right, facing right -->
+  <!--<node  pkg="tf"  type="static_transform_publisher"
+      name="t330_base_link_static_tf_broadcaster"
+      args="1.9 -5.75  1   0 0 0.7071 0.7071  map c15 30" />-->  <!-- -->
+</launch>
