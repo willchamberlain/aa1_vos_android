@@ -79,13 +79,24 @@ tag_210.pose.orientation.z=-0.619
 tag_210.pose.orientation.w=0.785390985 
 fixed_features.append(tag_210)
 
-robot_features_via_tf = (80557 , 70557 , 60557)
-robot_features_on_cam = (50057, 40057, 50157, 40157, 50257, 40257, 50357, 40357, 50457, 40457, 50557, 40557)
-features_present_list_of_tuples = [robot_features_via_tf,robot_features_on_cam]
+cam_poses_on_cam      = ( 40057, 40157, 40257, 40357, 40457, 40557)
+print "cam_poses_on_cam = %s"%(str(cam_poses_on_cam))
+
+robot_features_on_cam = ( 50057, 50157, 50257, 50357, 50457, 50557)
+print "robot_features_on_cam=%s"%(str(robot_features_on_cam))
+
+features_present_list_of_tuples = [ cam_poses_on_cam , robot_features_on_cam ]
+features_on_cam = tuple(chain.from_iterable(features_present_list_of_tuples))
+print "features_on_cam=%s"%(str(features_on_cam))
+
+robot_features_via_tf = ( 80557, 70557, 60557)
+features_present_list_of_tuples = [ robot_features_via_tf , features_on_cam ]
 robot_features_present = tuple(chain.from_iterable(features_present_list_of_tuples))
 print "robot_features_present=%s"%(str(robot_features_present))
+
 other_features_present = ( 90170 , 90250 , 90290 , 90330 , -90000 , 90555 , 90210 , 91610 , 91690 , 91730 , 91650 , 90057 , 90157 , 90257 , 90357 , 90457 , 90557 , 90000+999999 , 70170 , 60170 , 50170 )
 print "other_features_present=%s"%(str(other_features_present)) 
+
 features_present_list_of_tuples = [robot_features_present,other_features_present]
 print "features_present_list_of_tuples=%s"%(features_present_list_of_tuples)
 features_present = tuple(chain.from_iterable(features_present_list_of_tuples))
@@ -353,7 +364,7 @@ def detect_feature_callback(req):
     print "-------------"
     print "-------------"
     # camera reporting robot pose rather than feature - TODO - move this to another service than DetectedFeature
-    if  marker_tag_id in robot_features_on_cam: # ['t50557', 't40557']:    #  t40557 is the world-to-camera  , t50557 is the world-to-marker , t60557 is the camera-to-marker , t70557 is the camera-to-robot-base 
+    if  marker_tag_id in features_on_cam: # ['t50557', 't40557']:    #  t40557 is the world-to-camera  , t50557 is the world-to-marker , t60557 is the camera-to-marker , t70557 is the camera-to-robot-base 
         dum_c2_map_to_robot_via_t55_trans = "dum_%s_map_to_robot_via_%s_trans"%(c2,t55)
         print " t55 in ['50557', 't40557'] : t55='%s' : publishing tf from /map to %s "%(t55 , dum_c2_map_to_robot_via_t55_trans)
         tfBroadcaster.sendTransform(
@@ -371,6 +382,13 @@ def detect_feature_callback(req):
             time_now,
             dum_c2_map_to_robot_via_t55_trans_rot,    # to
             dum_c2_map_to_robot_via_t55_trans)        # from
+            
+        if  marker_tag_id in robot_features_on_cam:     
+            tfListener.waitForTransform('map', dum_c2_map_to_robot_via_t55_trans_rot, rospy.Time(), rospy.Duration(1))
+            pos_, quat_ = tfListener.lookupTransform('map', dum_c2_map_to_robot_via_t55_trans_rot,  rospy.Time(0))
+            publish_pose_xyz_xyzw_covar(initialpose_poseWCS_publisher, fakelocalisation_poseWCS_publisher, time_now, 'map', pos_[0], pos_[1], pos_[2], quat_[0], quat_[1], quat_[2], quat_[3], [0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.06853891945200942])
+            publish_pose_xyz_xyzw(pose_publisher,time_now,  'map', pos_[0], pos_[1], pos_[2], quat_[0], quat_[1], quat_[2], quat_[3])
+            
             
 #        response = DetectedFeatureResponse()
 #        response.acknowledgement="bob"
@@ -854,7 +872,7 @@ def detect_feature_callback(req):
             
     ### _target_ pose publisher ##################################################################################        
     #elif 't90210'==t55:                                  # tag 210 is the target tag : if it moves more than 20cm from last posn, publish an updated target
-    if t55 in ",".join ( ['t90210','t9099999999210'] ) :
+    if t55 in ",".join ( ['t50957','t90210','t9099999999210'] ) :
         try:
             print "------------------- start check 210 as target ----------------------"
             tfListener.waitForTransform('map',              t55_transrot_from_dum_c2_post90y180zneg90z,  rospy.Time(),  rospy.Duration(1))
