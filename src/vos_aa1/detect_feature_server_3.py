@@ -1093,11 +1093,16 @@ class VisionSourceAllocation:
 
 
 def allocateVisionSourcesWithFieldOfView(job_, x, y):
+    isAllocated = False
     for visionSource in vision_sources:
         if visionSource.hasFov:
-            if visionSource.min_x <= x and visionSource.min_y <= y and visionSource.max_x >= x and visionSource.maxy >= y :
+            if visionSource.min_x <= x and visionSource.min_y <= y and visionSource.max_x >= x and visionSource.max_y >= y :
                 visionSourceAllocation = VisionSourceAllocation(job_, visionSource.vision_source_id)
-                allocatedVisionSources.add(visionSourceAllocation)
+                allocatedVisionSources.append(visionSourceAllocation)
+                print "allocateVisionSourcesWithFieldOfView(job_,x:%d,y:%d): allocated: %s"%(x,y,visionSourceAllocation)
+                isAllocated = True
+    if not isAllocated:
+        print "allocateVisionSourcesWithFieldOfView(job_,x:%d,y:%d): NOT allocated"%(x,y)           
 
 def deallocateVisionSource(vision_source_id_):
     for visionSourceAllocation in allocatedVisionSources:
@@ -1594,8 +1599,24 @@ if __name__ == "__main__":
     start_job(new_job(vosClient_1))
     start_job(new_job(vosClient_2))
     start_job(new_job(vosClient_1))
-    start_job(new_job(vosClient_2))
+    job_6 = new_job(vosClient_2)
+    start_job(job_6)
     cease_job(3)
+    
+    #VisionSource(vision_source_id_, base_url_, publisher_to_phone_, min_x, min_y, max_x, max_y)
+    visionSource_607 = VisionSource("cam_607", "/cam_607/url/", "publisher_to_phone_607", 10, 10, 100, 100)
+    visionSource_608 = VisionSource("cam_608", "/cam_608/url/", "publisher_to_phone_608", 20, 20, 100, 100)
+    
+    vision_sources.append(visionSource_607)
+    vision_sources.append(visionSource_608)
+    
+    allocateVisionSourcesWithFieldOfView(job_6, 9,10)
+    allocateVisionSourcesWithFieldOfView(job_6, 10,9)
+    allocateVisionSourcesWithFieldOfView(job_6, 10,10)
+    allocateVisionSourcesWithFieldOfView(job_6, 100,100)
+    allocateVisionSourcesWithFieldOfView(job_6, 101,100)
+    allocateVisionSourcesWithFieldOfView(job_6, 100,101)
+    allocateVisionSourcesWithFieldOfView(job_6, 20,20)
 
 
     an_instance = ConfigLoader('/mnt/nixbig/build_workspaces/aa1_vos_android_catkin_ws/src/vos_aa1/src/vos_aa1/config.txt')
