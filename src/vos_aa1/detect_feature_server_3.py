@@ -289,8 +289,8 @@ def localise_by_visual_descriptor_callback(request):
     whereIsAsPub = WhereIsAsPub()
     whereIsAsPub.algorithm  = request.algorithm
     whereIsAsPub.descriptor = request.descriptor
-    whereIsAsPub.rate       = request.rate
-    vision_source.publisher_to_phone.publish(whereIsAsPub)
+    whereIsAsPub.rate       = request.rate    
+    visiontask_to_smart_camera_pub = rospy.Publisher(vision_source.publisher_to_phone,WhereIsAsPub, queue_size=10, latch=True)
     print "localise_by_visual_descriptor_callback: vision_source_id=%s : algorithm=%s, descriptor=%s, rate=%d"%(vision_source.vision_source_id, request.algorithm,request.descriptor,request.rate)
 
   response = localise_by_visual_descriptorResponse()

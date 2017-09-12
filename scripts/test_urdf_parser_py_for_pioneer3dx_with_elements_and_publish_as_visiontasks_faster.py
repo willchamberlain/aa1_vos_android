@@ -19,6 +19,9 @@ from urdf_parser_py.urdf import URDF
 # Import VOS implementation
 
 from vos_aa1.msg import WhereIsAsPub
+from vos_aa1.srv import localise_by_visual_descriptor
+from vos_aa1.srv import localise_by_visual_descriptorRequest
+from vos_aa1.srv import localise_by_visual_descriptorResponse
 
 
 # setup ROS nodes, subscribers, etc 
@@ -35,10 +38,25 @@ visiontask_publisher_612 = rospy.Publisher('/cam_612/vos_task_assignment_subscri
 visiontask_publisher_list = [visiontask_publisher_605,visiontask_publisher_606,visiontask_publisher_607,visiontask_publisher_608,visiontask_publisher_609,visiontask_publisher_611,visiontask_publisher_612] 
 
 
-rospy.wait_for_service('/vos_server/localise_by_visual_descriptor')
-try:
-    add_two_ints = rospy.ServiceProxy('/vos_server/localise_by_visual_descriptor', localise_by_visual_descriptor)
+def localise_from_feature_from_visionsources():
+    rospy.wait_for_service('/vos_server/localise_by_visual_descriptor')
+    request = localise_by_visual_descriptorRequest()
+    request.request_id  = "TODO request_id"
+    request.algorithm   = "TODO algorithm"
+    request.descriptor  = "TODO descriptor"
+    request.rate        = 2
+    request.return_url  = "TODO return_url"
+    request.repetitions = 10000
+    try:
+        vos_server__srv__localise_by_visual_descriptor = rospy.ServiceProxy('/vos_server/localise_by_visual_descriptor', localise_by_visual_descriptor)
+        response = vos_server__srv__localise_by_visual_descriptor(request)        
+        print "localise_from_feature_from_visionsources: got a response"
+        return response
+    except rospy.ServiceException, e:
+        print "ERROR: ---- localise_from_feature_from_visionsources: Service call failed: %s"%e
 
+
+localise_from_feature_from_visionsources()
 
 
 # 2. Load the module from a file.
