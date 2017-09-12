@@ -54,6 +54,7 @@ add_message_files(
   VisualFeatureInWorld.msg
   VisualFeatureObservation.msg
   WhereIsAsPub.msg
+  localise_by_visual_descriptor_msg.msg
 )
 
 ## Generate services in the 'srv' folder
@@ -66,8 +67,8 @@ add_service_files(
     FindItems.srv
     RegisterVisionSource.srv
     SetPose.srv
-    where_is_alg_desc.srv
     there_is_alg_desc.srv
+    localise_by_visual_descriptor.srv
     RobotTaskDemandManualManagement.srv
 )
 

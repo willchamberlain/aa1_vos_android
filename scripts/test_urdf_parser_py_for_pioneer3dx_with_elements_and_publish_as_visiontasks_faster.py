@@ -34,6 +34,13 @@ visiontask_publisher_611 = rospy.Publisher('/cam_611/vos_task_assignment_subscri
 visiontask_publisher_612 = rospy.Publisher('/cam_612/vos_task_assignment_subscriber',WhereIsAsPub, queue_size=10, latch=True)
 visiontask_publisher_list = [visiontask_publisher_605,visiontask_publisher_606,visiontask_publisher_607,visiontask_publisher_608,visiontask_publisher_609,visiontask_publisher_611,visiontask_publisher_612] 
 
+
+rospy.wait_for_service('/vos_server/localise_by_visual_descriptor')
+try:
+    add_two_ints = rospy.ServiceProxy('/vos_server/localise_by_visual_descriptor', localise_by_visual_descriptor)
+
+
+
 # 2. Load the module from a file.
 # Pro: no need to have a roscore running.
 # Cons: using hardcoded file location is not portable.

@@ -34,15 +34,15 @@ from vos_aa1.srv import LocaliseFromAFeature
 from vos_aa1.srv import LocaliseFromAFeatureRequest
 from vos_aa1.srv import LocaliseFromAFeatureResponse
 from vos_aa1.srv import RegisterVisionSource
-from vos_aa1.srv import RegisterVisionSourceRequest
+from vos_aa1.srv import RegisterVisionSourceRequest 
 from vos_aa1.srv import RegisterVisionSourceResponse
 from vos_aa1.srv import there_is_alg_desc
 from vos_aa1.srv import there_is_alg_descRequest
 from vos_aa1.srv import there_is_alg_descResponse
 from vos_aa1.msg import WhereIsAsPub
-from vos_aa1.srv import where_is_alg_desc
-from vos_aa1.srv import where_is_alg_descRequest
-from vos_aa1.srv import where_is_alg_descResponse
+from vos_aa1.srv import localise_by_visual_descriptor
+from vos_aa1.srv import localise_by_visual_descriptorRequest
+from vos_aa1.srv import localise_by_visual_descriptorResponse
 from vos_aa1.msg import VisualFeatureInWorld
 from vos_aa1.msg import VisualFeatureObservation
 
@@ -124,7 +124,7 @@ tfBroadcaster__ = []
 tfListener      = 1
 
 # robot task information demands
-where_is_server = 1
+localise_by_visual_descriptor_server = 1
 
 # Server-internal - interfaces to other nodes of the VosServer
 #list_vision_sources_publisher = 1
@@ -282,8 +282,8 @@ def distribute_to_visionsources(return_url_,visual_feature_descriptor_,fov_):
             print "localise_from_feature_from_source: Service call failed: %s"%e
 
 
-def where_is_callback(request):
-  # print "where_is_callback: algorithm=%s, descriptor=%s, rate=%d"%(request.algorithm,request.descriptor,request.rate)
+def localise_by_visual_descriptor_callback(request):
+  # print "localise_by_visual_descriptor_callback: algorithm=%s, descriptor=%s, rate=%d"%(request.algorithm,request.descriptor,request.rate)
 
   for vision_source in vision_sources:
     whereIsAsPub = WhereIsAsPub()
@@ -291,9 +291,9 @@ def where_is_callback(request):
     whereIsAsPub.descriptor = request.descriptor
     whereIsAsPub.rate       = request.rate
     vision_source.publisher_to_phone.publish(whereIsAsPub)
-    print "where_is_callback: vision_source_id=%s : algorithm=%s, descriptor=%s, rate=%d"%(vision_source.vision_source_id, request.algorithm,request.descriptor,request.rate)
+    print "localise_by_visual_descriptor_callback: vision_source_id=%s : algorithm=%s, descriptor=%s, rate=%d"%(vision_source.vision_source_id, request.algorithm,request.descriptor,request.rate)
 
-  response = where_is_alg_descResponse()
+  response = localise_by_visual_descriptorResponse()
   response.acknowledgment = 'OK'
   return response
 
@@ -1054,29 +1054,34 @@ def axisMarker(marker_id_,parent_frame_id_):
 
 ##########################################################################################################
 
+default_resolution = (640.0, 480.0)
+
 class VisionSource:
-    def __init__(self, vision_source_id_, base_url_, publisher_to_phone_):
-        self.vision_source_id = vision_source_id_
-        self.base_url         = base_url_
-        self.publisher_to_phone  = publisher_to_phone_
-        self.hasFov=False
-        self.min_x = 0.0
-        self.min_y = 0.0
-        self.max_x = 0.0
-        self.max_y = 0.0
         
-    def __init__(self, vision_source_id_, base_url_, publisher_to_phone_, min_x, min_y, max_x, max_y):
-        self.vision_source_id = vision_source_id_
-        self.base_url         = base_url_
-        self.publisher_to_phone  = publisher_to_phone_
-        self.hasFov=True
-        self.min_x = min_x
-        self.min_y = min_y
-        self.max_x = max_x
-        self.max_y = max_y
-
-
-
+    def __init__(self, *args, **kwargs):
+        self.hasFov  = False
+        self.hasPose = False
+        self.vision_source_id = args[0]
+        self.base_url         = args[1]
+        self.publisher_to_phone  = args[2]
+        if len(args) > 3:
+            self.hasFov=True
+            self.min_x = args[3]
+            self.min_y = args[4]
+            self.max_x = args[5]
+            self.max_y = args[6]
+            if len(args) > 7:
+                self.hasPose = True
+                self.pose = args[7]
+            if len(args) > 9:
+                self.resolution_x = args[8]
+                self.resolution_y = args[9]                
+                self.relative_resolution = ((self.resolution_x**2 + self.resolution_y**2)**0.5) / ((default_resolution[0]**2 + default_resolution[1]**2)**0.5)
+            else:  
+                global default_resolution  
+                self.resolution_x = default_resolution[0]
+                self.resolution_y = default_resolution[1]
+                self.relative_resolution = 1.0 
             
 ##########################################################################################################
 
@@ -1103,6 +1108,32 @@ def allocateVisionSourcesWithFieldOfView(job_, x, y):
                 isAllocated = True
     if not isAllocated:
         print "allocateVisionSourcesWithFieldOfView(job_,x:%d,y:%d): NOT allocated"%(x,y)           
+
+
+
+def allocateVisionSourcesWithFieldOfViewAndPose(job_, x, y):
+    isAllocated = False
+    closest_distance_to_location = 10**6
+    visionSource_to_allocate = -1
+    can_allocate_a_vision_source = False
+    for visionSource in vision_sources:
+        if visionSource.hasFov:
+            if visionSource.min_x <= x and visionSource.min_y <= y and visionSource.max_x >= x and visionSource.max_y >= y :
+                if visionSource.hasPose:
+                    distance = (visionSource.pose.position.x - x)**2 + (visionSource.pose.position.y - y)**2
+                    distance = distance / visionSource.relative_resolution
+                    if distance < closest_distance_to_location:                    
+                        closest_distance_to_location = distance
+                        visionSource_to_allocate = visionSource    
+                        can_allocate_a_vision_source = True                        
+    if can_allocate_a_vision_source:
+        visionSourceAllocation = VisionSourceAllocation(job_, visionSource_to_allocate.vision_source_id)
+        allocatedVisionSources.append(visionSourceAllocation)
+        print "allocateVisionSourcesWithFieldOfViewAndPose(job_,x:%d,y:%d): allocated: %s"%(x,y,visionSourceAllocation)
+    else:
+        print "allocateVisionSourcesWithFieldOfViewAndPose(job_,x:%d,y:%d): NOT allocated"%(x,y)           
+
+
 
 def deallocateVisionSource(vision_source_id_):
     for visionSourceAllocation in allocatedVisionSources:
@@ -1453,8 +1484,8 @@ def detect_feature_server2():
 #######    write_fixed_tags_to_file("/tmp/fixed_tags2")
 #######    load_fixed_tags_from_file("/tmp/fixed_tags2")
 
-    global where_is_server
-    where_is_server = rospy.Service('/vos_server/where_is', where_is_alg_desc, where_is_callback)
+    global localise_by_visual_descriptor_server
+    localise_by_visual_descriptor_server = rospy.Service('/vos_server/localise_by_visual_descriptor', localise_by_visual_descriptor, localise_by_visual_descriptor_callback)
 
 
 
@@ -1564,7 +1595,7 @@ def detect_feature_server3():
                     #        ( -0.10, 0-0.18, -0.64),                              # before right rot, step back --> right , tag box centre is 18cm rear of base_link (Pioneer2)
                     #        (0, 0, -0.707106781, 0.707106781),                     # 330 is on the left side, so turn right to face forward
 #                    request_id = "9000"
-#                    whereis = rospy.ServiceProxy(C60__WHERE_IS__SERVICE_NAME, where_is_alg_desc)
+#                    whereis = rospy.ServiceProxy(C60__WHERE_IS__SERVICE_NAME, localise_by_visual_descriptor)
 #                    resp1 = whereis("BoofCV Binary", "width=14.0|id=330", request_id,
 #                        pose_of_feature_from_base, RETURN_URL_OF_ROBOT_AS_SERVICE_NAME, rospy.Time.now(), 0, 0, 0)
 #                    connected_ = True
@@ -1604,8 +1635,24 @@ if __name__ == "__main__":
     cease_job(3)
     
     #VisionSource(vision_source_id_, base_url_, publisher_to_phone_, min_x, min_y, max_x, max_y)
-    visionSource_607 = VisionSource("cam_607", "/cam_607/url/", "publisher_to_phone_607", 10, 10, 100, 100)
-    visionSource_608 = VisionSource("cam_608", "/cam_608/url/", "publisher_to_phone_608", 20, 20, 100, 100)
+    visionSource_607_pose = Pose()
+    visionSource_607_pose.position.x = 1
+    visionSource_607_pose.position.y = 1
+    visionSource_607_pose.position.z = 1
+    visionSource_607 = VisionSource("cam_607", "/cam_607/url/", "publisher_to_phone_607", 10, 10, 100, 100, visionSource_607_pose)
+    visionSource_608_pose = Pose()
+    visionSource_608_pose.position.x = 88
+    visionSource_608_pose.position.y = 88
+    visionSource_608_pose.position.z = 88
+    visionSource_608 = VisionSource("cam_608", "/cam_608/url/", "publisher_to_phone_608", 20, 20, 100, 100, visionSource_608_pose)   # default 640x480
+    visionSource_609_pose =  Pose()
+    visionSource_609_pose.position.x = 99
+    visionSource_609_pose.position.y = 99
+    visionSource_609 = VisionSource("cam_609", "/cam_609/url/", "publisher_to_phone_609", 20, 20, 200, 200, visionSource_609_pose, 420, 360) # same FoV, same camera pose, worse resolution 
+    visionSource_610_pose =  Pose()
+    visionSource_610_pose.position.x = 150
+    visionSource_610_pose.position.y = 150
+    visionSource_610 = VisionSource("cam_610", "/cam_610/url/", "publisher_to_phone_609", 20, 20, 200, 200, visionSource_610_pose, 400, 300) # same FoV, same camera pose, better resolution 
     
     vision_sources.append(visionSource_607)
     vision_sources.append(visionSource_608)
@@ -1617,6 +1664,17 @@ if __name__ == "__main__":
     allocateVisionSourcesWithFieldOfView(job_6, 101,100)
     allocateVisionSourcesWithFieldOfView(job_6, 100,101)
     allocateVisionSourcesWithFieldOfView(job_6, 20,20)
+    
+    vision_sources.append(visionSource_609)
+    vision_sources.append(visionSource_610)
+    allocateVisionSourcesWithFieldOfViewAndPose(job_6, 20,20)
+    allocateVisionSourcesWithFieldOfViewAndPose(job_6, 44,45)
+    allocateVisionSourcesWithFieldOfViewAndPose(job_6, 45,44)
+    allocateVisionSourcesWithFieldOfViewAndPose(job_6, 45,45)
+    allocateVisionSourcesWithFieldOfViewAndPose(job_6, 100,100)
+    allocateVisionSourcesWithFieldOfViewAndPose(job_6, 125,125)
+    allocateVisionSourcesWithFieldOfViewAndPose(job_6, 126,126)
+    allocateVisionSourcesWithFieldOfViewAndPose(job_6, 180,180)
 
 
     an_instance = ConfigLoader('/mnt/nixbig/build_workspaces/aa1_vos_android_catkin_ws/src/vos_aa1/src/vos_aa1/config.txt')
