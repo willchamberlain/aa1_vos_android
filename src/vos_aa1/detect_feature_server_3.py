@@ -282,9 +282,11 @@ def distribute_to_visionsources(return_url_,visual_feature_descriptor_,fov_):
             print "localise_from_feature_from_source: Service call failed: %s"%e
 
 
-def localise_by_visual_descriptor_callback(request):
+def localise_by_visual_descriptor_callback(request):  
+  """ request = localise_by_visual_descriptor ...
+  Sends the request to each registered smart camera in turn. ...
+  """
   # print "localise_by_visual_descriptor_callback: algorithm=%s, descriptor=%s, rate=%d"%(request.algorithm,request.descriptor,request.rate)
-
   for vision_source in vision_sources:
     whereIsAsPub = WhereIsAsPub()
     whereIsAsPub.algorithm  = request.algorithm
@@ -292,7 +294,6 @@ def localise_by_visual_descriptor_callback(request):
     whereIsAsPub.rate       = request.rate    
     visiontask_to_smart_camera_pub = rospy.Publisher(vision_source.publisher_to_phone,WhereIsAsPub, queue_size=10, latch=True)
     print "localise_by_visual_descriptor_callback: vision_source_id=%s : algorithm=%s, descriptor=%s, rate=%d"%(vision_source.vision_source_id, request.algorithm,request.descriptor,request.rate)
-
   response = localise_by_visual_descriptorResponse()
   response.acknowledgment = 'OK'
   return response
@@ -320,7 +321,11 @@ def detect_feature_callback(req):
         response = DetectedFeatureResponse()
         response.acknowledgement="feature not present"
         return response
-    else:
+    else:        
+    
+        datetime_detect_feature_callback = datetime.utcnow()
+        print "now=%d_%d_%d"%(datetime_detect_feature_callback.minute,datetime_detect_feature_callback.second,datetime_detect_feature_callback.microsecond)
+    
         print "detect_feature_callback: camera frame_id [%s] : feature id [%d] : feature is present - is a true positive - listing as a detection."%(req.cameraPose.header.frame_id, req.visualFeature.id)
 
     detection_true_monitoring_publisher.publish("True detection: camera frame_id [%s] : feature id [%d]")
