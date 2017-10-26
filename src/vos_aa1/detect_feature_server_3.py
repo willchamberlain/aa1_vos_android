@@ -141,6 +141,14 @@ robot_pose_estimates_list = []
 averaging_lock = Lock()
 
 
+vos_clients = []
+vos_client_id_seq = 1
+
+
+jobs = []
+job_id_seq = 1
+
+
 def set_tfBroadcaster(tfBroadcaster_):
     tfBroadcaster__.append(tfBroadcaster_)
 
@@ -1064,6 +1072,7 @@ default_resolution = (640.0, 480.0)
 class VisionSource:
         
     def __init__(self, *args, **kwargs):
+        global default_resolution  
         self.hasFov  = False
         self.hasPose = False
         self.vision_source_id = args[0]
@@ -1083,7 +1092,6 @@ class VisionSource:
                 self.resolution_y = args[9]                
                 self.relative_resolution = ((self.resolution_x**2 + self.resolution_y**2)**0.5) / ((default_resolution[0]**2 + default_resolution[1]**2)**0.5)
             else:  
-                global default_resolution  
                 self.resolution_x = default_resolution[0]
                 self.resolution_y = default_resolution[1]
                 self.relative_resolution = 1.0 
@@ -1157,8 +1165,6 @@ def deallocateVosClient(vos_client_id_):
             
 ##########################################################################################################
 
-vos_clients = []
-vos_client_id_seq = 1
 
 class VosClient:
     vos_client_id = -1
@@ -1188,8 +1194,6 @@ def deregister_vos_client(vosClient_):
 
 ##########################################################################################################
 
-jobs = []
-job_id_seq = 1
 
 class Job:
     job_id = -1
@@ -1625,8 +1629,8 @@ def keep_loop_open():       # http://answers.ros.org/question/252545/interruptin
 
 
 if __name__ == "__main__":
-    global job_id_seq
-    global vos_client_id_seq
+    # global job_id_seq
+    # global vos_client_id_seq
     vosClient_1 = new_vos_client("URL 1")
     vosClient_2 = new_vos_client("URL 2")
     
