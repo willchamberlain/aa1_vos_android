@@ -62,8 +62,7 @@ localise_from_feature_from_visionsources()
 # 2. Load the module from a file.
 # Pro: no need to have a roscore running.
 # Cons: using hardcoded file location is not portable.
-filepath = "/mnt/nixbig/downloads/ros_p2os/p2os/p2os_urdf/defs/pioneer3dx.urdf"
-filepath = "/mnt/nixbig/build_workspaces/aa1_vos_android_catkin_ws/src/vos_aa1/resources/pioneer3dx.urdf"
+filepath = "/mnt/nixbig/build_workspaces/aa1_vos_android_catkin_ws/src/vos_aa1/resources/pioneer3dx_pioneer1.urdf"
 print "------------- URDF from  http://wiki.ros.org/p2os_urdf  URDF file (%s): ---------------"%(filepath)
 robot = URDF.from_xml_file(filepath)
 print "-----------------------------------------------------"
