@@ -7,6 +7,8 @@ from geometry_msgs.msg import Point, Pose, Quaternion, Vector3, PoseStamped, Pos
 from nav_msgs.msg import Odometry
 from move_base_msgs.msg import MoveBaseActionGoal
 
+from actionlib_msgs.msg import GoalStatusArray, GoalStatus, GoalID
+
 from tf import transformations
 import numpy as np
 from visualization_msgs.msg import Marker
@@ -97,10 +99,16 @@ features_present_list_of_tuples = [ robot_features_via_tf , features_on_cam ]
 robot_features_present = tuple(chain.from_iterable(features_present_list_of_tuples))
 print "robot_features_present=%s"%(str(robot_features_present))
 
-other_features_present = ( 90170 , 90250 , 90290 , 90330 , -90000 , 90555 , 90210 , 91610 , 91690 , 91730 , 91650 , 90057 , 90157 , 90257 , 90357 , 90457 , 90557 , 90000+999999 , 70170 , 60170 , 50170 )
+other_features_present = (10000, 90170 , 90250 , 90290 , 90330 , -90000 , 90555 , 90210 , 91610 , 91690 , 91730 , 91650 , 90057 , 90157 , 90257 , 90357 , 90457 , 90557 , 90000+999999 , 70170 , 60170 , 50170 )
 print "other_features_present=%s"%(str(other_features_present)) 
 
-features_present_list_of_tuples = [robot_features_present,other_features_present]
+
+pioneer1_features = (40170, 50170, 60170, 70170,  40250, 50250, 60250, 70250,  40290, 50290, 60290, 70290,  40330, 50330, 60330, 70330)
+print "pioneer1_features=%s"%(str(pioneer1_features)) 
+
+
+
+features_present_list_of_tuples = [robot_features_present,other_features_present,pioneer1_features]
 print "features_present_list_of_tuples=%s"%(features_present_list_of_tuples)
 features_present = tuple(chain.from_iterable(features_present_list_of_tuples))
 features_present = tuple(sorted(features_present))
@@ -136,6 +144,10 @@ retarget_requested = False
 detection_true_monitoring_publisher = 1
 detection_false_monitoring_publisher = 1
 
+
+# pioneer1
+vos_state = 'init'
+move_base_status_subscriber = 1
 
 robot_pose_estimates_list = []
 averaging_lock = Lock()
@@ -814,7 +826,50 @@ def detect_feature_callback(req):
             print "some tf exception happened 1650: {0}".format(err)
             
     print '------------ ???? ---------------------------------- ??? 90557 for robot tag ??? --------------------------------'
-    print ' if \'90557\' == t55 :  t55 == %s'%(t55)        
+    print ' if \'90557\' == t55 :  t55 == %s'%(t55)   
+    
+    drive_homography_from_VOS_server = False
+    if   drive_homography_from_VOS_server and 't70170' == t55:           #Pioneer1, front   
+        global vos_state
+        if  vos_state <> 'robot moving':
+            print 'vos_state was : vos_state=%s'%(vos_state)
+            vos_state = 'robot moving'
+            print 'vos_state now : vos_state=%s'%(vos_state)  
+            try:
+                print "------------------- set goal based on t70170 ----------------------"
+                tfListener.waitForTransform('map',              '/base_link',  rospy.Time(),  rospy.Duration(1))
+                pos_, quat_ = tfListener.lookupTransform('map', '/base_link',  rospy.Time(0)  )                
+                global tag_210_target_publisher         
+                publish_pose_xyz_xyzw(tag_210_target_publisher,time_now,  'map', pos_[0]+1, pos_[1], 0.0, 0.0, 0.0, quat_[2], quat_[3])  # NOTE: z is zero for ground robots, and it likes zero roll and pitch  :  move_base.cpp "ROS_ERROR("Quaternion is invalid... for navigation the z-axis of the quaternion must be close to vertical.")"
+            except tf.Exception as err:
+                print "some tf exception happened 210: {0}".format(err)
+        else:    
+            print 'vos_state is already robot moving: vos_state=%s'%(vos_state)  
+    elif drive_homography_from_VOS_server and  't70250' == t55:           #Pioneer1, left   
+        global vos_state
+        if  vos_state <> 'robot moving':
+            print 'vos_state was : vos_state=%s'%(vos_state)
+            vos_state = 'robot moving'
+            print 'vos_state now : vos_state=%s'%(vos_state)  
+        else:    
+            print 'vos_state is already robot moving: vos_state=%s'%(vos_state)  
+    elif drive_homography_from_VOS_server and 't70290' == t55:           #Pioneer1, left   
+        global vos_state
+        if  vos_state <> 'robot moving':
+            print 'vos_state was : vos_state=%s'%(vos_state)
+            vos_state = 'robot moving'
+            print 'vos_state now : vos_state=%s'%(vos_state)  
+        else:    
+            print 'vos_state is already robot moving: vos_state=%s'%(vos_state)  
+    elif drive_homography_from_VOS_server and 't70330' == t55:           #Pioneer1, right   
+        global vos_state
+        if  vos_state <> 'robot moving':
+            print 'vos_state was : vos_state=%s'%(vos_state)
+            vos_state = 'robot moving'
+            print 'vos_state now : vos_state=%s'%(vos_state)  
+        else:   
+            print 'vos_state is already robot moving: vos_state=%s'%(vos_state)  
+        
             
     if False and 't90557' == t55: # front, lower
         print '---------------------------------------------- 90557 for robot tag --------------------------------'
@@ -1288,7 +1343,22 @@ def management_input(req_management):
     print "management_input(%s): re-target"%(req_management)
     global retarget_requested
     retarget_requested = True   # set the flag
-
+    
+    
+def handle_move_base_status(status_msg):    
+    if len(status_msg.status_list) > 0 :    
+        print 'handle_move_base_status: goal_id=%s, status=%s'%(status_msg.status_list[0].goal_id.id, status_msg.status_list[0].status)
+        try: 
+            if '/move_base' in status_msg.status_list[0].goal_id.id  and  status_msg.status_list[0].status == 1 :
+                print 'handle_move_base_status: robot is moving'
+            if '/move_base' in status_msg.status_list[0].goal_id.id  and  status_msg.status_list[0].status == 3  and  vos_state == 'robot moving' :
+                print 'handle_move_base_status: robot has finished moving'
+                vos_state == 'stop and measure'
+            if '/move_base' in status_msg.status_list[0].goal_id.id  and  status_msg.status_list[0].status == 4  and  vos_state == 'robot moving' :
+                print 'handle_move_base_status: robot failed to find a valid plan'
+                vos_state == 'stop and measure'
+        except :
+                print "problem with handle_move_base_status"
 
 
 def display_status_callback(string_msg_):
@@ -1512,6 +1582,9 @@ def detect_feature_server2():
     vision_source_registration_server = rospy.Service('/androidvosopencvros/register_vision_source',RegisterVisionSource,register_vision_source_callback)
     print "Ready to register vision sources"
     rospy.loginfo("Ready to register vision sources")
+    
+    global move_base_status_subscriber
+    move_base_status_subscriber = rospy.Subscriber('/move_base/status', GoalStatusArray, handle_move_base_status)
 
     global management_subscriber
     global retarget_requested
