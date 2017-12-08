@@ -70,6 +70,7 @@ add_service_files(
     there_is_alg_desc.srv
     localise_by_visual_descriptor.srv
     RobotTaskDemandManualManagement.srv
+    GetTf.srv
 )
 
 ## Generate actions in the 'action' folder
@@ -176,6 +177,50 @@ install(
 # target_link_libraries(vos_aa1_node
 #   ${catkin_LIBRARIES}
 # )
+
+
+## executable to demo pose interpolation in tf C++: RosJava doesn't have full tf implementation
+add_executable( robot_pose_repeater  src/RobotPoseRepeater.cpp )
+## cmake target dependencies of the executable, including cmake steps, project modules, and compilation dependencies
+add_dependencies(robot_pose_repeater
+  vos_aa1_gencpp                  # generate cpp ?? - see http://wiki.ros.org/ROS/Tutorials/WritingServiceClient%28c%2B%2B%29#roscpp_tutorials.2BAC8-Tutorials.2BAC8-WritingServiceClient.Writing_a_Service_Node
+  vos_aa1_generate_messages_cpp   # generation of messages, services, actions
+  ${${PROJECT_NAME}_EXPORTED_TARGETS}
+  ${catkin_EXPORTED_TARGETS}
+)
+# link dependencies
+target_link_libraries(robot_pose_repeater
+  ${catkin_LIBRARIES}
+)
+
+
+## executable for phones to look up tf: RosJava doesn't have full tf implementation
+add_executable( robot_pose_look_up_service_node  src/RobotPoseLookUpServiceNode.cpp )
+## cmake target dependencies of the executable, including cmake steps, project modules, and compilation dependencies
+add_dependencies(robot_pose_look_up_service_node
+  vos_aa1_gencpp                  # generate cpp ?? - see http://wiki.ros.org/ROS/Tutorials/WritingServiceClient%28c%2B%2B%29#roscpp_tutorials.2BAC8-Tutorials.2BAC8-WritingServiceClient.Writing_a_Service_Node
+  vos_aa1_generate_messages_cpp   # generation of messages, services, actions
+  ${${PROJECT_NAME}_EXPORTED_TARGETS}
+  ${catkin_EXPORTED_TARGETS}
+)
+# link dependencies
+target_link_libraries(robot_pose_look_up_service_node  ${catkin_LIBRARIES}
+)
+
+
+## executable for phones to look up tf: RosJava doesn't have full tf implementation
+add_executable( robot_pose_dummy_1hz  src/RobotPoseDummy.cpp )
+## cmake target dependencies of the executable, including cmake steps, project modules, and compilation dependencies
+add_dependencies(robot_pose_dummy_1hz
+  vos_aa1_gencpp                  # generate cpp ?? - see http://wiki.ros.org/ROS/Tutorials/WritingServiceClient%28c%2B%2B%29#roscpp_tutorials.2BAC8-Tutorials.2BAC8-WritingServiceClient.Writing_a_Service_Node
+  vos_aa1_generate_messages_cpp   # generation of messages, services, actions
+  ${${PROJECT_NAME}_EXPORTED_TARGETS}
+  ${catkin_EXPORTED_TARGETS}
+)
+# link dependencies
+target_link_libraries(robot_pose_dummy_1hz  ${catkin_LIBRARIES}
+)
+
 
 ## Declare a C++ executable
 add_executable( RobotTaskDemandManager  src/RobotTaskDemandManager.cpp )
