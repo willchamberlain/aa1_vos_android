@@ -12,7 +12,7 @@
     <!-- BoofCV square fiducial binary -->
     <!-- front, lower, inverted  -->
     <appearance algorithm="boofcv square fiducial" descriptor="57">
-      <origin rpy="0 0 0" xyz="0.490 0.000 0.750"/> 
+      <origin rpy="0 0 0" xyz="0.000 0.490 0.750"/> 
     </appearance>
     <appearance algorithm="boofcv square fiducial" descriptor="357">
       <origin rpy="0 0 0" xyz="0.000 0.000 0.560"/> 

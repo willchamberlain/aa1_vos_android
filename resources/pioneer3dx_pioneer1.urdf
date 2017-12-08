@@ -15,7 +15,7 @@
       <origin rpy="0 0 0" xyz="0.000 0.000 0.615"/> 
     </appearance>
     <!-- left  -->
-    <appearance algorithm="boofcv square fiducial" descriptor="250">
+    <appearance algorithm="boofcv square fiducial" descriptor="290">
       <origin rpy="0 0 1.5707963268" xyz="0.000 0.000 0.615"/> 
     </appearance>
     <!-- right  -->
