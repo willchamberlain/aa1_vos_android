@@ -21,8 +21,7 @@ find_package(catkin REQUIRED COMPONENTS
 
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
-## See http://ros.org/doc/api/catkin/html/user_guide/setup_dot_py.html
-# catkin_python_setup()
+catkin_python_setup()
 
 ################################################
 ## Declare ROS messages, services and actions ##
@@ -71,6 +70,7 @@ add_service_files(
     localise_by_visual_descriptor.srv
     RobotTaskDemandManualManagement.srv
     GetTf.srv
+    RobotId.srv  # robot id service message
 )
 
 ## Generate actions in the 'action' folder
@@ -180,16 +180,16 @@ install(
 
 
 ## executable to demo pose interpolation in tf C++: RosJava doesn't have full tf implementation
-add_executable( robot_pose_repeater  src/RobotPoseRepeater.cpp )
+add_executable( tf_demo_interpolation_over_time  src/TFDemoInterpolationOverTime.cpp )
 ## cmake target dependencies of the executable, including cmake steps, project modules, and compilation dependencies
-add_dependencies(robot_pose_repeater
+add_dependencies(tf_demo_interpolation_over_time
   vos_aa1_gencpp                  # generate cpp ?? - see http://wiki.ros.org/ROS/Tutorials/WritingServiceClient%28c%2B%2B%29#roscpp_tutorials.2BAC8-Tutorials.2BAC8-WritingServiceClient.Writing_a_Service_Node
   vos_aa1_generate_messages_cpp   # generation of messages, services, actions
   ${${PROJECT_NAME}_EXPORTED_TARGETS}
   ${catkin_EXPORTED_TARGETS}
 )
 # link dependencies
-target_link_libraries(robot_pose_repeater
+target_link_libraries(tf_demo_interpolation_over_time
   ${catkin_LIBRARIES}
 )
 
@@ -209,16 +209,30 @@ target_link_libraries(robot_pose_look_up_service_node  ${catkin_LIBRARIES}
 
 
 ## executable for phones to look up tf: RosJava doesn't have full tf implementation
-add_executable( robot_pose_dummy_1hz  src/RobotPoseDummy.cpp )
+add_executable( test_robot_pose_lookup_service_fixed_rate  src/test_RobotPoseLookUpServiceNode.cpp )
 ## cmake target dependencies of the executable, including cmake steps, project modules, and compilation dependencies
-add_dependencies(robot_pose_dummy_1hz
+add_dependencies(test_robot_pose_lookup_service_fixed_rate
   vos_aa1_gencpp                  # generate cpp ?? - see http://wiki.ros.org/ROS/Tutorials/WritingServiceClient%28c%2B%2B%29#roscpp_tutorials.2BAC8-Tutorials.2BAC8-WritingServiceClient.Writing_a_Service_Node
   vos_aa1_generate_messages_cpp   # generation of messages, services, actions
   ${${PROJECT_NAME}_EXPORTED_TARGETS}
   ${catkin_EXPORTED_TARGETS}
 )
 # link dependencies
-target_link_libraries(robot_pose_dummy_1hz  ${catkin_LIBRARIES}
+target_link_libraries(test_robot_pose_lookup_service_fixed_rate  ${catkin_LIBRARIES}
+)
+
+
+## executable for phones to look up tf: RosJava doesn't have full tf implementation
+add_executable( test_robot_pose_lookup_service_cmdline  src/test2_RobotPoseLookUpServiceNode.cpp )
+## cmake target dependencies of the executable, including cmake steps, project modules, and compilation dependencies
+add_dependencies(test_robot_pose_lookup_service_cmdline
+  vos_aa1_gencpp                  # generate cpp ?? - see http://wiki.ros.org/ROS/Tutorials/WritingServiceClient%28c%2B%2B%29#roscpp_tutorials.2BAC8-Tutorials.2BAC8-WritingServiceClient.Writing_a_Service_Node
+  vos_aa1_generate_messages_cpp   # generation of messages, services, actions
+  ${${PROJECT_NAME}_EXPORTED_TARGETS}
+  ${catkin_EXPORTED_TARGETS}
+)
+# link dependencies
+target_link_libraries(test_robot_pose_lookup_service_cmdline  ${catkin_LIBRARIES}
 )
 
 

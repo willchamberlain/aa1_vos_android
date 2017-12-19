@@ -1,6 +1,8 @@
 # Report a set of visual features; used to build a world map
-std_msgs/Header                 header              # ...
-VisualFeatureObservation        visualFeature       # the observed feature, at the time of observation
-geometry_msgs/PoseStamped       cameraPose          # the pose of the observing camera, at the last known time
+std_msgs/Header             header              # ...
+string                      robotId
+string                      requestId
+VisualFeatureObservation    visualFeature       # the observed feature, at the time of observation
+geometry_msgs/PoseStamped   cameraPose          # the pose of the observing camera, at the last known time
 ---
-string                          acknowledgement     # blank return value
+string                      acknowledgement     # blank return value

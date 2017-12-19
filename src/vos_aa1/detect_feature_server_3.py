@@ -55,8 +55,8 @@ algorithm_abreviations = {'AprilTags_Kaess_36h11':'t'}
 
 #
 fixed_features = []
-robotPoseHistory = []
-targetPoseHistory = []
+robotPoseHistory = []   # LATER (not used, just appended): per-robot 
+targetPoseHistory = []  # LATER (not used, just appended)
 
 # tag_55 = VisualFeatureInWorld()
 # tag_55.algorithm = 'AprilTags_Kaess_36h11'
@@ -84,13 +84,13 @@ tag_210.pose.orientation.z=-0.619
 tag_210.pose.orientation.w=0.785390985 
 fixed_features.append(tag_210)
 
-cam_poses_on_cam      = ( 40057, 40157, 40257, 40357, 40457, 40557)
-print "cam_poses_on_cam = %s"%(str(cam_poses_on_cam))
+camera_poses_to_detect_from_cameras      = ( 40057, 40157, 40257, 40357, 40457, 40557)
+print "camera_poses_to_detect_from_cameras = %s"%(str(camera_poses_to_detect_from_cameras))
 
-robot_features_on_cam = ( 50057, 50157, 50257, 50357, 50457, 50557)
-print "robot_features_on_cam=%s"%(str(robot_features_on_cam))
+robot_feature_tags_to_detect_visually = ( 50057, 50157, 50257, 50357, 50457, 50557)
+print "robot_feature_tags_to_detect_visually=%s"%(str(robot_feature_tags_to_detect_visually))
 
-features_present_list_of_tuples = [ cam_poses_on_cam , robot_features_on_cam ]
+features_present_list_of_tuples = [ camera_poses_to_detect_from_cameras , robot_feature_tags_to_detect_visually ]
 features_on_cam = tuple(chain.from_iterable(features_present_list_of_tuples))
 print "features_on_cam=%s"%(str(features_on_cam))
 
@@ -149,7 +149,8 @@ detection_false_monitoring_publisher = 1
 vos_state = 'init'
 move_base_status_subscriber = 1
 
-robot_pose_estimates_list = []
+robot_pose_estimates_dict = {}      # all the robots, keyed by robot id, values are robot_pose_estimates_list(s)
+robot_pose_estimates_list = []      # one pose estimate list: was for all detections (only ever one robot), now one per robot 
 averaging_lock = Lock()
 
 
@@ -319,6 +320,7 @@ def localise_by_visual_descriptor_callback(request):
   return response
 
 
+
 def detect_feature_callback(req):
     # print "----------------------------------------------"
     # print "detect_feature_callback: "
@@ -330,36 +332,42 @@ def detect_feature_callback(req):
     # print '  feature frame_id : %s_%s%s' % (req.cameraPose.header.frame_id, algorithm_abreviations[req.visualFeature.algorithm], req.visualFeature.id)
     # print "  feature translation [%.4f,%.4f,%.4f] : "%(req.visualFeature.pose.pose.position.x, req.visualFeature.pose.pose.position.y, req.visualFeature.pose.pose.position.z)
     # print "  feature orientation (quaternion) [%.4f,%.4f,%.4f,%.4f] "%(req.visualFeature.pose.pose.orientation.x, req.visualFeature.pose.pose.orientation.y, req.visualFeature.pose.pose.orientation.z, req.visualFeature.pose.pose.orientation.w)
-    global robotPoseHistory
-    global targetPoseHistory
+    global robotPoseHistory  # LATER (not used, just appended): per-robot 
+    global targetPoseHistory # LATER (not used, just appended): per-robot 
 
     cN = req.cameraPose.header.frame_id
 
     if req.visualFeature.id not in features_present:
-        print "detect_feature_callback: camera frame_id [%s] : feature id [%d] : feature is not present - is a false positive - not listing as a detection."%(req.cameraPose.header.frame_id, req.visualFeature.id)
+        print "detect_feature_callback: camera frame_id [%s] : feature id [%d] : FEATURE IS NOT PRESENT - is a FALSE POSITIVE - not listing as a detection."%(req.cameraPose.header.frame_id, req.visualFeature.id)
         detection_false_monitoring_publisher.publish("False detection: camera frame_id [%s] : feature id [%d]")
         response = DetectedFeatureResponse()
         response.acknowledgement="feature not present"
         return response
     else:        
     
+        # TODO - deal with asynchronous detections
         datetime_detect_feature_callback = datetime.utcnow()
-        print "now=%d_%d_%d"%(datetime_detect_feature_callback.minute,datetime_detect_feature_callback.second,datetime_detect_feature_callback.microsecond)
+        print "detect_feature_callback: now=%d_%d_%d"%(datetime_detect_feature_callback.minute,datetime_detect_feature_callback.second,datetime_detect_feature_callback.microsecond)
     
         print "detect_feature_callback: camera frame_id [%s] : feature id [%d] : feature is present - is a true positive - listing as a detection."%(req.cameraPose.header.frame_id, req.visualFeature.id)
 
+
+    
+    robot_id_   = req.robotId
+    request_id_ = req.requestId
+    print "detect_feature_callback: true detection: camera frame_id [%s] : robot id [%s] : request id [%s] : feature id [%d]"%(req.cameraPose.header.frame_id, req.robotId, req.requestId, req.visualFeature.id)
     detection_true_monitoring_publisher.publish("True detection: camera frame_id [%s] : feature id [%d]")
 
     # # TODO - something about this conversion is not right: the translation and quaternion match those found by AprilTags_Kaess and sent by DetectedFeatureClient, but the RPY are different
     # euler = tf.transformations.euler_from_quaternion([req.visualFeature.pose.pose.orientation.x, req.visualFeature.pose.pose.orientation.y, req.visualFeature.pose.pose.orientation.z, req.visualFeature.pose.pose.orientation.w])
-    # print "  feature x_y_z_w roll=%.4f pitch=%.4f yaw=%.4f"%(euler[0], euler[1], euler[2])
+    # print "detect_feature_callback:   feature x_y_z_w roll=%.4f pitch=%.4f yaw=%.4f"%(euler[0], euler[1], euler[2])
 
     tfBroadcaster = tf.TransformBroadcaster()
     time_now      = rospy.Time.now()
 
-
+    
     ### fixed feature / fixed tag / fixed marker 
-    for fixed_feature in fixed_features:
+    for fixed_feature in fixed_features:        # VOS FUNCTION = fixed priors / surveyed landmarks for camera localisation 
         tfBroadcaster.sendTransform(
             (fixed_feature.pose.position.x, fixed_feature.pose.position.y, fixed_feature.pose.position.z ),
             (fixed_feature.pose.orientation.x, fixed_feature.pose.orientation.y, fixed_feature.pose.orientation.z, fixed_feature.pose.orientation.w),
@@ -376,7 +384,7 @@ def detect_feature_callback(req):
             
 
 
-# working through BoofCV transforms and orientations: BoofCV uses yet another frame for tags
+    # working through BoofCV transforms and orientations: BoofCV uses yet another frame for tags
     c2 = req.cameraPose.header.frame_id                          # c2, c11, ... , cN     : DOES include the 'c'
     t = algorithm_abreviations[req.visualFeature.algorithm]     # 't'
     t_id = req.visualFeature.id                                 # 0, 2, 170, 210,       : does NOT include any 't'
@@ -389,7 +397,7 @@ def detect_feature_callback(req):
     print "-------------"
     print "-------------"
     print "-------------"
-    print " c2='%s' , t55='%s' "%(c2, t55)
+    print "detect_feature_callback:  c2='%s' , t55='%s' "%(c2, t55)
     print "-------------"
     print "-------------"
     print "-------------"
@@ -398,39 +406,40 @@ def detect_feature_callback(req):
     # camera reporting robot pose rather than feature - TODO - move this to another service than DetectedFeature
     if  marker_tag_id in features_on_cam: # ['t50557', 't40557']:    #  t40557 is the world-to-camera  , t50557 is the world-to-marker , t60557 is the camera-to-marker , t70557 is the camera-to-robot-base 
         dum_c2_map_to_robot_via_t55_trans = "dum_%s_map_to_robot_via_%s_trans"%(c2,t55)
-        print " t55 in ['50557', 't40557'] : t55='%s' : publishing tf from /map to %s "%(t55 , dum_c2_map_to_robot_via_t55_trans)
-        tfBroadcaster.sendTransform(
+        print "detect_feature_callback:  t55 in ['50557', 't40557'] : t55='%s' : publishing tf from /map to %s "%(t55 , dum_c2_map_to_robot_via_t55_trans)
+        
+        tfBroadcaster.sendTransform(    # apply the translation ...
             (req.visualFeature.pose.pose.position.x, req.visualFeature.pose.pose.position.y, req.visualFeature.pose.pose.position.z),
             (0,0,0,1),                          # apply the translation first ...
             time_now,
             dum_c2_map_to_robot_via_t55_trans,  # to
             'map')                              # from    
-
         dum_c2_map_to_robot_via_t55_trans_rot = "dum_%s_map_to_robot_via_%s_trans_rot"%(c2,t55)
-        print " t55 in ['50557', 't40557'] : t55='%s' : publishing tf from %s to %s "%(t55 , dum_c2_map_to_robot_via_t55_trans , dum_c2_map_to_robot_via_t55_trans_rot)
-        tfBroadcaster.sendTransform(
+        print "detect_feature_callback:  t55 in ['50557', 't40557'] : t55='%s' : publishing tf from %s to %s "%(t55 , dum_c2_map_to_robot_via_t55_trans , dum_c2_map_to_robot_via_t55_trans_rot)
+        tfBroadcaster.sendTransform(    # ... then apply the rotation
             (0,0,0),                            # ... then apply the rotation - because the Python does things _differently_. 
             (req.visualFeature.pose.pose.orientation.x, req.visualFeature.pose.pose.orientation.y, req.visualFeature.pose.pose.orientation.z, req.visualFeature.pose.pose.orientation.w),
             time_now,
             dum_c2_map_to_robot_via_t55_trans_rot,    # to
             dum_c2_map_to_robot_via_t55_trans)        # from
             
-        if  marker_tag_id in robot_features_on_cam:     
+        if  marker_tag_id in robot_feature_tags_to_detect_visually:     # VOS FUNCTION = 
             tfListener.waitForTransform('map', dum_c2_map_to_robot_via_t55_trans_rot, rospy.Time(), rospy.Duration(1))
             pos_, quat_ = tfListener.lookupTransform('map', dum_c2_map_to_robot_via_t55_trans_rot, rospy.Time(0))            
             
             position_now_ = (pos_[0], pos_[1], pos_[2])
-            global robot_pose_estimates_list
+#            global robot_pose_estimates_dict # shouldn't need this for a disct
+#            global robot_pose_estimates_list # shouldn't need this - the list is stored in the dict
             global averaging_lock
             datetime_0 = datetime.utcnow()
+            robot_pose_estimates_list = robot_pose_estimates_dict[robot_id_]  # per-robot 
             robot_pose_estimates_list.append((datetime_0, pos_[0], pos_[1], pos_[2]))
-            
-            
+            robot_pose_estimates_dict[robot_id_] = robot_pose_estimates_list
             
             if len(robot_pose_estimates_list) > 5 :            
-                print "averaging before lock: len(robot_pose_estimates_list)=%d"%(len(robot_pose_estimates_list))
+                print "detect_feature_callback: averaging: before lock: len(robot_pose_estimates_list)=%d"%(len(robot_pose_estimates_list))
                 averaging_lock.acquire()
-                print "averaging inside lock"
+                print "detect_feature_callback: averaging: inside lock"
                 try:
                     i_ = 0
                     average_pos = [0.0,0.0,0.0]
@@ -446,17 +455,19 @@ def detect_feature_callback(req):
                             average_pos[1] += position_then_[2]
                             average_pos[2] += position_then_[3]      
                             print position_then_
-                    print "averaged %d poses"%(num_averaged)        
+                    print "detect_feature_callback: averaged %d poses"%(num_averaged)        
                     average_pos_[0] = average_pos[0]/num_averaged
                     average_pos_[1] = average_pos[1]/num_averaged
                     average_pos_[2] = average_pos[2]/num_averaged        
                     print average_pos_
+                    #  TODO - publish for one specific robot 
                     publish_pose_xyz_xyzw_covar(initialpose_poseWCS_publisher, fakelocalisation_poseWCS_publisher, time_now, 'map', average_pos_[0], average_pos_[1], average_pos_[2], quat_[0], quat_[1], quat_[2], quat_[3], [0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.06853891945200942])
                     publish_pose_xyz_xyzw(pose_publisher,time_now,  'map', average_pos_[0], average_pos_[1], average_pos_[2], quat_[0], quat_[1], quat_[2], quat_[3])                    
                 finally:
                     averaging_lock.release() # release lock, no matter what                    
             else :
-                print "not averaging: len(robot_pose_estimates_list)=%d"%(len(robot_pose_estimates_list))
+                    #  TODO - publish for one specific robot 
+                print "detect_feature_callback: not averaging: len(robot_pose_estimates_list)=%d"%(len(robot_pose_estimates_list))
                 publish_pose_xyz_xyzw_covar(initialpose_poseWCS_publisher, fakelocalisation_poseWCS_publisher, time_now, 'map', pos_[0], pos_[1], pos_[2], quat_[0], quat_[1], quat_[2], quat_[3], [0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.06853891945200942])
                 publish_pose_xyz_xyzw(pose_publisher,time_now,  'map', pos_[0], pos_[1], pos_[2], quat_[0], quat_[1], quat_[2], quat_[3])
             
@@ -986,6 +997,8 @@ def detect_feature_callback(req):
             
     ### _target_ pose publisher ##################################################################################        
     #elif 't90210'==t55:                                  # tag 210 is the target tag : if it moves more than 20cm from last posn, publish an updated target
+    # TODO: publish per-robot
+    # TODO: flexible coding of targets  (later: move to messaging the robot rather than publishing)  
     if t55 in ",".join ( ['t50957','t90210','t9099999999210'] ) :
         try:
             print "------------------- start check 210 as target ----------------------"
@@ -997,7 +1010,7 @@ def detect_feature_callback(req):
                 tag_210_target_pose.position.x = pos_[0]
                 tag_210_target_pose.position.y = pos_[1]
                 publish_pose_xyz_xyzw(tag_210_target_publisher,time_now,  'map', pos_[0], pos_[1], 0.0, 0.0, 0.0, quat_[2], quat_[3])  # NOTE: z is zero for ground robots, and it likes zero roll and pitch  :  move_base.cpp "ROS_ERROR("Quaternion is invalid... for navigation the z-axis of the quaternion must be close to vertical.")"
-                targetPoseHistory.append([pos_[0], pos_[1]])
+                targetPoseHistory.append([pos_[0], pos_[1]])    # LATER (not used, just appended): per-robot
                 print "------------------- 210 re-published as target ----------------------"
             else :
                 print "------------------- 210 not changed enough to re-publish as target ----------------------"
@@ -1525,6 +1538,8 @@ def publish_pose_xyz_xyzw(pose_publisher,time_now, id_, x, y, z, qx, qy, qz, qw)
     pose_publisher.publish(pose)
 
 # id_ is the frame that this pose is relative to: e.g. if this pose is relative to the map, use "map"
+# TODO: publish per-robot 
+# TODO: publish for robot localisation _and_ for target localisation: target localisation currently coded to t210
 def publish_pose_xyz_xyzw_covar(initialpose_poseWCS_publisher, fakelocalisation_poseWCS_publisher, time_now, id_, x, y, z, qx, qy, qz, qw, covariance_):
     # next, we'll publish the pose message over ROS
     print "publish_pose_xyz_xyzw_covar(initialpose_poseWCS_publisher, fakelocalisation_poseWCS_publisher, time_now, id_=%s"%(id_)
@@ -1615,6 +1630,8 @@ def detect_feature_server2():
     print "Ready to publish poses with covariance"
     rospy.loginfo("Ready to publish poses with covariance")
 
+    # TODO: publish per-robot
+    # TODO: publish for robot localisation _and_ for target localisation: target localisation currently coded to t210
     global fakelocalisation_poseWCS_publisher  # fake_localisation / fake_localization
     fakelocalisation_poseWCS_publisher = rospy.Publisher("/base_pose_ground_truth", Odometry, queue_size=50, latch=True)  # latch to make sure that AMCL has an intitial pose to use
     print "Ready to publish /base_pose_ground_truth for fake_localization"

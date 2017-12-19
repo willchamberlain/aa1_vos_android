@@ -1,0 +1,5 @@
+<launch>
+<node pkg="tf" type="static_transform_publisher" name="verify_tag_170" args="1.225685116215813 -0.005560847220438701 0.18     0.0 0.0  0.8842761695369362 -0.4669642984095076   /map /verify_tag_170  100" />
+<node pkg="tf" type="static_transform_publisher" name="verify_tag_250" args="1.3506741437617416 -0.12035519809679143 0.56     0.0 0.0 -0.6919256392664361  0.7219687733730136   /map /verify_tag_250  100" />
+<node pkg="tf" type="static_transform_publisher" name="verify_tag_290" args="1.4996891988865357 -0.09400157697644951 0.615    0.0 0.0 -0.6919256392664361  0.7219687733730136   /map /verify_tag_290  100" />
+</launch>

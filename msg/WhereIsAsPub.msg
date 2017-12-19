@@ -1,4 +1,4 @@
-
+string      robot_id        # if of the robot making this request
 string      request_id      # id of the request to use in there_is_al_desc messages to differentiate from other requests from the same Vision OS client
 
 string      algorithm       # image processing algorithm to detect and extract the feature - e.g. Apriltags 36h11, BoofCV binary fiducial

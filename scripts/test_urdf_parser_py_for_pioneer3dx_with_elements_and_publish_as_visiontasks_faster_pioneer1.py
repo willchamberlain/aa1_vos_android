@@ -143,4 +143,7 @@ print "... tock ... now complete."
 
 # end
 
+#if __name__ == "__main__":
+#    print 'bobbbbbbb'
+
 
