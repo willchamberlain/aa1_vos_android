@@ -33,6 +33,7 @@ from vos_aa1.srv import localise_by_visual_descriptorResponse
 visiontask_publisher_list = []
 
 def configurate_task_publishers():
+    global visiontask_publisher_list
     visiontask_publisher_605 = rospy.Publisher('/cam_605/vos_task_assignment_subscriber',WhereIsAsPub, queue_size=10, latch=True)
     visiontask_publisher_606 = rospy.Publisher('/cam_606/vos_task_assignment_subscriber',WhereIsAsPub, queue_size=10, latch=True)
     visiontask_publisher_607 = rospy.Publisher('/cam_607/vos_task_assignment_subscriber',WhereIsAsPub, queue_size=10, latch=True)
@@ -41,9 +42,10 @@ def configurate_task_publishers():
     visiontask_publisher_611 = rospy.Publisher('/cam_611/vos_task_assignment_subscriber',WhereIsAsPub, queue_size=10, latch=True)
     visiontask_publisher_612 = rospy.Publisher('/cam_612/vos_task_assignment_subscriber',WhereIsAsPub, queue_size=10, latch=True)
     visiontask_publisher_list = [visiontask_publisher_605,visiontask_publisher_606,visiontask_publisher_607,visiontask_publisher_608,visiontask_publisher_609,visiontask_publisher_611,visiontask_publisher_612] 
-
+#    visiontask_publisher_list = [visiontask_publisher_608]
 
 def localise_from_feature_from_visionsources(robot_id):
+    global visiontask_publisher_list
     rospy.wait_for_service('/vos_server/localise_by_visual_descriptor')
     request = localise_by_visual_descriptorRequest()
     request.request_id  = "TODO request_id"
@@ -119,13 +121,13 @@ def load_file_and_transmit_appearances(robot_id_, filepath):
         print "publish appearance number %d"%(appearance_num_)
         for visiontask_publisher_ in visiontask_publisher_list:
             visiontask_publisher_.publish(whereis_message)
-        appearance_num_ = appearance_num_ + 1
-        print "published appearance number %d"%(appearance_num_)
-        print "... tick ... having published, now need to give ROSJava time to pick up the messages - don't assume that the subscriber can pick up immediately, e.g. there may be latency due to the smart camera controller or network communications "
-        rospy.rostime.wallsleep(0.5)    
-        print "... tock ... tick ..."
-        rospy.rostime.wallsleep(0.5)    
-        print "... tock ... now complete."
+            appearance_num_ = appearance_num_ + 1
+            print "published appearance number %d"%(appearance_num_)
+            print "... tick ... having published, now need to give ROSJava time to pick up the messages - don't assume that the subscriber can pick up immediately, e.g. there may be latency due to the smart camera controller or network communications "
+            rospy.rostime.wallsleep(0.5)    
+            print "... tock ... tick ..."
+            rospy.rostime.wallsleep(0.5)    
+            print "... tock ... now complete."
     # having published, now need to give ROSJava time to pick up the messages - don't assume that the subscriber can pick up immediately, e.g. there may be latency due to the smart camera controller or network communications 
     print "... tick ... having published, now need to give ROSJava time to pick up the messages - don't assume that the subscriber can pick up immediately, e.g. there may be latency due to the smart camera controller or network communications "
     rospy.rostime.wallsleep(0.5)    
@@ -141,13 +143,16 @@ if __name__ == "__main__":
     #     print arg_
     if len(args) > 1:
         robot_id_ = args[1]   
-    else
+    else:
         print("REQUIRE the robotid as the first argument")   
-        exit
+        sys.exit("REQUIRE the robotid as the first argument")
     if len(args) > 2:
         filepath_ = args[2]    
-    else    
-        filepath_ = "/mnt/nixbig/build_workspaces/aa1_vos_android_catkin_ws/src/vos_aa1/resources/pioneer3dx_pioneer1.urdf"
+    else:    
+        filepath_ = "nonesuch file: supply as argument" #"/mnt/nixbig/build_workspaces/aa1_vos_android_catkin_ws/src/vos_aa1/resources/pioneer3dx_pioneer1.urdf"
     configurate_task_publishers()    
     # localise_from_feature_from_visionsources(robot_id_)
     load_file_and_transmit_appearances(robot_id_, filepath_)
+    
+    
+    

@@ -1,0 +1,18 @@
+<launch>
+  <node  name="c608__fixed_cam__static_tf"
+      args="0.209681987762 -0.704225361347 1.15     0 0 0.3830000 0.924000  map dum_c608 20" 
+      pkg="tf"  type="static_transform_publisher"      />
+</launch>      
+      
+<!--
+4.5
+3.3
+45degrees anticlockwise
+
+
+  x: 0.209681987762
+  y: -0.704225361347
+  z: 1.15
+
+0.383 -->
+      
