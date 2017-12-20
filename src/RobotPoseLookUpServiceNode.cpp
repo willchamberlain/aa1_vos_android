@@ -19,6 +19,13 @@
 #include <cstdio>
 
 
+/**
+VOS service <vos_aa1::GetTf>("androidvosopencvros/look_up_transform"): 
+    advertise service "androidvosopencvros/look_up_transform"
+    runs tfListener->waitFor/lookupTransform( source_frame_id_str, target_frame_id_str, time_
+    and then - for debugging - rebroadcasts the found transform as  /map --> /look_up_transform_[request number]
+*/
+
 tf::TransformListener    * tfListener = NULL; 
 tf::TransformBroadcaster * tfBroadcaster = NULL;
 int lookup_num = 0;
@@ -28,7 +35,9 @@ bool look_up_transform (
     vos_aa1::GetTf::Request &req,   
     vos_aa1::GetTf::Response &res) {
         
-    std::cout << "look_up_transform: start" << "\n";
+    ros::Time time_now;    
+    time_now = ros::Time::now();
+    std::cout << "look_up_transform: start: req.time.data=" << (req.time.data.toNSec()/(1000*1000)) << "ms: ros::Time::now()=" << (time_now.toNSec()/(1000*1000)) << ": diff=" << ( (time_now.toNSec()/(1000*1000)) - (req.time.data.toNSec()/(1000*1000)) ) << ": diff=" << ( (req.time.data.toNSec()/(1000*1000)) - (time_now.toNSec()/(1000*1000)) ) << "ms\n";
     std::cout.flush();
     
     //    tf::TransformListener listener;
@@ -50,9 +59,16 @@ bool look_up_transform (
               return false;
             }
     tf::transformStampedTFToMsg( transform_found_ , res.transform_found );  // http://docs.ros.org/indigo/api/tf/html/c++/transform__datatypes_8h.html
+//    std::cout << "transform_found_=" << transform_found_ << "\n"; 
+    std::cout << "look_up_transform: req.time.data=" << (req.time.data.toNSec()/(1000*1000)) << " transform_found_= ";
+    std::cout << " T( " << transform_found_.getOrigin().getX() << " , " << transform_found_.getOrigin().getY() << " , " << transform_found_.getOrigin().getZ() << ")";
+    std::cout << " Q( " << transform_found_.getRotation().getX() << " , " << transform_found_.getRotation().getY() << " , " << transform_found_.getRotation().getZ() << " , " << transform_found_.getRotation().getW() << " )" << "\n";
+    std::cout.flush();
     
+    // start: debug: rebroadcast
     lookup_num++;   char target_topic_name [50];    sprintf(target_topic_name,"/look_up_transform_%d",lookup_num);
     tfBroadcaster->sendTransform(tf::StampedTransform( transform_found_ , time_ , "/map" , target_topic_name) );
+    // end: debug: rebroadcast
     
 //    res.transform_found = transform_found_;        
     
@@ -88,7 +104,7 @@ int main(int argc, char** argv){
 
   
   
-  ros::ServiceServer service = node.advertiseService("look_up_transform", look_up_transform);
+  ros::ServiceServer service = node.advertiseService("androidvosopencvros/look_up_transform", look_up_transform);
   ROS_INFO("Ready to look_up_transform.");
   
   ros::spin();

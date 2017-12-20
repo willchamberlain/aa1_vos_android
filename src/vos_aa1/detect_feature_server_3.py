@@ -423,7 +423,7 @@ def detect_feature_callback(req):
             dum_c2_map_to_robot_via_t55_trans_rot,    # to
             dum_c2_map_to_robot_via_t55_trans)        # from
             
-        if  marker_tag_id in robot_feature_tags_to_detect_visually:     # VOS FUNCTION = 
+        if  marker_tag_id in robot_feature_tags_to_detect_visually:     # VOS FUNCTION = publish smoothed pose estimates (by averaging at the moment)
             tfListener.waitForTransform('map', dum_c2_map_to_robot_via_t55_trans_rot, rospy.Time(), rospy.Duration(1))
             pos_, quat_ = tfListener.lookupTransform('map', dum_c2_map_to_robot_via_t55_trans_rot, rospy.Time(0))            
             
@@ -432,7 +432,11 @@ def detect_feature_callback(req):
 #            global robot_pose_estimates_list # shouldn't need this - the list is stored in the dict
             global averaging_lock
             datetime_0 = datetime.utcnow()
-            robot_pose_estimates_list = robot_pose_estimates_dict[robot_id_]  # per-robot 
+            robot_pose_estimates_list = []
+            if robot_id_ in robot_pose_estimates_dict:
+                robot_pose_estimates_list = robot_pose_estimates_dict[robot_id_]  # per-robot 
+            else:
+                robot_pose_estimates_dict[robot_id_] = robot_pose_estimates_list
             robot_pose_estimates_list.append((datetime_0, pos_[0], pos_[1], pos_[2]))
             robot_pose_estimates_dict[robot_id_] = robot_pose_estimates_list
             
@@ -1633,7 +1637,7 @@ def detect_feature_server2():
     # TODO: publish per-robot
     # TODO: publish for robot localisation _and_ for target localisation: target localisation currently coded to t210
     global fakelocalisation_poseWCS_publisher  # fake_localisation / fake_localization
-    fakelocalisation_poseWCS_publisher = rospy.Publisher("/base_pose_ground_truth", Odometry, queue_size=50, latch=True)  # latch to make sure that AMCL has an intitial pose to use
+    fakelocalisation_poseWCS_publisher = rospy.Publisher("/STEVE0/base_pose_ground_truth", Odometry, queue_size=50, latch=True)  # latch to make sure that AMCL has an intitial pose to use
     print "Ready to publish /base_pose_ground_truth for fake_localization"
     rospy.loginfo( "Ready to publish /base_pose_ground_truth for fake_localization" )
 

@@ -11,6 +11,7 @@
     #include <tf/transform_broadcaster.h>
     #include <tf/LinearMath/Vector3.h>
     
+    /* Standalone demonstration of TF interpolation of transforms. Publishes two transforms /map --> /pose_at_current_time  -  once at t=1, second at t=2  - then loops over asking TF for /map --> /pose_at_current_time at t=1.1,1.2,..1.9,2.0 */
     
     int main(int argc, char** argv){ ros::init(argc, argv, "pose_repeater_service");
     

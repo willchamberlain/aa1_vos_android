@@ -18,6 +18,11 @@
 #include "vos_aa1/GetTf.h"
 
 
+/*
+Test/demo TF transform interpolation and the VOS service <vos_aa1::GetTf>("/androidvosopencvros/look_up_transform"): 
+    publishes a transform /map --> /pose_that_keeps_on_moving_along_y_axis  on a fixed rate, and
+    calls <vos_aa1::GetTf>("/androidvosopencvros/look_up_transform") to look up that transform at intermmediate times 
+*/
     
     int main(int argc, char** argv){ ros::init(argc, argv, "pose_1hz_dummy_that_keeps_on_moving_along_y_axis");
     
@@ -54,7 +59,7 @@
         std::cout << str_buffer << "\n";
         
         
-          ros::ServiceClient client = node.serviceClient<vos_aa1::GetTf>("/look_up_transform");
+          ros::ServiceClient client = node.serviceClient<vos_aa1::GetTf>("/androidvosopencvros/look_up_transform");
           vos_aa1::GetTf service_;
           service_.request.target_frame_id.data = "map";
           service_.request.source_frame_id.data = "/pose_that_keeps_on_moving_along_y_axis";
