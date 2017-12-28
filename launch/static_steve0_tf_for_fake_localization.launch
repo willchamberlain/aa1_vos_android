@@ -1,6 +1,6 @@
 <launch>
 	 <node pkg="tf" type="static_transform_publisher" name="map_odom_broadcaster" args="0 0 0 0 0 0 /map /odom 100" >
      </node>
-	 <node pkg="tf" type="static_transform_publisher" name="map_odom_broadcaster_STEVE0" args="0 0 0 0 0 0 /STEVE0/map /STEVE0/odom 100" >
+	 <node pkg="tf" type="static_transform_publisher" name="map_odom_broadcaster_STEVE0" args="0 0 0 0 0 0 /map /STEVE0/odom 100" >
      </node>
 </launch>

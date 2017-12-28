@@ -4,4 +4,10 @@
 	 <node name="map_server2" pkg="map_server" type="map_server" args="/mnt/nixbig/data/project_AA1_backup_pioneer3c/lvl11_map2/cost_map.yaml">
 		<remap from="map" to="cost_map"/>
 	</node>
+	<group ns="STEVE0">
+	     <node name="steve0_map_server1" pkg="map_server" type="map_server" args="/mnt/nixbig/data/project_AA1_backup_pioneer3c/lvl11_map2/map.yaml"/>
+	     <node name="steve0_map_server2" pkg="map_server" type="map_server" args="/mnt/nixbig/data/project_AA1_backup_pioneer3c/lvl11_map2/cost_map.yaml">
+		    <remap from="map" to="cost_map"/>
+	    </node>
+	</group>
 </launch>
