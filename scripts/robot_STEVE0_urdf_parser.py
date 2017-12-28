@@ -34,15 +34,15 @@ visiontask_publisher_list = []
 
 def configurate_task_publishers():
     global visiontask_publisher_list
-    visiontask_publisher_605 = rospy.Publisher('/cam_605/vos_task_assignment_subscriber',WhereIsAsPub, queue_size=10, latch=True)
-    visiontask_publisher_606 = rospy.Publisher('/cam_606/vos_task_assignment_subscriber',WhereIsAsPub, queue_size=10, latch=True)
-    visiontask_publisher_607 = rospy.Publisher('/cam_607/vos_task_assignment_subscriber',WhereIsAsPub, queue_size=10, latch=True)
+#    visiontask_publisher_605 = rospy.Publisher('/cam_605/vos_task_assignment_subscriber',WhereIsAsPub, queue_size=10, latch=True)
+#    visiontask_publisher_606 = rospy.Publisher('/cam_606/vos_task_assignment_subscriber',WhereIsAsPub, queue_size=10, latch=True)
+#    visiontask_publisher_607 = rospy.Publisher('/cam_607/vos_task_assignment_subscriber',WhereIsAsPub, queue_size=10, latch=True)
     visiontask_publisher_608 = rospy.Publisher('/cam_608/vos_task_assignment_subscriber',WhereIsAsPub, queue_size=10, latch=True)
-    visiontask_publisher_609 = rospy.Publisher('/cam_609/vos_task_assignment_subscriber',WhereIsAsPub, queue_size=10, latch=True)
-    visiontask_publisher_611 = rospy.Publisher('/cam_611/vos_task_assignment_subscriber',WhereIsAsPub, queue_size=10, latch=True)
-    visiontask_publisher_612 = rospy.Publisher('/cam_612/vos_task_assignment_subscriber',WhereIsAsPub, queue_size=10, latch=True)
-    visiontask_publisher_list = [visiontask_publisher_605,visiontask_publisher_606,visiontask_publisher_607,visiontask_publisher_608,visiontask_publisher_609,visiontask_publisher_611,visiontask_publisher_612] 
-#    visiontask_publisher_list = [visiontask_publisher_608]
+#    visiontask_publisher_609 = rospy.Publisher('/cam_609/vos_task_assignment_subscriber',WhereIsAsPub, queue_size=10, latch=True)
+#    visiontask_publisher_611 = rospy.Publisher('/cam_611/vos_task_assignment_subscriber',WhereIsAsPub, queue_size=10, latch=True)
+#    visiontask_publisher_612 = rospy.Publisher('/cam_612/vos_task_assignment_subscriber',WhereIsAsPub, queue_size=10, latch=True)
+#    visiontask_publisher_list = [visiontask_publisher_605,visiontask_publisher_606,visiontask_publisher_607,visiontask_publisher_608,visiontask_publisher_609,visiontask_publisher_611,visiontask_publisher_612] 
+    visiontask_publisher_list = [visiontask_publisher_608]
 
 def localise_from_feature_from_visionsources(robot_id):
     global visiontask_publisher_list
