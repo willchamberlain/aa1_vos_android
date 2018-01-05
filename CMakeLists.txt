@@ -6,7 +6,7 @@ project(vos_aa1)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   geometry_msgs
-#  nav_msgs
+  nav_msgs
   roscpp
   rospy
   std_msgs
@@ -71,6 +71,8 @@ add_service_files(
     RobotTaskDemandManualManagement.srv
     GetTf.srv
     RobotId.srv  # robot id service message
+    InitialPoseToRobot.srv
+    PoseToRobot.srv
 )
 
 ## Generate actions in the 'action' folder
@@ -84,7 +86,7 @@ add_service_files(
 generate_messages(
     DEPENDENCIES
     geometry_msgs
-    # nav_msgs
+    nav_msgs
     std_msgs
 )
 
@@ -122,7 +124,7 @@ catkin_package(
   LIBRARIES vos_aa1
   CATKIN_DEPENDS
     geometry_msgs
-    # nav_msgs
+    nav_msgs
     roscpp
     rospy
     std_msgs

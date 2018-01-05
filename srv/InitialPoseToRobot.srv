@@ -1,0 +1,6 @@
+# called on the VOS Client by the VOS Server: the VOS Server is tracking the robot, and makes this call for the first localisation of the robot, to the VOS Client running on the robot
+
+geometry_msgs/PoseWithCovarianceStamped poseWithCovarianceStamped
+---
+string  acknowledgement
+

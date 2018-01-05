@@ -1,0 +1,6 @@
+<launch>    
+    <arg name="system_id" />
+    <node pkg="vos_aa1" type="vos_client_pose_service_to_topic.py" name="vc_client"  output="screen" >
+        <param name="system_id" value="$(arg system_id)"/>
+    </node>
+</launch>
