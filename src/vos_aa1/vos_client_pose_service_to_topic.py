@@ -61,18 +61,19 @@ def setup_node_for_server_vc_base_pose(system_id_prefix):
 if __name__ == '__main__':
     threads = []
     try:
+        rospy.init_node('vc_node', anonymous=True)        
+        #        rospy.init_node(system_id_prefix+'vc_node', anonymous=True)    
         system_id = rospy.get_param('~system_id', '')
         system_id_prefix="bob"
         if not system_id:
             print 'WARNING ------------ '
-            print '-- system_id not specified: defaulting to "bob" '
+            print '-- system_id not specified as param ' +rospy.get_name()+'/system_id'+ ': defaulting to "bob" '
             system_id_prefix="bob"
         else:    
             system_id_prefix=system_id+'_'
             
         print 'system_id_prefix= '+system_id_prefix
-        
-        rospy.init_node(system_id_prefix+'vc_node', anonymous=True)        
+            
         
         
         setup_node_and_topics(system_id_prefix)
