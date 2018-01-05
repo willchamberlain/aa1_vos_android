@@ -58,57 +58,66 @@ fixed_features = []
 robotPoseHistory = []   # LATER (not used, just appended): per-robot 
 targetPoseHistory = []  # LATER (not used, just appended)
 
-# tag_55 = VisualFeatureInWorld()
-# tag_55.algorithm = 'AprilTags_Kaess_36h11'
-# tag_55.id = '55'
-# tag_55.pose = Pose()
-# tag_55.pose.position.x=0
-# tag_55.pose.position.y=0
-# tag_55.pose.position.z=0.8
-# tag_55.pose.orientation.x=0
-# tag_55.pose.orientation.y=0
-# tag_55.pose.orientation.z=0
-# tag_55.pose.orientation.w=1
-# fixed_features.append(tag_55)
+tag_55 = VisualFeatureInWorld()
+tag_55.algorithm = 'AprilTags_Kaess_36h11'
+tag_55.id = '55'
+tag_55.pose = Pose()
+tag_55.pose.position.x=0
+tag_55.pose.position.y=0
+tag_55.pose.position.z=0.8
+tag_55.pose.orientation.x=0
+tag_55.pose.orientation.y=0
+tag_55.pose.orientation.z=0
+tag_55.pose.orientation.w=1
+fixed_features.append(tag_55)
 
-tag_210 = VisualFeatureInWorld()
-tag_210.algorithm = 'AprilTags_Kaess_36h11'
-tag_210.id = '210'
-tag_210.pose = Pose()
-tag_210.pose.position.x=3
-tag_210.pose.position.y=-3.5
-tag_210.pose.position.z=1.25
-tag_210.pose.orientation.x=0
-tag_210.pose.orientation.y=0
-tag_210.pose.orientation.z=-0.619
-tag_210.pose.orientation.w=0.785390985 
-fixed_features.append(tag_210)
+#tag_210 = VisualFeatureInWorld()
+#tag_210.algorithm = 'AprilTags_Kaess_36h11'
+#tag_210.id = '210'
+#tag_210.pose = Pose()
+#tag_210.pose.position.x=3
+#tag_210.pose.position.y=-3.5
+#tag_210.pose.position.z=1.25
+#tag_210.pose.orientation.x=0
+#tag_210.pose.orientation.y=0
+#tag_210.pose.orientation.z=-0.619
+#tag_210.pose.orientation.w=0.785390985 
+#fixed_features.append(tag_210)
 
-camera_poses_to_detect_from_cameras      = ( 40057, 40157, 40257, 40357, 40457, 40557)
+
+#  t40557 is the world-to-camera  , 
+#  t50557 is the world-to-marker , 
+#  t60557 is the camera-to-marker , 
+#  t70557 is the camera-to-robot-base 
+
+camera_poses_to_detect_from_cameras      = ( 40057, 40157, 40257, 40357, 40457, 40557 )  #  t40557 is the world-to-camera
 print "camera_poses_to_detect_from_cameras = %s"%(str(camera_poses_to_detect_from_cameras))
 
-robot_feature_tags_to_detect_visually = ( 50057, 50157, 50257, 50357, 50457, 50557)
+robot_feature_tags_to_detect_visually    = ( 50057, 50157, 50257, 50357, 50457, 50557 )  #  t50557 is the world-to-marker
 print "robot_feature_tags_to_detect_visually=%s"%(str(robot_feature_tags_to_detect_visually))
 
 features_present_list_of_tuples = [ camera_poses_to_detect_from_cameras , robot_feature_tags_to_detect_visually ]
 features_on_cam = tuple(chain.from_iterable(features_present_list_of_tuples))
 print "features_on_cam=%s"%(str(features_on_cam))
 
-robot_features_via_tf = ( 80557, 70557, 60557)
+robot_features_via_tf = ( 80557, 70557, 60557 )  #  t60557 is the camera-to-marker   #  t70557 is the camera-to-robot-base               
 features_present_list_of_tuples = [ robot_features_via_tf , features_on_cam ]
 robot_features_present = tuple(chain.from_iterable(features_present_list_of_tuples))
 print "robot_features_present=%s"%(str(robot_features_present))
 
-other_features_present = (10000, 90170 , 90250 , 90290 , 90330 , -90000 , 90555 , 90210 , 91610 , 91690 , 91730 , 91650 , 90057 , 90157 , 90257 , 90357 , 90457 , 90557 , 90000+999999 , 70170 , 60170 , 50170 )
+other_features_present = ( 10000, 90170 , 90250 , 90290 , 90330 , -90000 , 90555 , 90210 , 91610 , 91690 , 91730 , 91650 , 90057 , 90157 , 90257 , 90357 , 90457 , 90557 , 90000+999999 , 70170 , 60170 , 50170 )
 print "other_features_present=%s"%(str(other_features_present)) 
 
 
-pioneer1_features = (40170, 50170, 60170, 70170,  40250, 50250, 60250, 70250,  40290, 50290, 60290, 70290,  40330, 50330, 60330, 70330)
+pioneer1_features = ( 40170, 50170, 60170, 70170,  40250, 50250, 60250, 70250,  40290, 50290, 60290, 70290,  40330, 50330, 60330, 70330 )
 print "pioneer1_features=%s"%(str(pioneer1_features)) 
 
 
+target210_features = ( 40210, 50210, 60210, 70210, 80210, 90210 )  #  t50557 is the world-to-marker
 
-features_present_list_of_tuples = [robot_features_present,other_features_present,pioneer1_features]
+
+
+features_present_list_of_tuples = [ robot_features_present , other_features_present , pioneer1_features , target210_features ]
 print "features_present_list_of_tuples=%s"%(features_present_list_of_tuples)
 features_present = tuple(chain.from_iterable(features_present_list_of_tuples))
 features_present = tuple(sorted(features_present))
@@ -393,17 +402,13 @@ def detect_feature_callback(req):
     
     
     print "-------------"
-    print "-------------"
-    print "-------------"
-    print "-------------"
-    print "-------------"
     print "detect_feature_callback:  c2='%s' , t55='%s' "%(c2, t55)
     print "-------------"
-    print "-------------"
-    print "-------------"
-    print "-------------"
-    print "-------------"
-    # camera reporting robot pose rather than feature - TODO - move this to another service than DetectedFeature
+    # camera reporting robot pose rather than feature
+    #  t40557 is the world-to-camera  , 
+    #  t50557 is the world-to-marker , 
+    #  t60557 is the camera-to-marker , 
+    #  t70557 is the camera-to-robot-base 
     if  marker_tag_id in features_on_cam: # ['t50557', 't40557']:    #  t40557 is the world-to-camera  , t50557 is the world-to-marker , t60557 is the camera-to-marker , t70557 is the camera-to-robot-base 
         dum_c2_map_to_robot_via_t55_trans = "dum_%s_map_to_robot_via_%s_trans"%(c2,t55)
         print "detect_feature_callback:  t55 in ['50557', 't40557'] : t55='%s' : publishing tf from /map to %s "%(t55 , dum_c2_map_to_robot_via_t55_trans)
@@ -643,8 +648,9 @@ def detect_feature_callback(req):
     t55_trans_from_dum_c2 = "dum_%s_trans_to_%s"%(c2,t55)
     tfBroadcaster.sendTransform(
         (req.visualFeature.pose.pose.position.x, req.visualFeature.pose.pose.position.y, req.visualFeature.pose.pose.position.z),
-        # (req.visualFeature.pose.pose.position.z, req.visualFeature.pose.pose.position.x, req.visualFeature.pose.pose.position.y),
-        (0,0,0,1),
+        #(req.visualFeature.pose.pose.position.z, req.visualFeature.pose.pose.position.x, req.visualFeature.pose.pose.position.y),
+        #(0,0,0,1),
+        (req.visualFeature.pose.pose.orientation.x, req.visualFeature.pose.pose.orientation.y, req.visualFeature.pose.pose.orientation.z, req.visualFeature.pose.pose.orientation.w),
         time_now,
         t55_trans_from_dum_c2,                          # to   tag-from-camera-body t55_from_c2
         dum_c2)                                         # from camera-body c2
@@ -840,8 +846,6 @@ def detect_feature_callback(req):
         except tf.Exception as err:
             print "some tf exception happened 1650: {0}".format(err)
             
-    print '------------ ???? ---------------------------------- ??? 90557 for robot tag ??? --------------------------------'
-    print ' if \'90557\' == t55 :  t55 == %s'%(t55)   
     
     drive_homography_from_VOS_server = False
     if   drive_homography_from_VOS_server and 't70170' == t55:           #Pioneer1, front   
@@ -1003,7 +1007,8 @@ def detect_feature_callback(req):
     #elif 't90210'==t55:                                  # tag 210 is the target tag : if it moves more than 20cm from last posn, publish an updated target
     # TODO: publish per-robot
     # TODO: flexible coding of targets  (later: move to messaging the robot rather than publishing)  
-    if t55 in ",".join ( ['t50957','t90210','t9099999999210'] ) :
+    #  t60557 is the camera-to-marker
+    if t55 in ",".join ( ['t50957',  't60210',  't9099999999210'] ) :
         try:
             print "------------------- start check 210 as target ----------------------"
             tfListener.waitForTransform('map',              t55_transrot_from_dum_c2_post90y180zneg90z,  rospy.Time(),  rospy.Duration(1))
@@ -1021,18 +1026,11 @@ def detect_feature_callback(req):
         except tf.Exception as err:
             print "some tf exception happened 210: {0}".format(err)
             
-            
-    ### load fixed tags from file ##########################################################################################################
-    # ...
-    # ...
-    # ...
-    # ...
+           
     
             
-    ### load robot model tags from file ##########################################################################################################
     robot_tag_poses       = [ ('t90999999999157', {'x':0.16,'y':0.0,'z':0.2, 'qx':0, 'qy':0, 'qz':0, 'qw':1}) , ('t909999999999257', {'x':0.05,'y':0.0,'z':0.2, 'qx':0, 'qy':0, 'qz':1, 'qw':0}) ] # 157 faces forward, 257 faces backward # developing - see https://stackoverflow.com/questions/16021571/iterating-quickly-through-list-of-tuples
     robot_tag_poses_dict  = dict(robot_tag_poses)
-    print 'load robot_tag_poses from file for t55=%s'%(t55)
     # robot_tag_tuple       = robot_tag_poses_dict.get(t55)
     # print robot_tag_tuple
     # robot_tag_as_dict     = robot_tag_tuple[1]
@@ -1624,13 +1622,13 @@ def detect_feature_server2():
     rospy.loginfo("Ready to publish poses")
 
     global tag_210_target_publisher
-    tag_210_target_publisher = rospy.Publisher("/move_base_simple/goal", PoseStamped, queue_size=1)
+    tag_210_target_publisher = rospy.Publisher("/STEVE0/move_base_simple/goal", PoseStamped, queue_size=1)
     #pose_publisher = rospy.Publisher("/move_base/goal", move_base_msgs.MoveBaseActionGoal, queue_size=1)
     print "Ready to publish tag 210 as target poses"
     rospy.loginfo("Ready to publish tag 210 as target poses")
 
     global initialpose_poseWCS_publisher
-    initialpose_poseWCS_publisher = rospy.Publisher("/initialpose", PoseWithCovarianceStamped, queue_size=50, latch=True)  # latch to make sure that AMCL has an intitial pose to use
+    initialpose_poseWCS_publisher = rospy.Publisher("/STEVE0/initialpose", PoseWithCovarianceStamped, queue_size=50, latch=True)  # latch to make sure that AMCL has an intitial pose to use
     print "Ready to publish poses with covariance"
     rospy.loginfo("Ready to publish poses with covariance")
 
