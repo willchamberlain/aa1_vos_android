@@ -47,6 +47,7 @@ from vos_aa1.srv import localise_by_visual_descriptorRequest
 from vos_aa1.srv import localise_by_visual_descriptorResponse
 from vos_aa1.msg import VisualFeatureInWorld
 from vos_aa1.msg import VisualFeatureObservation
+from vos_aa1.srv import PoseStampedToRobot, PoseStampedToRobotRequest,  PoseStampedToRobotResponse
 
 from file_checker import *
 
@@ -100,7 +101,7 @@ features_present_list_of_tuples = [ camera_poses_to_detect_from_cameras , robot_
 features_on_cam = tuple(chain.from_iterable(features_present_list_of_tuples))
 print "features_on_cam=%s"%(str(features_on_cam))
 
-robot_features_via_tf = ( 80557, 70557, 60557 )  #  t60557 is the camera-to-marker   #  t70557 is the camera-to-robot-base               
+robot_features_via_tf = ( 80557, 70557, 60557 , 70257 , 60257)  #  t60557 is the camera-to-marker   #  t70557 is the camera-to-robot-base               
 features_present_list_of_tuples = [ robot_features_via_tf , features_on_cam ]
 robot_features_present = tuple(chain.from_iterable(features_present_list_of_tuples))
 print "robot_features_present=%s"%(str(robot_features_present))
@@ -364,7 +365,11 @@ def detect_feature_callback(req):
     
     robot_id_   = req.robotId
     request_id_ = req.requestId
+    print "---"
+    print "--- detect_feature_callback: robot id [%s] "%req.robotId
     print "detect_feature_callback: true detection: camera frame_id [%s] : robot id [%s] : request id [%s] : feature id [%d]"%(req.cameraPose.header.frame_id, req.robotId, req.requestId, req.visualFeature.id)
+    print "---"
+    print "---"
     detection_true_monitoring_publisher.publish("True detection: camera frame_id [%s] : feature id [%d]")
 
     # # TODO - something about this conversion is not right: the translation and quaternion match those found by AprilTags_Kaess and sent by DetectedFeatureClient, but the RPY are different
@@ -1008,6 +1013,22 @@ def detect_feature_callback(req):
     # TODO: publish per-robot
     # TODO: flexible coding of targets  (later: move to messaging the robot rather than publishing)  
     #  t60557 is the camera-to-marker
+    
+    
+    # Pioneer2 controller, assuming that Pioneer3 is the target
+    if robotId == 'Pioneer2' :
+        targetFeatures=('t70257, t70057, t70457')
+        if t55 in targetFeatures :
+            call 'vc_client' service on Pioneer2 VOS Client as /Pioneer2_vc_target_pose  via  multimaster/foreign_relay  master_config_Pioneer2.yaml
+    
+    # Pioneer3 controller, assuming that Pioneer2 is the target
+    if robotId == 'Pioneer3' :        
+        targetFeatures=('t70557, t70357, t70157')
+        if t55 in targetFeatures :
+            call 'vc_client' service on Pioneer3 VOS Client as /Pioneer3_vc_target_pose  via  multimaster/foreign_relay  master_config_Pioneer3.yaml
+    
+        
+    
     if t55 in ",".join ( ['t50957',  't60210',  't9099999999210'] ) :
         try:
             print "------------------- start check 210 as target ----------------------"
