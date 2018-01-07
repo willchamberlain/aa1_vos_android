@@ -1,6 +1,6 @@
-<launch>
-  <node  name="map__to__STEVE0_map__static_tf"
-      args="0.0 0.0 0.0     0.0 0.0 0.0 1.0  map STEVE0/map 20" 
+<launch> 
+      <!-- STEVE0/map coordinate frame has the same pose as the map coordinate frame  -->
+  <node  name="map__to__STEVE0_map__static_tf"  args="0.0 0.0 0.0     0.0  0.0  0.0  1.0    map   STEVE0/map   20" 
       pkg="tf"  type="static_transform_publisher"      />
 </launch>      
       
