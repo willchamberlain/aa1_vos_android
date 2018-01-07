@@ -144,8 +144,8 @@ if __name__ == "__main__":
     if len(args) > 1:
         robot_id_ = args[1]   
     else:
-        print("REQUIRE the robotid as the first argument")   
-        sys.exit("REQUIRE the robotid as the first argument")
+        print("WARN the robotid as the first argument")   
+        sys.exit("WARN the robotid as the first argument")
     if len(args) > 2:
         filepath_ = args[2]    
     else:    

@@ -1,6 +1,8 @@
-<launch>
+<launch>    
+        <!-- /odom coordinate frame is fixed to the same pose as the map coordinate frame  -->
 	 <node pkg="tf" type="static_transform_publisher" name="map_odom_broadcaster" args="0 0 0 0 0 0 /map /odom 100" >
      </node>
-	 <node pkg="tf" type="static_transform_publisher" name="map_odom_broadcaster_STEVE0" args="0 0 0 0 0 0 /STEVE0/map /STEVE0/odom 100" >
-     </node>
+        <!-- /STEVE0/odom coordinate frame is fixed to the same pose as the /STEVE0/map coordinate frame  -->
+	    <!-- <node pkg="tf" type="static_transform_publisher" name="map_odom_broadcaster_STEVE0" args="0 0 0 0 0 0 /STEVE0/map /STEVE0/odom 100" >
+            </node> -->
 </launch>

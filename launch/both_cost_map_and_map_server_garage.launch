@@ -1,0 +1,21 @@
+<launch>
+	<!-- Run the map server (you can run it here or in another terminal) -->
+	 <node name="VOS_SERVER_map_server" pkg="map_server" type="map_server" args="/mnt/nixbig/data/project_AA1_backup_pioneer3c/lvl11_map2/map_garage.yaml"/>
+	 <node name="VOS_SERVER_cost_map_server" pkg="map_server" type="map_server" args="/mnt/nixbig/data/project_AA1_backup_pioneer3c/lvl11_map2/cost_map_garage.yaml">
+		<remap from="map" to="cost_map"/>
+	</node>
+	        <!--
+	                <group ns="STEVE0">
+	                     <node name="STEVE_map_server" pkg="map_server" type="map_server" args="/mnt/nixbig/data/project_AA1_backup_pioneer3c/lvl11_map2/map_garage.yaml"/>
+	                     <node name="STEVE_cost_map_server" pkg="map_server" type="map_server" args="/mnt/nixbig/data/project_AA1_backup_pioneer3c/lvl11_map2/cost_map_garage.yaml">
+		                    <remap from="map" to="cost_map"/>
+	                    </node>
+	                </group>
+	                <group ns="GAVIN1">
+	                     <node name="GAVIN_map_server" pkg="map_server" type="map_server" args="/mnt/nixbig/data/project_AA1_backup_pioneer3c/lvl11_map2/map_garage.yaml"/>
+	                     <node name="GAVIN_cost_map_server" pkg="map_server" type="map_server" args="/mnt/nixbig/data/project_AA1_backup_pioneer3c/lvl11_map2/cost_map_garage.yaml">
+		                    <remap from="map" to="cost_map"/>
+	                    </node>
+	                </group>
+	        -->        
+</launch>

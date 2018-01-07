@@ -9,20 +9,25 @@ from nav_msgs.msg import Odometry
 
 from vos_aa1.srv import InitialPoseToRobot, InitialPoseToRobotRequest,  InitialPoseToRobotResponse
 from vos_aa1.srv import PoseToRobot,        PoseToRobotRequest,         PoseToRobotResponse
+from vos_aa1.srv import PoseStampedToRobot, PoseStampedToRobotRequest,  PoseStampedToRobotResponse
 
 
 
 pub_topic_initialpose = 1
 pub_topic_base_pose = 1
+pub_topic_target_pose = 1
 
 service_initialpose = 1
 service_base_pose = 1
+service_target_pose = 1
 
 def setup_node_and_topics(system_id_prefix):     
     global pub_topic_initialpose
     global pub_topic_base_pose
+    global pub_topic_target_pose
     pub_topic_initialpose = rospy.Publisher('initialpose', PoseWithCovarianceStamped, queue_size=10)
     pub_topic_base_pose   = rospy.Publisher('base_pose_ground_truth', Odometry, queue_size=10)
+    pub_topic_target_pose   = rospy.Publisher('move_base_simple/goal', PoseStamped, queue_size=10)
     
     
 def keep_alive_and_sleep():    
@@ -44,6 +49,11 @@ def handle_RobotPose(req):
     pub_topic_base_pose.publish(req.odometry)
     return PoseToRobotResponse("handle_RobotPose(req) : dummy respose : time=%s" % rospy.get_time())
 
+def handle_RobotTargetPose(req):
+    print "handle_RobotTargetPose(req)"
+    pub_topic_target_pose.publish(req.poseStamped)
+    return PoseToRobotResponse("handle_RobotTargetPose(req) : dummy respose : time=%s" % rospy.get_time())
+
 
 
 def setup_node_for_server_vc_initialpose(system_id_prefix):
@@ -55,6 +65,11 @@ def setup_node_for_server_vc_base_pose(system_id_prefix):
     global service_base_pose
     service_base_pose = rospy.Service( system_id_prefix+'vc_base_pose' , PoseToRobot, handle_RobotPose)
     print "Ready to "+system_id_prefix+'vc_base_pose'
+
+def setup_node_for_server_vc_target_pose(system_id_prefix):
+    global service_target_pose
+    service_target_pose = rospy.Service( system_id_prefix+'vc_target_pose' , PoseStampedToRobot, handle_RobotTargetPose)
+    print "Ready to "+system_id_prefix+'vc_target_pose'
     
             
 
@@ -79,6 +94,7 @@ if __name__ == '__main__':
         setup_node_and_topics(system_id_prefix)
         setup_node_for_server_vc_initialpose(system_id_prefix)
         setup_node_for_server_vc_base_pose(system_id_prefix)
+        setup_node_for_server_vc_target_pose(system_id_prefix)
         keep_alive_and_sleep()
                     
  #                   

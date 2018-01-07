@@ -67,12 +67,14 @@ add_service_files(
     RegisterVisionSource.srv
     SetPose.srv
     there_is_alg_desc.srv
+    where_is_alg_desc.srv
     localise_by_visual_descriptor.srv
     RobotTaskDemandManualManagement.srv
     GetTf.srv
     RobotId.srv  # robot id service message
     InitialPoseToRobot.srv
     PoseToRobot.srv
+    PoseStampedToRobot.srv
 )
 
 ## Generate actions in the 'action' folder

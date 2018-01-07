@@ -1,7 +1,7 @@
 # note: -r 2 --> rate 2 Hz
 # note: current date seconds and nanoseconds in Bash format (Ubuntu 14.04)
 # note: pose.orientation must be a valid, normalised quaternion
-rostopic pub -r 2 /STEVE0/move_base_simple/goal geometry_msgs/PoseStamped "header:
+rostopic pub -r 2 /move_base_simple/goal geometry_msgs/PoseStamped "header:
   seq: 0
   stamp:
     secs: $(date +%s)
