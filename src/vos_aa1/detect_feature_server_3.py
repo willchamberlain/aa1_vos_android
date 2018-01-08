@@ -101,7 +101,7 @@ features_present_list_of_tuples = [ camera_poses_to_detect_from_cameras , robot_
 features_on_cam = tuple(chain.from_iterable(features_present_list_of_tuples))
 print "features_on_cam=%s"%(str(features_on_cam))
 
-robot_features_via_tf = ( 80557, 70557, 60557 , 70257 , 60257)  #  t60557 is the camera-to-marker   #  t70557 is the camera-to-robot-base               
+robot_features_via_tf = ( 80557, 70557, 60557 , 70457 , 60457 , 70357 , 60357 , 70257 , 60257 , 70157 , 60157 , 70057 , 60057)  #  t60557 is the camera-to-marker   #  t70557 is the camera-to-robot-base               
 features_present_list_of_tuples = [ robot_features_via_tf , features_on_cam ]
 robot_features_present = tuple(chain.from_iterable(features_present_list_of_tuples))
 print "robot_features_present=%s"%(str(robot_features_present))
@@ -1016,16 +1016,26 @@ def detect_feature_callback(req):
     
     
     # Pioneer2 controller, assuming that Pioneer3 is the target
-    if robotId == 'Pioneer2' :
+    if req.robotId == 'Pioneer2' :
+        selfFeatures=('t70557, t70357, t70157')
+        if t55 in selfFeatures :
+            print "%s is a selfFeature"%t55
+            print "call 'vc_client' service on Pioneer3 VOS Client as /Pioneer3_vc_base_pose and  /Pioneer3_vc_initialpose via  multimaster/foreign_relay  master_config_Pioneer3.yaml"
         targetFeatures=('t70257, t70057, t70457')
         if t55 in targetFeatures :
-            call 'vc_client' service on Pioneer2 VOS Client as /Pioneer2_vc_target_pose  via  multimaster/foreign_relay  master_config_Pioneer2.yaml
+            print "%s is a targetFeature"%t55
+            print "call 'vc_client' service on Pioneer2 VOS Client as /Pioneer2_vc_target_pose  via  multimaster/foreign_relay  master_config_Pioneer2.yaml"
     
     # Pioneer3 controller, assuming that Pioneer2 is the target
-    if robotId == 'Pioneer3' :        
+    if req.robotId == 'Pioneer3' :        
+        selfFeatures=('t70257, t70057, t70457')
+        if t55 in selfFeatures :
+            print "%s is a selfFeature"%t55
+            print "call 'vc_client' service on Pioneer3 VOS Client as /Pioneer3_vc_base_pose and  /Pioneer3_vc_initialpose via  multimaster/foreign_relay  master_config_Pioneer3.yaml"            
         targetFeatures=('t70557, t70357, t70157')
         if t55 in targetFeatures :
-            call 'vc_client' service on Pioneer3 VOS Client as /Pioneer3_vc_target_pose  via  multimaster/foreign_relay  master_config_Pioneer3.yaml
+            print "%s is a targetFeature"%t55
+            print "call 'vc_client' service on Pioneer3 VOS Client as /Pioneer3_vc_target_pose  via  multimaster/foreign_relay  master_config_Pioneer3.yaml"
     
         
     
