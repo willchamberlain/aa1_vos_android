@@ -50,8 +50,23 @@ def handle_RobotPose(req):
     return PoseToRobotResponse("handle_RobotPose(req) : dummy respose : time=%s" % rospy.get_time())
 
 def handle_RobotTargetPose(req):
+
+    quat_ = req.poseStamped.pose.orientation
+    q_norm = math.sqrt(quat_[0]**2 + quat_[1]**2 + quat_[2]**2 + quat_[3]**2)
+    normalised_quat = [0.0,0.0,0.0,0.0]
+    normalised_quat[0] = quat_[0]/q_norm
+    normalised_quat[1] = quat_[1]/q_norm
+    normalised_quat[2] = quat_[2]/q_norm
+    normalised_quat[3] = quat_[3]/q_norm
+    
+    poseStamped_ = PoseStamped()
+    poseStamped_.header.stamp    = req.poseStamped.header.stamp
+    poseStamped_.header.frame_id = req.poseStamped.header.frame_id
+    poseStamped_.pose = Pose(  req.poseStamped.pose.position,  Quaternion( normalised_quat[0], normalised_quat[1], normalised_quat[2], normalised_quat[3] )  )
+                            
+                    
     print "handle_RobotTargetPose(req)"
-    pub_topic_target_pose.publish(req.poseStamped)
+    pub_topic_target_pose.publish(poseStamped_)
     return PoseToRobotResponse("handle_RobotTargetPose(req) : dummy respose : time=%s" % rospy.get_time())
 
 
