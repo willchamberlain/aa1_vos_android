@@ -177,6 +177,11 @@ pioneer3_target_service_client = 1
 Pioneer3_target_pose_publisher = 1
 Pioneer3_target_pose = Pose()
 
+Pioneer2_target_pose_x = 1
+Pioneer2_target_pose_y = 1
+Pioneer3_target_pose_x = 1
+Pioneer3_target_pose_y = 1
+
 
 # pioneer1
 vos_state = 'init'
@@ -599,8 +604,31 @@ def detect_feature_callback(req):
                         global retarget_requested
                         global Pioneer2_target_pose
                         global Pioneer3_target_pose
+                        global Pioneer2_target_pose_x
+                        global Pioneer2_target_pose_y
+                        global Pioneer3_target_pose_x
+                        global Pioneer3_target_pose_y
                         
-                        if ( req.robotId == 'Pioneer2' and ( abs(Pioneer2_target_pose.position.x - average_pos_[0]) > 0.2  or  abs(Pioneer2_target_pose.position.y - average_pos_[1]) > 0.2 ) ) or  ( req.robotId == 'Pioneer3' and ( abs(Pioneer3_target_pose.position.x - average_pos_[0]) > 0.2  or  abs(Pioneer3_target_pose.position.y - average_pos_[1]) > 0.2 ) ) :
+                        if ( req.robotId == 'Pioneer2' and ( abs(Pioneer2_target_pose_x - average_pos_[0]) > 0.2  or  abs(Pioneer2_target_pose_y - average_pos_[1]) > 0.2 ) ) :
+                            print " ( req.robotId == 'Pioneer2' and ( abs(Pioneer2_target_pose_x %0.6f - average_pos_[0] %0.6f ) > 0.2  or  abs(Pioneer2_target_pose_y %0.6f - average_pos_[1] %0.6f ) > 0.2 ) ) "%(Pioneer2_target_pose.position.x, average_pos_[0], Pioneer2_target_pose.position.y, average_pos_[1])  
+                        
+                        if ( req.robotId == 'Pioneer3' and ( abs(Pioneer3_target_pose_x - average_pos_[0]) > 0.2  or  abs(Pioneer3_target_pose_y - average_pos_[1]) > 0.2 ) ) :
+                            print " ( req.robotId == 'Pioneer3' and ( abs(Pioneer3_target_pose_x %0.6f - average_pos_[0] %0.6f ) > 0.2  or  abs(Pioneer3_target_pose_y %0.6f - average_pos_[1] %0.6f ) > 0.2 ) ) "%(Pioneer3_target_pose.position.x, average_pos_[0], Pioneer3_target_pose.position.y, average_pos_[1])  
+                        
+                        if ( req.robotId == 'Pioneer2' and ( abs(Pioneer2_target_pose_x - average_pos_[0]) > 0.2  or  abs(Pioneer2_target_pose_y - average_pos_[1]) > 0.2 ) ) or  ( req.robotId == 'Pioneer3' and ( abs(Pioneer3_target_pose_x - average_pos_[0]) > 0.2  or  abs(Pioneer3_target_pose_y - average_pos_[1]) > 0.2 ) ) :
+                            if req.robotId == 'Pioneer2': #  and ( abs(Pioneer2_target_pose.position.x - average_pos_[0]) > 0.2  or  abs(Pioneer2_target_pose.position.y - average_pos_[1]) > 0.2 ) :
+                                print " --- Pioneer2: setting Pioneer2_target_pose --- "                                
+                                Pioneer2_target_pose_x = average_pos_[0]
+                                Pioneer2_target_pose_y = average_pos_[1]
+                                Pioneer2_target_pose.position.x - average_pos_[0]
+                                Pioneer2_target_pose.position.y - average_pos_[1]
+                            if req.robotId == 'Pioneer3':  #  and ( abs(Pioneer3_target_pose.position.x - average_pos_[0]) > 0.2  or  abs(Pioneer3_target_pose.position.y - average_pos_[1]) > 0.2 ) :
+                                print " --- Pioneer3: setting Pioneer3_target_pose --- "                                
+                                Pioneer3_target_pose_x = average_pos_[0]
+                                Pioneer3_target_pose_y = average_pos_[1]
+                                Pioneer3_target_pose.position.x - average_pos_[0]
+                                Pioneer3_target_pose.position.y - average_pos_[1]
+                                
                         
                             try:
                                 target_service_client = rospy.ServiceProxy(service_prefix+'vc_target_pose', PoseStampedToRobot) # PoseStamped
