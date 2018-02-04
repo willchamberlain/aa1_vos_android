@@ -37,7 +37,7 @@ bool look_up_transform (
         
     ros::Time time_now;    
     time_now = ros::Time::now();
-    std::cout << "look_up_transform: start: req.time.data=" << (req.time.data.toNSec()/(1000*1000)) << "ms: ros::Time::now()=" << (time_now.toNSec()/(1000*1000)) << ": diff=" << ( (time_now.toNSec()/(1000*1000)) - (req.time.data.toNSec()/(1000*1000)) ) << ": diff=" << ( (req.time.data.toNSec()/(1000*1000)) - (time_now.toNSec()/(1000*1000)) ) << "ms\n";
+    std::cout << "look_up_transform: start: req.time.data=" << (req.time.data.toNSec()/(1000*1000)) << "ms: ros::Time::now()=" << (time_now.toNSec()/(1000*1000)) << ": time_now-req.time diff=" << ( (time_now.toNSec()/(1000*1000)) - (req.time.data.toNSec()/(1000*1000)) ) << ": req.time-time_now diff=" << ( (req.time.data.toNSec()/(1000*1000)) - (time_now.toNSec()/(1000*1000)) ) << "ms\n";
     std::cout.flush();
     
     //    tf::TransformListener listener;
@@ -67,7 +67,7 @@ bool look_up_transform (
     
     // start: debug: rebroadcast
     lookup_num++;   char target_topic_name [50];    sprintf(target_topic_name,"/look_up_transform_%d",lookup_num);
-    tfBroadcaster->sendTransform(tf::StampedTransform( transform_found_ , time_ , "/map" , target_topic_name) );
+//    tfBroadcaster->sendTransform(tf::StampedTransform( transform_found_ , time_ , "/map" , target_topic_name) );
     // end: debug: rebroadcast
     
 //    res.transform_found = transform_found_;        
