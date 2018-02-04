@@ -98,16 +98,14 @@ camera_poses_to_detect_from_cameras      = ( 40057, 40157, 40257, 40357, 40457, 
 print "camera_poses_to_detect_from_cameras = %s"%(str(camera_poses_to_detect_from_cameras))
 
 #robot_feature_tags_to_detect_visually    = ( 50057, 50157, 50257, 50357, 50457, 50557 )  #  t50557 is the world-to-marker
-robot_feature_tags_to_detect_visually    = ( 50057, 50157, 50257, 50357, 50457, 50557 , 60157, 60357, 60557 , 60057, 60257, 60457,    40170, 50170, 60170, 70170,  40250, 50250, 60250, 70250,  40290, 50290, 60290, 70290,  40330, 50330, 60330, 70330)  #  t50557 is the world-to-marker
-print "robot_feature_tags_to_detect_visually=%s"%(str(robot_feature_tags_to_detect_visually))
-
-pioneer2_robot_feature_tags_to_detect_visually    = ( 50157, 50357, 50557 , 60157, 60357, 60557 )  #  t50557 is the world-to-marker
-print "pioneer2_robot_feature_tags_to_detect_visually=%s"%(str(pioneer2_robot_feature_tags_to_detect_visually))
-pioneer3_robot_feature_tags_to_detect_visually    = ( 50057, 50257, 50457 , 60057, 60257, 60457 )  #  t50557 is the world-to-marker
-print "pioneer3_robot_feature_tags_to_detect_visually=%s"%(str(pioneer3_robot_feature_tags_to_detect_visually))
+#robot_feature_tags_to_detect_visually    = ( 50057, 50157, 50257, 50357, 50457, 50557 , 60157, 60357, 60557 , 60057, 60257, 60457,    40170, 50170, 60170, 70170,  40250, 50250, 60250, 70250,  40290, 50290, 60290, 70290,  40330, 50330, 60330, 70330)  #  t50557 is the world-to-marker
+#print "robot_feature_tags_to_detect_visually=%s"%(str(robot_feature_tags_to_detect_visually))
 
 pioneer1_features = ( 40170, 50170, 60170, 70170,  40250, 50250, 60250, 70250,  40290, 50290, 60290, 70290,  40330, 50330, 60330, 70330 )
 print "pioneer1_features=%s"%(str(pioneer1_features)) 
+robot_feature_tags_to_detect_visually = pioneer1_features 
+print "robot_feature_tags_to_detect_visually=%s"%(str(robot_feature_tags_to_detect_visually))
+
 
 # above is coding for the robot-rendezvous 
 # - need to split that out into separate models
@@ -150,8 +148,7 @@ vision_sources = []
 marker_publisher  = 1
 pose_publisher    = 1
 initialpose_poseWCS_publisher = 1
-Pioneer2_fakelocalisation_poseWCS_publisher = 1
-Pioneer3_fakelocalisation_poseWCS_publisher = 1
+fakelocalisation_poseWCS_publisher = 1
 
 tfBroadcaster__ = []
 tfListener      = 1
@@ -168,24 +165,6 @@ management_subscriber = 1
 retarget_requested = False
 detection_true_monitoring_publisher = 1
 detection_false_monitoring_publisher = 1
-
-
-pioneer2_initialpose_service_client = 1
-pioneer2_base_pose_service_client = 1
-pioneer2_target_service_client = 1
-Pioneer2_target_pose_publisher = 1
-Pioneer2_target_pose = Pose()
-    
-pioneer3_initialpose_service_client = 1
-pioneer3_base_pose_service_client = 1
-pioneer3_target_service_client = 1
-Pioneer3_target_pose_publisher = 1
-Pioneer3_target_pose = Pose()
-
-Pioneer2_target_pose_x = 1
-Pioneer2_target_pose_y = 1
-Pioneer3_target_pose_x = 1
-Pioneer3_target_pose_y = 1
 
 
 # pioneer1
@@ -467,11 +446,7 @@ def detect_feature_callback(req):
             dum_c2_map_to_robot_via_t55_trans)        # from
             
         if  marker_tag_id in robot_feature_tags_to_detect_visually:     # VOS FUNCTION = publish smoothed pose estimates (by averaging at the moment)
-            observed_id = '_unknown'
-            if  marker_tag_id in pioneer2_robot_feature_tags_to_detect_visually:
-                observed_id = '_pioneer2'
-            if  marker_tag_id in pioneer3_robot_feature_tags_to_detect_visually:
-                observed_id = '_pioneer3'            
+            observed_id = '_unknown'        
             print "observed_id = '%s'"%observed_id   
             print "(robot_id_ + observed_id) = '%s'"%(robot_id_ + observed_id)
             
@@ -536,133 +511,16 @@ def detect_feature_callback(req):
                     
                                        
                     #  TODO - publish for one specific robot 
-                    # Pioneer2 controller, assuming that Pioneer3 is the target
-                    serviceName=''
-                    self_feature=True
-                    if req.robotId == 'Pioneer2'  and  marker_tag_id in pioneer2_robot_feature_tags_to_detect_visually:
-                        service_prefix='/Pioneer2_'                        
-                        self_feature=True
-                    if req.robotId == 'Pioneer2'  and  marker_tag_id in pioneer3_robot_feature_tags_to_detect_visually:
-                        service_prefix='/Pioneer2_'                        
-                        self_feature=False
-                    if req.robotId == 'Pioneer3'  and  marker_tag_id in pioneer3_robot_feature_tags_to_detect_visually:
-                        service_prefix='/Pioneer3_'                        
-                        self_feature=True
-                    if req.robotId == 'Pioneer3'  and  marker_tag_id in pioneer2_robot_feature_tags_to_detect_visually:
-                        service_prefix='/Pioneer3_'                        
-                        self_feature=False
-                    print "service_prefix=%s , self_feature=%s  for  req.robotId=%s and marker_tag_id=%s"%(service_prefix, self_feature, req.robotId, marker_tag_id)                    
-                            
-                    if self_feature:
-                        print "self_feature"
-                        
-                        print "waiting for "+(service_prefix+'vc_initialpose')
-                        rospy.wait_for_service(service_prefix+'vc_initialpose')
-                        print "got "+(service_prefix+'vc_initialpose')
-                        try:
-                            initialpose_service_client = rospy.ServiceProxy(service_prefix+'vc_initialpose', InitialPoseToRobot)  # PoseWithCovarianceStamped
-                            poseWCS = PoseWithCovarianceStamped()
-                            poseWCS.header.stamp = time_now
-                            poseWCS.header.frame_id = 'map' # id_
-                            poseWCS.pose.pose = Pose(Point(average_pos_[0], average_pos_[1], average_pos_[2]), Quaternion(normalised_quat[0], normalised_quat[1], normalised_quat[2], normalised_quat[3]))
-                            poseWCS.pose.covariance = [0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0]    
-                            ack = initialpose_service_client(poseWCS)
-                            print "response from "+(service_prefix+'vc_initialpose') + "=" + ack.acknowledgement
-                        except rospy.ServiceException, e:
-                            print "ERROR:  %svc_initialpose:  Service call failed:  %s"%(service_prefix, e)
-                            
-                        print "waiting for "+(service_prefix+'vc_base_pose')
-                        rospy.wait_for_service(service_prefix+'vc_base_pose')
-                        print "got "+(service_prefix+'vc_base_pose')
-                        try:
-                            base_pose_service_client = rospy.ServiceProxy(service_prefix+'vc_base_pose', PoseToRobot) # Odometry
-                            poseWC = PoseWithCovariance()
-                            poseWC.pose = Pose(Point(average_pos_[0], average_pos_[1], average_pos_[2]), Quaternion(normalised_quat[0], normalised_quat[1], normalised_quat[2], normalised_quat[3]))
-                            poseWC.covariance = [0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0]            
-                            twistWC = TwistWithCovariance()
-                            twistWC.twist = Twist(Vector3(0.0,0.0,0.0),Vector3(0.0,0.0,0.0))
-                            twistWC.covariance = [0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0]
-                            odom = Odometry()
-                            odom.header.stamp = time_now
-                            odom.header.frame_id = 'map' #id_
-                            odom.pose = poseWC
-                            odom.twist = twistWC
-                            ack = base_pose_service_client(odom)
-                            print "response from "+(service_prefix+'vc_base_pose') + "=" + ack.acknowledgement
-                        except rospy.ServiceException, e:
-                            print "ERROR:  %svc_base_pose:  Service call failed:  %s"%(service_prefix, e)
- 
-                        #                
-                        if req.robotId == 'Pioneer2' and self_feature:      
-                            publish_pose_xyz_xyzw(Pioneer2_pose_publisher,time_now,  'map', average_pos_[0], average_pos_[1], average_pos_[2], normalised_quat[0], normalised_quat[1], normalised_quat[2], normalised_quat[3])
-                        if req.robotId == 'Pioneer3' and self_feature:
-                            publish_pose_xyz_xyzw(Pioneer3_pose_publisher,time_now,  'map', average_pos_[0], average_pos_[1], average_pos_[2], normalised_quat_z[0], normalised_quat_z[1], normalised_quat_z[2], normalised_quat_z[3])
-                 
-                        #  Pioneer2_fakelocalisation_poseWCS_publisher
-                        #  Pioneer3_fakelocalisation_poseWCS_publisher    
-                    else:                   
-                        print "not self_feature"         
-                        print "waiting for "+(service_prefix+'vc_target_pose')
-                        rospy.wait_for_service(service_prefix+'vc_target_pose')
-                        print "got "+(service_prefix+'vc_target_pose')
-                        
-                        global retarget_requested
-                        global Pioneer2_target_pose
-                        global Pioneer3_target_pose
-                        global Pioneer2_target_pose_x
-                        global Pioneer2_target_pose_y
-                        global Pioneer3_target_pose_x
-                        global Pioneer3_target_pose_y
-                        
-                        if ( req.robotId == 'Pioneer2' and ( abs(Pioneer2_target_pose_x - average_pos_[0]) > 0.2  or  abs(Pioneer2_target_pose_y - average_pos_[1]) > 0.2 ) ) :
-                            print " ( req.robotId == 'Pioneer2' and ( abs(Pioneer2_target_pose_x %0.6f - average_pos_[0] %0.6f ) > 0.2  or  abs(Pioneer2_target_pose_y %0.6f - average_pos_[1] %0.6f ) > 0.2 ) ) "%(Pioneer2_target_pose.position.x, average_pos_[0], Pioneer2_target_pose.position.y, average_pos_[1])  
-                        
-                        if ( req.robotId == 'Pioneer3' and ( abs(Pioneer3_target_pose_x - average_pos_[0]) > 0.2  or  abs(Pioneer3_target_pose_y - average_pos_[1]) > 0.2 ) ) :
-                            print " ( req.robotId == 'Pioneer3' and ( abs(Pioneer3_target_pose_x %0.6f - average_pos_[0] %0.6f ) > 0.2  or  abs(Pioneer3_target_pose_y %0.6f - average_pos_[1] %0.6f ) > 0.2 ) ) "%(Pioneer3_target_pose.position.x, average_pos_[0], Pioneer3_target_pose.position.y, average_pos_[1])  
-                        
-                        if ( req.robotId == 'Pioneer2' and ( abs(Pioneer2_target_pose_x - average_pos_[0]) > 0.2  or  abs(Pioneer2_target_pose_y - average_pos_[1]) > 0.2 ) ) or  ( req.robotId == 'Pioneer3' and ( abs(Pioneer3_target_pose_x - average_pos_[0]) > 0.2  or  abs(Pioneer3_target_pose_y - average_pos_[1]) > 0.2 ) ) :
-                            if req.robotId == 'Pioneer2': #  and ( abs(Pioneer2_target_pose.position.x - average_pos_[0]) > 0.2  or  abs(Pioneer2_target_pose.position.y - average_pos_[1]) > 0.2 ) :
-                                print " --- Pioneer2: setting Pioneer2_target_pose --- "                                
-                                Pioneer2_target_pose_x = average_pos_[0]
-                                Pioneer2_target_pose_y = average_pos_[1]
-                                Pioneer2_target_pose.position.x - average_pos_[0]
-                                Pioneer2_target_pose.position.y - average_pos_[1]
-                            if req.robotId == 'Pioneer3':  #  and ( abs(Pioneer3_target_pose.position.x - average_pos_[0]) > 0.2  or  abs(Pioneer3_target_pose.position.y - average_pos_[1]) > 0.2 ) :
-                                print " --- Pioneer3: setting Pioneer3_target_pose --- "                                
-                                Pioneer3_target_pose_x = average_pos_[0]
-                                Pioneer3_target_pose_y = average_pos_[1]
-                                Pioneer3_target_pose.position.x - average_pos_[0]
-                                Pioneer3_target_pose.position.y - average_pos_[1]
-                                
-                        
-                            try:
-                                target_service_client = rospy.ServiceProxy(service_prefix+'vc_target_pose', PoseStampedToRobot) # PoseStamped
-                                poseStamped = PoseStamped()
-                                poseStamped.header.stamp = time_now
-                                poseStamped.header.frame_id = 'map' #id_
-                                poseStamped.pose = Pose(Point(average_pos_[0], average_pos_[1], average_pos_[2]), Quaternion(normalised_quat[0], normalised_quat[1], normalised_quat[2], normalised_quat[3]))
-                                ack = target_service_client(poseStamped)
-                                if req.robotId == 'Pioneer2':
-                                    publish_pose_xyz_xyzw(Pioneer2_target_pose_publisher, time_now, 'map', average_pos_[0], average_pos_[1], average_pos_[2],   normalised_quat_z[0], normalised_quat_z[1], normalised_quat_z[2], normalised_quat_z[3])
-                                else:
-                                    publish_pose_xyz_xyzw(Pioneer3_target_pose_publisher, time_now, 'map', average_pos_[0], average_pos_[1], average_pos_[2],   normalised_quat_z[0], normalised_quat_z[1], normalised_quat_z[2], normalised_quat_z[3])
-                                        
-                                print "response from "+(service_prefix+'vc_target_pose') + "=" + ack.acknowledgement
-                            except rospy.ServiceException, e:
-                                print "ERROR:  %svc_target_pose:  Service call failed:  %s"%(service_prefix, e)
-                    
+                    publish_pose_xyz_xyzw_covar(initialpose_poseWCS_publisher, fakelocalisation_poseWCS_publisher, time_now, 'map', average_pos_[0], average_pos_[1], average_pos_[2], quat_[0], quat_[1], quat_[2], quat_[3], [0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.06853891945200942])
+                    publish_pose_xyz_xyzw(pose_publisher,time_now,  'map', average_pos_[0], average_pos_[1], average_pos_[2], quat_[0], quat_[1], quat_[2], quat_[3])                    
                 finally:
                     averaging_lock.release() # release lock, no matter what                    
             else :
                 print "detect_feature_callback: NOT reporting: NOT averaging: NOT enough measurements"
                     #  TODO - publish for one specific robot 
-#                print "detect_feature_callback: not averaging: len(robot_pose_estimates_list)=%d"%(len(robot_pose_estimates_list))
-#                if  marker_tag_id in pioneer2_robot_feature_tags_to_detect_visually:
-                
-#                if  marker_tag_id in pioneer3_robot_feature_tags_to_detect_visually:
-                
-#                publish_pose_xyz_xyzw_covar(initialpose_poseWCS_publisher, fakelocalisation_poseWCS_publisher, time_now, 'map', pos_[0], pos_[1], pos_[2], quat_[0], quat_[1], quat_[2], quat_[3], [0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.06853891945200942])
-#                publish_pose_xyz_xyzw(pose_publisher,time_now,  'map', pos_[0], pos_[1], pos_[2], quat_[0], quat_[1], quat_[2], quat_[3])
+                print "detect_feature_callback: not averaging: len(robot_pose_estimates_list)=%d"%(len(robot_pose_estimates_list))
+                publish_pose_xyz_xyzw_covar(initialpose_poseWCS_publisher, fakelocalisation_poseWCS_publisher, time_now, 'map', pos_[0], pos_[1], pos_[2], quat_[0], quat_[1], quat_[2], quat_[3], [0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.06853891945200942])
+                publish_pose_xyz_xyzw(pose_publisher,time_now,  'map', pos_[0], pos_[1], pos_[2], quat_[0], quat_[1], quat_[2], quat_[3])
             
             
 #        response = DetectedFeatureResponse()
@@ -1190,112 +1048,9 @@ def detect_feature_callback(req):
     ### _target_ pose publisher ##################################################################################        
     #elif 't90210'==t55:                                  # tag 210 is the target tag : if it moves more than 20cm from last posn, publish an updated target
     # TODO: publish per-robot
-    # TODO: flexible coding of targets  (later: move to messaging the robot rather than publishing)  
+    # TODO: flexible coding of targets  (later: move to messaging the robot rather than publishing)  	
     #  t60557 is the camera-to-marker
-    
-    
-    # Pioneer2 controller, assuming that Pioneer3 is the target
-    if False and req.robotId == 'Pioneer2' :
-        selfFeatures=('t70557, t70357, t70157')
-        if t55 in selfFeatures :
-            print "%s is a selfFeature"%t55
-            
-            rospy.wait_for_service('Pioneer2_vc_initialpose')
-            try:
-                pioneer2_initialpose_service_client = rospy.ServiceProxy('Pioneer2_vc_initialpose', InitialPoseToRobot)  # PoseWithCovarianceStamped
-                poseWCS = PoseWithCovarianceStamped()
-                poseWCS.header.stamp = time_now
-                poseWCS.header.frame_id = id_
-                poseWCS.pose.pose = Pose(Point(x, y, z), Quaternion(qx, qy, qz, qw))
-                poseWCS.pose.covariance = [0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0]            
-                ack = pioneer2_initialpose_service_client(poseWCS)
-            except rospy.ServiceException, e:
-                print "ERROR:  Pioneer2_vc_initialpose:  Service call failed:  %s"%e
-                
-            rospy.wait_for_service('Pioneer2_vc_base_pose')
-            try:
-                pioneer2_base_pose_service_client = rospy.ServiceProxy('Pioneer2_vc_base_pose', PoseToRobot) # Odometry
-                poseWC = PoseWithCovariance()
-                poseWC.pose = Pose(Point(x, y, z), Quaternion(qx, qy, qz, qw))
-                poseWC.covariance = [0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0]            
-                twistWC = TwistWithCovariance()
-                twistWC.twist = Twist(Vector3(0.0,0.0,0.0),Vector3(0.0,0.0,0.0))
-                twistWC.covariance = [0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0]
-                odom = Odometry()
-                odom.header.stamp = time_now
-                odom.header.frame_id = id_
-                odom.pose = poseWC
-                odom.twist = twistWC
-                ack = pioneer2_base_pose_service_client(odom)
-            except rospy.ServiceException, e:
-                print "ERROR:  Pioneer2_vc_base_pose:  Service call failed:  %s"%e
-            print "call 'vc_client' service on Pioneer2 VOS Client as /Pioneer2_vc_base_pose and  /Pioneer2_vc_initialpose via  multimaster/foreign_relay  master_config_Pioneer2.yaml"            
-            
-        targetFeatures=('t70257, t70057, t70457')
-        if t55 in targetFeatures :
-            print "%s is a targetFeature"%t55
-            rospy.wait_for_service('Pioneer3_vc_target_pose')
-            try:
-                pioneer2_target_service_client = rospy.ServiceProxy('Pioneer3_vc_target_pose', PoseStampedToRobot) # PoseStamped
-                poseStamped = PoseStamped()
-                poseStamped.header.stamp = time_now
-                poseStamped.header.frame_id = id_
-                poseStamped.pose.pose = Pose(Point(x, y, z), Quaternion(qx, qy, qz, qw))
-                ack = pioneer2_target_service_client(poseStamped)
-            except rospy.ServiceException, e:
-                print "ERROR:  Pioneer3_vc_target_pose:  Service call failed:  %s"%e
-            print "call 'vc_client' service on Pioneer3 VOS Client as /Pioneer3_vc_target_pose  via  multimaster/foreign_relay  master_config_Pioneer3.yaml"
-            
-    
-    
-    # Pioneer3 controller, assuming that Pioneer2 is the target
-    if False and req.robotId == 'Pioneer3' :        
-        selfFeatures=('t70257, t70057, t70457')
-        if t55 in selfFeatures :
-            print "%s is a selfFeature"%t55
-            
-            rospy.wait_for_service('Pioneer3_vc_initialpose')
-            try:
-                pioneer3_initialpose_service_client = rospy.ServiceProxy('Pioneer3_vc_initialpose', InitialPoseToRobot)  # PoseWithCovarianceStamped
-                ack = pioneer3_initialpose_service_client(x, y)
-            except rospy.ServiceException, e:
-                print "ERROR:  Pioneer3_vc_initialpose:  Service call failed:  %s"%e
-                
-            rospy.wait_for_service('Pioneer3_vc_base_pose')
-            try:
-                pioneer3_base_pose_service_client = rospy.ServiceProxy('Pioneer3_vc_base_pose', PoseToRobot) # Odometry
-                ack = pioneer3_base_pose_service_client(x, y)
-            except rospy.ServiceException, e:
-                print "ERROR:  Pioneer3_vc_base_pose:  Service call failed:  %s"%e
-            print "call 'vc_client' service on Pioneer3 VOS Client as /Pioneer3_vc_base_pose and  /Pioneer3_vc_initialpose via  multimaster/foreign_relay  master_config_Pioneer3.yaml"            
-            
-        targetFeatures=('t70557, t70357, t70157')
-        if t55 in targetFeatures :
-            print "%s is a targetFeature"%t55            
-            rospy.wait_for_service('Pioneer3_vc_target_pose')
-            try:
-                pioneer3_target_service_client = rospy.ServiceProxy('Pioneer3_vc_target_pose', PoseStampedToRobot) # PoseStamped
-                ack = pioneer3_target_service_client(x, y)
-            except rospy.ServiceException, e:
-                print "ERROR:  Pioneer3_vc_target_pose:  Service call failed:  %s"%e
-            print "call 'vc_client' service on Pioneer3 VOS Client as /Pioneer3_vc_target_pose  via  multimaster/foreign_relay  master_config_Pioneer3.yaml"
-            
-#pioneer2_initialpose_service_client = 1
-#pioneer2_base_pose_service_client = 1
-#pioneer2_target_service_client = 1
-    
-#pioneer3_initialpose_service_client = 1
-#pioneer3_base_pose_service_client = 1
-#pioneer3_target_service_client = 1
-
-#from vos_aa1.srv import InitialPoseToRobot, InitialPoseToRobotRequest,  InitialPoseToRobotResponse
-#from vos_aa1.srv import PoseToRobot,        PoseToRobotRequest,         PoseToRobotResponse
-#from vos_aa1.srv import PoseStampedToRobot, PoseStampedToRobotRequest,  PoseStampedToRobotResponse
-
-    
-        
-    
-    if t55 in ",".join ( ['t50957',  't60210',  't9099999999210'] ) :
+    if t55 in ",".join ( ['t50957','t60210','t9099999999210'] ) :
         try:
             print "------------------- start check 210 as target ----------------------"
             tfListener.waitForTransform('map',              t55_transrot_from_dum_c2_post90y180zneg90z,  rospy.Time(),  rospy.Duration(1))
@@ -1905,32 +1660,26 @@ def detect_feature_server2():
 
     global pose_publisher
     pose_publisher = rospy.Publisher("poses_from_requests", PoseStamped, queue_size=1)
-    global Pioneer2_pose_publisher
-    Pioneer2_pose_publisher = rospy.Publisher("Pioneer2_poses_from_requests", PoseStamped, queue_size=1)
-    global Pioneer3_pose_publisher
-    Pioneer3_pose_publisher = rospy.Publisher("Pioneer3_poses_from_requests", PoseStamped, queue_size=1)
     print "Ready to publish poses"
     rospy.loginfo("Ready to publish poses")
 
     global tag_210_target_publisher
-    tag_210_target_publisher = rospy.Publisher("/STEVE0/move_base_simple/goal", PoseStamped, queue_size=1)
+    tag_210_target_publisher = rospy.Publisher("/move_base_simple/goal", PoseStamped, queue_size=1)
     #pose_publisher = rospy.Publisher("/move_base/goal", move_base_msgs.MoveBaseActionGoal, queue_size=1)
     print "Ready to publish tag 210 as target poses"
     rospy.loginfo("Ready to publish tag 210 as target poses")
 
     global initialpose_poseWCS_publisher
-    initialpose_poseWCS_publisher = rospy.Publisher("/STEVE0/initialpose", PoseWithCovarianceStamped, queue_size=50, latch=True)  # latch to make sure that AMCL has an intitial pose to use
+    initialpose_poseWCS_publisher = rospy.Publisher("/initialpose", PoseWithCovarianceStamped, queue_size=50, latch=True)  # latch to make sure that AMCL has an intitial pose to use
     print "Ready to publish poses with covariance"
     rospy.loginfo("Ready to publish poses with covariance")
 
     # TODO: publish per-robot
     # TODO: publish for robot localisation _and_ for target localisation: target localisation currently coded to t210
-    global Pioneer2_fakelocalisation_poseWCS_publisher  # fake_localisation / fake_localization
-    Pioneer2_fakelocalisation_poseWCS_publisher = rospy.Publisher("/Pioneer2/base_pose_ground_truth", Odometry, queue_size=50, latch=True)  # latch to make sure that AMCL has an intitial pose to use
+    global fakelocalisation_poseWCS_publisher  # fake_localisation / fake_localization
+    fakelocalisation_poseWCS_publisher = rospy.Publisher("/base_pose_ground_truth", Odometry, queue_size=50, latch=True)  # latch to make sure that AMCL has an intitial pose to use
     print "Ready to publish /base_pose_ground_truth for fake_localization"
     rospy.loginfo( "Ready to publish /base_pose_ground_truth for fake_localization" )
-    global Pioneer3_fakelocalisation_poseWCS_publisher  # fake_localisation / fake_localization
-    Pioneer2_fakelocalisation_poseWCS_publisher = rospy.Publisher("/Pioneer3/base_pose_ground_truth", Odometry, queue_size=50, latch=True)  # latch to make sure that AMCL has an intitial pose to use
 
 
     tfBroadcaster = tf.TransformBroadcaster()
@@ -1958,19 +1707,7 @@ def detect_feature_server2():
 
     global detection_false_monitoring_publisher
     detection_false_monitoring_publisher = rospy.Publisher("/monitoring/detections_false", std_msgs.msg.String, queue_size=2, latch=True)
-    print "Ready to publish /monitoring/detections_false for monitoring false detections"
-    
-    
-    global pioneer3_initialpose_service_client
-    global pioneer3_base_pose_service_client
-    global pioneer3_target_service_client
-    
-    
-    global Pioneer2_target_pose_publisher
-    Pioneer2_target_pose_publisher = rospy.Publisher("/Pioneer2/move_base_simple/goal", PoseStamped, queue_size=2, latch=True)
-    global Pioneer3_target_pose_publisher
-    Pioneer3_target_pose_publisher = rospy.Publisher("/Pioneer3/move_base_simple/goal", PoseStamped, queue_size=2, latch=True)
-    
+    print "Ready to publish /monitoring/detections_false for monitoring false detections" 
 
     print "---------- detect_feature_server2(): before rospy.spin() ----------"
 
