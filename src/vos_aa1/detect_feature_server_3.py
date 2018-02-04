@@ -98,13 +98,20 @@ camera_poses_to_detect_from_cameras      = ( 40057, 40157, 40257, 40357, 40457, 
 print "camera_poses_to_detect_from_cameras = %s"%(str(camera_poses_to_detect_from_cameras))
 
 #robot_feature_tags_to_detect_visually    = ( 50057, 50157, 50257, 50357, 50457, 50557 )  #  t50557 is the world-to-marker
-robot_feature_tags_to_detect_visually    = ( 50057, 50157, 50257, 50357, 50457, 50557 , 60157, 60357, 60557 , 60057, 60257, 60457 )  #  t50557 is the world-to-marker
+robot_feature_tags_to_detect_visually    = ( 50057, 50157, 50257, 50357, 50457, 50557 , 60157, 60357, 60557 , 60057, 60257, 60457,    40170, 50170, 60170, 70170,  40250, 50250, 60250, 70250,  40290, 50290, 60290, 70290,  40330, 50330, 60330, 70330)  #  t50557 is the world-to-marker
 print "robot_feature_tags_to_detect_visually=%s"%(str(robot_feature_tags_to_detect_visually))
 
 pioneer2_robot_feature_tags_to_detect_visually    = ( 50157, 50357, 50557 , 60157, 60357, 60557 )  #  t50557 is the world-to-marker
 print "pioneer2_robot_feature_tags_to_detect_visually=%s"%(str(pioneer2_robot_feature_tags_to_detect_visually))
 pioneer3_robot_feature_tags_to_detect_visually    = ( 50057, 50257, 50457 , 60057, 60257, 60457 )  #  t50557 is the world-to-marker
 print "pioneer3_robot_feature_tags_to_detect_visually=%s"%(str(pioneer3_robot_feature_tags_to_detect_visually))
+
+pioneer1_features = ( 40170, 50170, 60170, 70170,  40250, 50250, 60250, 70250,  40290, 50290, 60290, 70290,  40330, 50330, 60330, 70330 )
+print "pioneer1_features=%s"%(str(pioneer1_features)) 
+
+# above is coding for the robot-rendezvous 
+# - need to split that out into separate models
+# also need to make it work again for 170,250,290,330 on pioneer1 for extrinsics calibration
 
 features_present_list_of_tuples = [ camera_poses_to_detect_from_cameras , robot_feature_tags_to_detect_visually ]
 features_on_cam = tuple(chain.from_iterable(features_present_list_of_tuples))
@@ -119,8 +126,6 @@ other_features_present = ( 10000, 90170 , 90250 , 90290 , 90330 , -90000 , 90555
 print "other_features_present=%s"%(str(other_features_present)) 
 
 
-pioneer1_features = ( 40170, 50170, 60170, 70170,  40250, 50250, 60250, 70250,  40290, 50290, 60290, 70290,  40330, 50330, 60330, 70330 )
-print "pioneer1_features=%s"%(str(pioneer1_features)) 
 
 
 target210_features = ( 40210, 50210, 60210, 70210, 80210, 90210 )  #  t50557 is the world-to-marker
@@ -526,8 +531,8 @@ def detect_feature_callback(req):
                     normalised_quat_z = [0.0,0.0,0.0,0.0]
                     normalised_quat_z[0] = 0.0
                     normalised_quat_z[1] = 0.0
-                    normalised_quat_z[2] = quat_[2]/q_norm
-                    normalised_quat_z[3] = quat_[3]/q_norm
+                    normalised_quat_z[2] = quat_[2]/q_norm_z
+                    normalised_quat_z[3] = quat_[3]/q_norm_z
                     
                                        
                     #  TODO - publish for one specific robot 
@@ -589,9 +594,9 @@ def detect_feature_callback(req):
  
                         #                
                         if req.robotId == 'Pioneer2' and self_feature:      
-                            publish_pose_xyz_xyzw(Pioneer2_pose_publisher,time_now,  'map', average_pos_[0], average_pos_[1], average_pos_[2], normalised_quat_z[0], normalised_quat_z[1], normalised_quat_z[2], normalised_quat_z[3])
-                        if req.robotId == 'Pioneer2' and self_feature:
-                            publish_pose_xyz_xyzw(Pioneer2_pose_publisher,time_now,  'map', average_pos_[0], average_pos_[1], average_pos_[2], normalised_quat_z[0], normalised_quat_z[1], normalised_quat_z[2], normalised_quat_z[3])
+                            publish_pose_xyz_xyzw(Pioneer2_pose_publisher,time_now,  'map', average_pos_[0], average_pos_[1], average_pos_[2], normalised_quat[0], normalised_quat[1], normalised_quat[2], normalised_quat[3])
+                        if req.robotId == 'Pioneer3' and self_feature:
+                            publish_pose_xyz_xyzw(Pioneer3_pose_publisher,time_now,  'map', average_pos_[0], average_pos_[1], average_pos_[2], normalised_quat_z[0], normalised_quat_z[1], normalised_quat_z[2], normalised_quat_z[3])
                  
                         #  Pioneer2_fakelocalisation_poseWCS_publisher
                         #  Pioneer3_fakelocalisation_poseWCS_publisher    
