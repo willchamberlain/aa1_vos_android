@@ -10,6 +10,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
   std_msgs
+  sensor_msgs
   tf
     message_generation
     message_runtime
@@ -54,6 +55,7 @@ add_message_files(
   VisualFeatureObservation.msg
   WhereIsAsPub.msg
   localise_by_visual_descriptor_msg.msg
+  Observation2D3D.msg
 )
 
 ## Generate services in the 'srv' folder
@@ -75,6 +77,7 @@ add_service_files(
     InitialPoseToRobot.srv
     PoseToRobot.srv
     PoseStampedToRobot.srv
+    PoseFrom2D3D.srv
 )
 
 ## Generate actions in the 'action' folder
@@ -90,6 +93,7 @@ generate_messages(
     geometry_msgs
     nav_msgs
     std_msgs
+    sensor_msgs
 )
 
 ################################################
@@ -130,6 +134,7 @@ catkin_package(
     roscpp
     rospy
     std_msgs
+    sensor_msgs
     tf
 #  DEPENDS system_lib
 )

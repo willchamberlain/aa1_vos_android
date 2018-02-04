@@ -1,0 +1,4 @@
+vos_aa1/Observation2D3D[]       points
+sensor_msgs/CameraInfo  cameraInfo
+---
+geometry_msgs/Pose      pose_estimate
