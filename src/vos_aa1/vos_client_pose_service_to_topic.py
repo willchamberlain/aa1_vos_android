@@ -4,6 +4,7 @@ import sys
 import rospy
 import threading
 import tf
+import math
 from geometry_msgs.msg import Point, Pose, Quaternion, Vector3, PoseStamped, PoseWithCovariance, PoseWithCovarianceStamped, Twist, TwistWithCovariance  # https://gist.github.com/atotto/f2754f75bedb6ea56e3e0264ec405dcf
 from nav_msgs.msg import Odometry
 
@@ -42,32 +43,30 @@ def keep_alive_and_sleep():
 def handle_RobotInitialPose(req):
     print "handle_RobotInitialPose(req)"
     pub_topic_initialpose.publish(req.poseWithCovarianceStamped)
-    return InitialPoseToRobotResponse("handle_RobotInitialPose(req) : dummy respose : time=%s" % rospy.get_time())
+    return InitialPoseToRobotResponse("handle_RobotInitialPose(req) : dummy respose : time=s")
 
 def handle_RobotPose(req):
     print "handle_RobotPose(req)"
     pub_topic_base_pose.publish(req.odometry)
-    return PoseToRobotResponse("handle_RobotPose(req) : dummy respose : time=%s" % rospy.get_time())
+    return PoseToRobotResponse("handle_RobotPose(req) : dummy respose : time=s")
 
 def handle_RobotTargetPose(req):
-
     quat_ = req.poseStamped.pose.orientation
-    q_norm = math.sqrt(quat_[0]**2 + quat_[1]**2 + quat_[2]**2 + quat_[3]**2)
-    normalised_quat = [0.0,0.0,0.0,0.0]
-    normalised_quat[0] = quat_[0]/q_norm
-    normalised_quat[1] = quat_[1]/q_norm
-    normalised_quat[2] = quat_[2]/q_norm
-    normalised_quat[3] = quat_[3]/q_norm
+    q_norm = math.sqrt(quat_.x**2 + quat_.y**2 + quat_.z**2 + quat_.w**2)
+    normalised_quat = Quaternion( quat_.x/q_norm, quat_.y/q_norm, quat_.z/q_norm, quat_.w/q_norm )
+    
+    q_norm = math.sqrt( 0.0 + 0.0 + quat_.z**2 + quat_.w**2)
+    normalised_quat = Quaternion( 0.0, 0.0, quat_.z/q_norm, quat_.w/q_norm )
     
     poseStamped_ = PoseStamped()
     poseStamped_.header.stamp    = req.poseStamped.header.stamp
     poseStamped_.header.frame_id = req.poseStamped.header.frame_id
-    poseStamped_.pose = Pose(  req.poseStamped.pose.position,  Quaternion( normalised_quat[0], normalised_quat[1], normalised_quat[2], normalised_quat[3] )  )
+    poseStamped_.pose = Pose(  req.poseStamped.pose.position,  normalised_quat  )
                             
                     
     print "handle_RobotTargetPose(req)"
     pub_topic_target_pose.publish(poseStamped_)
-    return PoseToRobotResponse("handle_RobotTargetPose(req) : dummy respose : time=%s" % rospy.get_time())
+    return PoseStampedToRobotResponse("handle_RobotTargetPose(req) : dummy respose : time=s" )
 
 
 
