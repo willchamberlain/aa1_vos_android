@@ -166,6 +166,10 @@ retarget_requested = False
 detection_true_monitoring_publisher = 1
 detection_false_monitoring_publisher = 1
 
+# global for localising robots yes/no
+LOCALISING = False
+
+
 
 # pioneer1
 vos_state = 'init'
@@ -1395,11 +1399,23 @@ def register_vision_source_callback(req_registerVisionSource):
     return response
 
 
+
 def management_input(req_management):
+  MSG_PART_CALIBRATING_CAMERAS = "calibrating cameras"  
+  MSG_PART_LOCALISING_ROBOT = "localising robot"
   if 're-target' in req_management.data:
     print "management_input(%s): re-target"%(req_management)
     global retarget_requested
     retarget_requested = True   # set the flag
+  elif MSG_PART_CALIBRATING_CAMERAS in req_management.data:
+    global LOCALISING
+    LOCALISING = False   # set the flag
+    print "management_input(%s): found %s: LOCALISING = %s"%(req_management.data, MSG_PART_CALIBRATING_CAMERAS, LOCALISING)
+  elif MSG_PART_LOCALISING_ROBOT in req_management.data:
+    global LOCALISING
+    LOCALISING = True   # set the flag
+    print "management_input(%s): found %s: LOCALISING = %s"%(req_management.data, MSG_PART_LOCALISING_ROBOT, LOCALISING)
+
     
     
 def handle_move_base_status(status_msg):    
@@ -1585,27 +1601,32 @@ def publish_pose_xyz_xyzw(pose_publisher,time_now, id_, x, y, z, qx, qy, qz, qw)
 # TODO: publish per-robot 
 # TODO: publish for robot localisation _and_ for target localisation: target localisation currently coded to t210
 def publish_pose_xyz_xyzw_covar(initialpose_poseWCS_publisher, fakelocalisation_poseWCS_publisher, time_now, id_, x, y, z, qx, qy, qz, qw, covariance_):
-    # next, we'll publish the pose message over ROS
-    print "publish_pose_xyz_xyzw_covar(initialpose_poseWCS_publisher, fakelocalisation_poseWCS_publisher, time_now, id_=%s"%(id_)
-    poseWCS = PoseWithCovarianceStamped()
-    poseWCS.header.stamp = time_now
-    poseWCS.header.frame_id = id_
-    poseWCS.pose.pose = Pose(Point(x, y, z), Quaternion(qx, qy, qz, qw))
-    poseWCS.pose.covariance = covariance_
-    initialpose_poseWCS_publisher.publish(poseWCS)
+    global LOCALISING
+    if LOCALISING :
+        # next, we'll publish the pose message over ROS
+        print "publish_pose_xyz_xyzw_covar(initialpose_poseWCS_publisher, fakelocalisation_poseWCS_publisher, time_now, id_=%s"%(id_)
+        poseWCS = PoseWithCovarianceStamped()
+        poseWCS.header.stamp = time_now
+        poseWCS.header.frame_id = id_
+        poseWCS.pose.pose = Pose(Point(x, y, z), Quaternion(qx, qy, qz, qw))
+        poseWCS.pose.covariance = covariance_
+        initialpose_poseWCS_publisher.publish(poseWCS)
 
-    poseWC = PoseWithCovariance()
-    poseWC.pose = Pose(Point(x, y, z), Quaternion(qx, qy, qz, qw))
-    poseWC.covariance = covariance_
-    twistWC = TwistWithCovariance()
-    twistWC.twist = Twist(Vector3(0.0,0.0,0.0),Vector3(0.0,0.0,0.0))
-    twistWC.covariance = covariance_
-    odom = Odometry()
-    odom.header.stamp = time_now
-    odom.header.frame_id = id_
-    odom.pose = poseWC
-    odom.twist = twistWC
-    fakelocalisation_poseWCS_publisher.publish(odom)
+        poseWC = PoseWithCovariance()
+        poseWC.pose = Pose(Point(x, y, z), Quaternion(qx, qy, qz, qw))
+        poseWC.covariance = covariance_
+        twistWC = TwistWithCovariance()
+        twistWC.twist = Twist(Vector3(0.0,0.0,0.0),Vector3(0.0,0.0,0.0))
+        twistWC.covariance = covariance_
+        odom = Odometry()
+        odom.header.stamp = time_now
+        odom.header.frame_id = id_
+        odom.pose = poseWC
+        odom.twist = twistWC
+        fakelocalisation_poseWCS_publisher.publish(odom)
+    else:
+        print "LOCALISING==False: not running publish_pose_xyz_xyzw_covar(initialpose_poseWCS_publisher, fakelocalisation_poseWCS_publisher, time_now, id_=%s"%(id_)
+
 
 
 
