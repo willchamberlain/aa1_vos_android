@@ -1,0 +1,77 @@
+<launch> <!-- http://wiki.ros.org/tf#static_transform_publisher -->
+      
+  <node  name="c608__fixed_cam__static_tf"
+      args="2.168841357413376 1.576034667515585  1.05     0.087883364465255   0.149767165484671  -0.498411327138640 0.849371802788893 map cam_608 20"        
+      pkg="tf"  type="static_transform_publisher"      />      
+</launch>
+
+<!-- rosservice call /cam_608/set_pose "{control_point_name: cam608, pose_in_map: {position: {x: 2.168841357413376, y:  1.576034667515585, z: 1.2}, orientation: { x:0.849371802788893, y: -0.087883364465255, z:  0.149767165484671, w: -0.498411327138640}}}"
+ -->
+
+
+
+
+<!-- 
+
+612
+point - from map - first ARCAA sofa, facing down Mobile Lab toward S1130 - has angle down open edge of Mobile Lab, and to separator between Jason's office (S1110) Frederik's office (S1111) and: 
+  x: 1.1440243721
+  y: 6.53061819077
+  z: 0.000180721282959
+  
+611   
+point - from map - first ARCAA sofa, facing down corridor past S1110,1111,1112 toward Beam charge area  
+point: 
+  x: 1.16273725033
+  y: 6.03777647018
+  z: 0.00309562683105
+
+
+609
+corner of low sofa by the ARCAA/Beam/COW area - FOV right is parallel to ARCAA pod entrances, FOV left goes to Fredericks guest chairs
+NOTE - this area is mis-mapped on the current global map - have moved the sofa
+point: 
+  x: 13.7315835953
+  y: 5.20427322388
+  z: 0.00686264038086
+
+608
+between Guiabot and Beam recharge stations, facing toward lobby - FOV right is parallel to ARCAA pod entrances, FOV left to planter
+point: 
+  x: 16.6673793793
+  y: 2.47259044647
+  z: 0.00244235992432
+  
+  
+607
+right hand of emergency exit as entering exit, FOV back toward ARCAA - FOV left at robot bookcase
+point: 
+  x: 20.5997829437
+  y: -3.0278878212
+  z: 0.00285816192627
+
+
+606
+between S1117 plant room door and low sofa, FOV left to Post-Doc pod, FOV right to robot bookcase
+point: 
+  x: 20.3613166809
+  y: -1.06071567535
+  z: 0.00236511230469
+  
+605  
+bin by Post-Doc pod, looking toward S1125
+point: 
+  x: 11.6314840317
+  y: -6.4735250473
+  z: 0.00700759887695
+
+603
+column by Sean's desk, facing MM office/S1125, FoV left to Mobile Lab whiteboard, FoV right down corridor to S1125
+point: 
+  x: -1.06922471523
+  y: -5.47118854523
+  z: 0.00588035583496
+   
+  
+
+-->

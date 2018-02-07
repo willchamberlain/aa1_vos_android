@@ -103,7 +103,8 @@ print "camera_poses_to_detect_from_cameras = %s"%(str(camera_poses_to_detect_fro
 
 pioneer1_features = ( 40170, 50170, 60170, 70170,  40250, 50250, 60250, 70250,  40290, 50290, 60290, 70290,  40330, 50330, 60330, 70330 )
 print "pioneer1_features=%s"%(str(pioneer1_features)) 
-robot_feature_tags_to_detect_visually = pioneer1_features 
+# 2018_02_07_1305 - robot_feature_tags_to_detect_visually = pioneer1_features 
+robot_feature_tags_to_detect_visually    = ( 50170, 50250, 50290, 50330 )
 print "robot_feature_tags_to_detect_visually=%s"%(str(robot_feature_tags_to_detect_visually))
 
 
@@ -111,7 +112,8 @@ print "robot_feature_tags_to_detect_visually=%s"%(str(robot_feature_tags_to_dete
 # - need to split that out into separate models
 # also need to make it work again for 170,250,290,330 on pioneer1 for extrinsics calibration
 
-features_present_list_of_tuples = [ camera_poses_to_detect_from_cameras , robot_feature_tags_to_detect_visually ]
+# 2018_02_07_1305 - features_present_list_of_tuples = [ camera_poses_to_detect_from_cameras , robot_feature_tags_to_detect_visually ]
+features_present_list_of_tuples = [ camera_poses_to_detect_from_cameras , robot_feature_tags_to_detect_visually , pioneer1_features ]
 features_on_cam = tuple(chain.from_iterable(features_present_list_of_tuples))
 print "features_on_cam=%s"%(str(features_on_cam))
 

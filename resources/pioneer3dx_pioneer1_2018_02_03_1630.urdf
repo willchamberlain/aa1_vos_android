@@ -42,7 +42,7 @@
                 z=+0.584; 18cm from base_link to top of deck, 40.4 from top of deck to top of box        
                 apply translation first, then rotation
                 yaw=-pi/2 = 90 degrees clockwise around z axis = 90 degree anticlockwise looking down-->
-      <origin rpy="0 0 -1.5707963268" xyz="-0.115 -0.087  0.355"/> 
+      <origin rpy="0 0 -1.5707963268" xyz="0.015 -0.087  0.355"/> 
     </appearance>
     <!-- rear  
     <appearance algorithm="boofcv square fiducial" descriptor="170"> 

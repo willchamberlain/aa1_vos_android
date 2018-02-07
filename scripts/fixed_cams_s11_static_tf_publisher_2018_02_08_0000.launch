@@ -1,0 +1,64 @@
+<launch> <!-- http://wiki.ros.org/tf#static_transform_publisher -->
+
+<!-- http://wiki.ros.org/tf -->
+<!-- static_transform_publisher x y z qx qy qz qw frame_id child_frame_id  period_in_ms   -->
+      
+  <!-- camera 2 -->    
+<!--  
+  <node  name="c608__fixed_cam__static_tf"
+      args=" map cam_608 20"        
+      pkg="tf"  type="static_transform_publisher"      />      
+-->      
+
+  <!-- camera 1 -->
+  <node  name="c603__fixed_cam__static_tf"
+      args="1.254   -0.011    1.847            -0.065683564245   0.253661458217   0.448455903375   0.854534280607   map cam_603 20"
+      pkg="tf"  type="static_transform_publisher"      />      
+
+  <!-- camera 1 again -->
+  <node  name="c603__fixed__2018_02_08_0000__static_tf"
+      args="1.221    0.063    1.693            -0.071839016234   0.225555881254   0.446937909286   0.862676188046 map cam_603_2018_02_08_0000 20"
+      pkg="tf"  type="static_transform_publisher"      />      
+
+
+  <!-- camera 2 -->
+  <node  name="c611__fixed_cam_611_2018_02_08_0000__static_tf"
+      args="
+      1.603    3.510    1.761            0.013842126271   0.308595075199   0.109478323515   0.944770856760   map cam_611_2018_02_08_0000 20"
+      pkg="tf"  type="static_transform_publisher"      />      
+
+
+
+  <!-- camera 3 -->
+  <node  name="c609__fixed_cam__static_tf"
+      args="0.925   -1.692    1.196            0.043169370780   0.187843541623   -0.405310697868   0.893629927593   map cam_609 20"        
+      pkg="tf"  type="static_transform_publisher"      />      
+
+
+
+  <!-- camera 3 again -->
+  <node  name="c609__fixed__cam_609_2018_02_08_0000__static_tf"
+      args="1.227   -1.708    1.172            0.023588067849   0.213854616606   -0.439844377879   0.871921286160   map cam_609_2018_02_08_0000 20"        
+      pkg="tf"  type="static_transform_publisher"      />      
+
+
+
+  <!-- camera 4
+  <node  name="c605__fixed_cam__static_tf"
+      args="0.642   -2.103    1.037            -0.741678179549576   0.260499697761340  -0.226771446055658  0.575002692776393      map cam_605 20"        
+      pkg="tf"  type="static_transform_publisher"      />      
+       -->
+
+
+<!-- -->
+  <node  name="c605a__fixed_cam__static_tf"
+      args="0.642   -2.103    1.037              -0.066473617533751   0.100201869239433   0.414704864254486   0.901976008071483    map cam_605a 20"        
+      pkg="tf"  type="static_transform_publisher"      />      
+
+
+  <node  name="c605a__fixed_cam_605_2018_02_08_0000__static_tf"
+      args="0.718   -1.990    1.149            -0.055567433100   0.136344499268   0.421869384547   0.894622076790    map cam_605_2018_02_08_0000 20"        
+      pkg="tf"  type="static_transform_publisher"      />      
+
+</launch>
+
