@@ -1,0 +1,16 @@
+### VRep->ROS:  VRep  uses libv_repExtRosInterface.so  to interface with ROS in LUA scripts  ###
+#		http://www.coppeliarobotics.com/helpFiles/en/rosInterf.htm  :  "The RosInterface functionality in V-REP is enabled via a plugin: libv_repExtRosInterface.so or libv_repExtRosInterface.dylib"
+#-->	copy/symlink  libv_repExtRosInterface.so  to  /mnt/nixbig/downloads/V-REP_PRO_EDU_V3_3_2_64_Linux/  from  /mnt/nixbig/downloads/V-REP_PRO_EDU_V3_3_2_64_Linux/compiledRosPlugins/
+
+
+### VRep->ROS:  VRep  can use the deprecated  libv_repExtRos.so  to interface with ROS in LUA scripts  ###
+#-->	copy/symlink  libv_repExtRos.so  to  /mnt/nixbig/downloads/V-REP_PRO_EDU_V3_3_2_64_Linux/  from  /mnt/nixbig/downloads/V-REP_PRO_EDU_V3_3_2_64_Linux/compiledRosPlugins/
+
+### ROS->VRep:  Python uses VRep Remote API and needs  vrep.py  and  vrepConst.py  ###
+#--> 
+export PYTHONPATH=/mnt/nixbig/downloads/V-REP_PRO_EDU_V3_3_2_64_Linux/programming/remoteApiBindings/python/python/:$PYTHONPATH
+
+### ROS->VRep:  Python calls from  vrep.py  to  remoteApi.so  ###
+# my modified  vrep.py  uses  VREP_REMOTEAPI_EXECUTABLE
+#--> 
+export VREP_REMOTEAPI_EXECUTABLE="/mnt/nixbig/downloads/V-REP_PRO_EDU_V3_3_2_64_Linux/programming/remoteApiBindings/lib/lib/64Bit/remoteApi.so"
