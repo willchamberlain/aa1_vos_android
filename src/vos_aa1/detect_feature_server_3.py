@@ -1627,6 +1627,18 @@ def publish_pose_xyz_xyzw_covar(initialpose_poseWCS_publisher, fakelocalisation_
         odom.twist = twistWC
         fakelocalisation_poseWCS_publisher.publish(odom)
     else:
+        poseWC = PoseWithCovariance()
+        poseWC.pose = Pose(Point(x, y, z), Quaternion(qx, qy, qz, qw))
+        poseWC.covariance = covariance_
+        twistWC = TwistWithCovariance()
+        twistWC.twist = Twist(Vector3(0.0,0.0,0.0),Vector3(0.0,0.0,0.0))
+        twistWC.covariance = covariance_
+        odom = Odometry()
+        odom.header.stamp = time_now
+        odom.header.frame_id = id_
+        odom.pose = poseWC
+        odom.twist = twistWC
+        fakelocalisation_poseWCS_publisher.publish(odom)
         print "LOCALISING==False: not running publish_pose_xyz_xyzw_covar(initialpose_poseWCS_publisher, fakelocalisation_poseWCS_publisher, time_now, id_=%s"%(id_)
 
 
