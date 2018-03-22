@@ -1,0 +1,3 @@
+<launch>
+  <node pkg="tf" type="static_transform_publisher" name="base_link__Hokuyo_URG_04LX_UG01_ROS__broadcaster" args="0.1 0 0.1397 0 0 0 1 base_link Hokuyo_URG_04LX_UG01_ROS 100" />
+</launch>
