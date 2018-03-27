@@ -1,0 +1,8 @@
+<launch>
+	 <node pkg="tf" type="static_transform_publisher" name="static_tf_for__fake_laser__to__base_link__2018_03_17_broadcaster_1" args="0 0 0 0 0 0  /base_link  /fake_laser_scan  100" >
+     </node>
+	 <node pkg="tf" type="static_transform_publisher" name="static_tf_for__fake_laser__to__base_link__2018_03_17_broadcaster_2" args="0 0 0 0 0 0  /base_link  /laser_scan  100" >
+     </node>
+	 <node pkg="tf" type="static_transform_publisher" name="static_tf_for__fake_laser__to__base_link__2018_03_17_broadcaster_3" args="  0 0 0   0 0 0   /base_link  /laser_frame  100" >
+     </node>
+</launch>

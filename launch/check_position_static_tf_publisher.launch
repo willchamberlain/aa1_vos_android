@@ -1,0 +1,8 @@
+<launch>
+  <node  name="check_position__static_tf"
+      args="2.3278903148761523 -1.6016876128697475 0.584     0.0000000 0.0000000 0.00000000 1.0000000  map check_position__static  20" 
+      pkg="tf"  type="static_transform_publisher"      />
+  <node  name="check_cam_position__static_tf"
+      args="0.476120583503082    0.113953854631498   1.913348878072325     0.022230922613119   0.228031549950962   0.141080543581372  0.963121839919289   map  check_cam_position__static  20" 
+      pkg="tf"  type="static_transform_publisher"      />
+</launch> 

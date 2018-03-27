@@ -1,0 +1,4 @@
+<launch>    
+        <!-- /odom coordinate frame is fixed to the same pose as the map coordinate frame  -->
+	 <node pkg="tf" type="static_transform_publisher" name="map_odom_broadcaster" args="0.550581962555 -0.144567746244 -0.00946746877568   -0.0300583593173  0.00994102753979  0.997117040738  0.0689585243183  /map /dummy 100" />
+</launch>

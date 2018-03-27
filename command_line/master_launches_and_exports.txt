@@ -1,0 +1,21 @@
+
+export ROS_HOSTNAME="192.168.43.252"; export ROS_IP="192.168.43.252"; export ROS_MASTER_URI="http://192.168.43.252:11311"
+
+export ROS_HOSTNAME="192.168.1.164"; export ROS_IP="192.168.1.164"; export ROS_MASTER_URI="http://192.168.1.164:11311"
+
+
+
+pioneer2
+
+192.168.1.233
+
+
+
+# service from Pioneer2 to VOS_Server
+roslaunch multimaster master.launch protocol:=http foreign_master_IP_or_hostname:=192.168.1.233 port:=11311 config_file:=/mnt/nixbig/build_workspaces/multimaster_dpirozzo/src/multimaster/launch/config/master_config_Pioneer2.yaml
+
+# map and cost_map from VOS_Server to Pioneer2
+roslaunch multimaster master_map.launch protocol:=http foreign_master_IP_or_hostname:=192.168.1.233 port:=11311 config_file:=/mnt/nixbig/build_workspaces/multimaster_dpirozzo/src/multimaster/launch/config/master_config_Pioneer2_map.yaml
+
+# topics from Pioneer2 to VOS_SERVER for RViz
+roslaunch multimaster master.launch protocol:=http foreign_master_IP_or_hostname:=192.168.1.233 port:=11311 config_file:=/mnt/nixbig/build_workspaces/multimaster_dpirozzo/src/multimaster/launch/config/master_config_Pioneer2_for_RViz.yaml

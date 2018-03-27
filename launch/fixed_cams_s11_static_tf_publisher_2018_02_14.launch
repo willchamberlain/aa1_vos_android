@@ -1,0 +1,21 @@
+<launch> <!-- http://wiki.ros.org/tf#static_transform_publisher -->
+      
+  <node  name="c603__fixed_cam__static_tf"
+      args="0.994427986479624  0.369427333631371  1.69776081738403  -0.104765544598387  0.211337308653956  0.328022834378892  0.914746818940599    map cam_603 20"        
+      pkg="tf"  type="static_transform_publisher"      />   
+
+  <node  name="c605__fixed_cam__static_tf"
+      args="0.887598151824310  -1.97885166499638  0.957895776523009  -0.0318571289684177  0.187864426800859  0.248082165295458  0.949814360672122   map cam_605 20"        
+      pkg="tf"  type="static_transform_publisher"      />     
+
+  <node  name="c609__fixed_cam__static_tf"
+      args="0.905417770827547  -1.72474978132623  1.01782013088019  0.0575162742501486  0.156504222978498  -0.408749514124459  0.897285986232537 map cam_609 20"        
+      pkg="tf"  type="static_transform_publisher"      />    
+        
+  <node  name="c611__fixed_cam__static_tf"
+      args="1.01859570386659  -3.59337249706682  1.86064245976675  0.166706210297858  0.414292717608288  -0.341907440651234  0.826843325916215 map cam_611 20"        
+      pkg="tf"  type="static_transform_publisher"      />      
+
+</launch>
+
+

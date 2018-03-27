@@ -1,0 +1,61 @@
+<!--
+Observation2{ robotId=, framteTime=Tue Dec 12 12:19:07 AEST 2017, pixelPosition=PixelPosition{u=35.99069864111278, v=156.8533377487157, width=352.0, height=288.0}, 
+12-12 12:19:19.995 19007-19320/william.chamberlain.androidvosopencvros I/System.out: 	 map_to_baselink_pose=Transform<Vector3<x: 1.4954, y: 0.0059, z: 0.0000>, Quaternion<x: 0.0000, y: 0.0000, z: 0.0212, w: 0.9998>>, map_to_baselink_pose quaternion=Quaternion_F64{ w = 0.9997743270590712 axis( -0.0 -0.0 0.021243703857408924) }, 
+12-12 12:19:20.030 2371-2655/? W/LicenseLogService: log() is called by non admin
+12-12 12:19:20.030 2371-2655/? W/LicenseLogService: log() is called by non admin
+12-12 12:19:20.050 19007-19320/william.chamberlain.androidvosopencvros I/System.out: 	 baselink_to_tag_transform=Se3_F64: T = V( -0.27 0.0 0.18 )
+12-12 12:19:20.050 19007-19320/william.chamberlain.androidvosopencvros I/System.out: Type = dense real , numRows = 3 , numCols = 3
+12-12 12:19:20.050 19007-19320/william.chamberlain.androidvosopencvros I/System.out: -0.598   0.801   0.000  
+12-12 12:19:20.050 19007-19320/william.chamberlain.androidvosopencvros I/System.out: -0.801  -0.598   0.000  
+12-12 12:19:20.050 19007-19320/william.chamberlain.androidvosopencvros I/System.out:  0.000   0.000   1.000  
+12-12 12:19:20.050 19007-19320/william.chamberlain.androidvosopencvros I/System.out: , 
+12-12 12:19:20.050 19007-19320/william.chamberlain.androidvosopencvros I/System.out: 	 map_to_tag_transform_boofcv=Se3_F64: T = V( 1.225685116215813 -0.005560847220438701 0.18 )
+12-12 12:19:20.050 19007-19320/william.chamberlain.androidvosopencvros I/System.out: Type = dense real , numRows = 3 , numCols = 3
+12-12 12:19:20.050 19007-19320/william.chamberlain.androidvosopencvros I/System.out: -0.564   0.826   0.000  
+12-12 12:19:20.050 19007-19320/william.chamberlain.androidvosopencvros I/System.out: -0.826  -0.564   0.000  
+12-12 12:19:20.050 19007-19320/william.chamberlain.androidvosopencvros I/System.out:  0.000   0.000   1.000  
+12-12 12:19:20.050 19007-19320/william.chamberlain.androidvosopencvros I/System.out: , map_to_tag_transform_boofcv quaternion=Quaternion_F64{ w = -0.4669642984095076 axis( 0.0 0.0 0.8842761695369362) }}
+
+
+
+Observation2{ robotId=, framteTime=Tue Dec 12 12:19:06 AEST 2017, pixelPosition=PixelPosition{u=57.576800304578285, v=120.92856829728932, width=352.0, height=288.0}, 
+12-12 12:19:19.825 19007-19329/william.chamberlain.androidvosopencvros I/System.out: 	 map_to_baselink_pose=Transform<Vector3<x: 1.4954, y: 0.0059, z: 0.0000>, Quaternion<x: 0.0000, y: 0.0000, z: 0.0212, w: 0.9998>>, map_to_baselink_pose quaternion=Quaternion_F64{ w = 0.9997743270590712 axis( -0.0 -0.0 0.021243703857408924) }, 
+12-12 12:19:19.825 19007-19329/william.chamberlain.androidvosopencvros I/System.out: 	 baselink_to_tag_transform=Se3_F64: T = V( -0.15 -0.12 0.56 )
+12-12 12:19:19.825 19007-19329/william.chamberlain.androidvosopencvros I/System.out: Type = dense real , numRows = 3 , numCols = 3
+12-12 12:19:19.825 19007-19329/william.chamberlain.androidvosopencvros I/System.out: -0.000   1.000   0.000  
+12-12 12:19:19.825 19007-19329/william.chamberlain.androidvosopencvros I/System.out: -1.000  -0.000   0.000  
+12-12 12:19:19.825 19007-19329/william.chamberlain.androidvosopencvros I/System.out:  0.000   0.000   1.000  
+12-12 12:19:19.825 19007-19329/william.chamberlain.androidvosopencvros I/System.out: , 
+12-12 12:19:19.825 19007-19329/william.chamberlain.androidvosopencvros I/System.out: 	 map_to_tag_transform_boofcv=Se3_F64: T = V( 1.3506741437617416 -0.12035519809679143 0.56 )
+12-12 12:19:19.825 19007-19329/william.chamberlain.androidvosopencvros I/System.out: Type = dense real , numRows = 3 , numCols = 3
+12-12 12:19:19.825 19007-19329/william.chamberlain.androidvosopencvros I/System.out:  0.042   0.999   0.000  
+12-12 12:19:19.825 19007-19329/william.chamberlain.androidvosopencvros I/System.out: -0.999   0.042   0.000  
+12-12 12:19:19.825 19007-19329/william.chamberlain.androidvosopencvros I/System.out:  0.000   0.000   1.000  
+12-12 12:19:19.825 19007-19329/william.chamberlain.androidvosopencvros I/System.out: , map_to_tag_transform_boofcv quaternion=Quaternion_F64{ w = 0.7219687733730136 axis( 0.0 0.0 -0.6919256392664361) }}
+
+
+Observation2{ robotId=, framteTime=Tue Dec 12 12:19:05 AEST 2017, pixelPosition=PixelPosition{u=56.8255468484964, v=71.59285592338843, width=352.0, height=288.0}, 
+12-12 12:19:19.665 19007-19329/william.chamberlain.androidvosopencvros I/System.out: 	 map_to_baselink_pose=Transform<Vector3<x: 1.4954, y: 0.0059, z: 0.0000>, Quaternion<x: 0.0000, y: 0.0000, z: 0.0212, w: 0.9998>>, map_to_baselink_pose quaternion=Quaternion_F64{ w = 0.9997743270590712 axis( -0.0 -0.0 0.021243703857408924) }, 
+12-12 12:19:19.665 19007-19329/william.chamberlain.androidvosopencvros I/System.out: 	 baselink_to_tag_transform=Se3_F64: T = V( 0.0 -0.1 0.615 )
+12-12 12:19:19.665 19007-19329/william.chamberlain.androidvosopencvros I/System.out: Type = dense real , numRows = 3 , numCols = 3
+12-12 12:19:19.665 19007-19329/william.chamberlain.androidvosopencvros I/System.out: -0.000   1.000   0.000  
+12-12 12:19:19.665 19007-19329/william.chamberlain.androidvosopencvros I/System.out: -1.000  -0.000   0.000  
+12-12 12:19:19.665 19007-19329/william.chamberlain.androidvosopencvros I/System.out:  0.000   0.000   1.000  
+12-12 12:19:19.665 19007-19329/william.chamberlain.androidvosopencvros I/System.out: , 
+12-12 12:19:19.665 19007-19329/william.chamberlain.androidvosopencvros I/System.out: 	 map_to_tag_transform_boofcv=Se3_F64: T = V( 1.4996891988865357 -0.09400157697644951 0.615 )
+12-12 12:19:19.665 19007-19329/william.chamberlain.androidvosopencvros I/System.out: Type = dense real , numRows = 3 , numCols = 3
+12-12 12:19:19.665 19007-19329/william.chamberlain.androidvosopencvros I/System.out:  0.042   0.999   0.000  
+12-12 12:19:19.665 19007-19329/william.chamberlain.androidvosopencvros I/System.out: -0.999   0.042   0.000  
+12-12 12:19:19.665 19007-19329/william.chamberlain.androidvosopencvros I/System.out:  0.000   0.000   1.000  
+12-12 12:19:19.665 19007-19329/william.chamberlain.androidvosopencvros I/System.out: , map_to_tag_transform_boofcv quaternion=Quaternion_F64{ w = 0.7219687733730136 axis( 0.0 0.0 -0.6919256392664361) }}
+
+rosrun tf static_transform_publisher   1.4996891988865357 -0.09400157697644951 0.615    0.0 0.0 -0.6919256392664361 0.7219687733730136   /map /verify_tag_290  100
+
+rosrun tf static_transform_publisher x y z qx qy qz qw frame_id child_frame_id  period_in_ms
+-->
+<launch>
+<node pkg="tf" type="static_transform_publisher" name="link1_broadcaster" args="1.225685116215813 -0.005560847220438701 0.18     0.0 0.0  0.8842761695369362 -0.4669642984095076   /map /verify_tag_170  100" />
+<node pkg="tf" type="static_transform_publisher" name="link1_broadcaster" args="1.3506741437617416 -0.12035519809679143 0.56     0.0 0.0 -0.6919256392664361  0.7219687733730136   /map /verify_tag_250  100" />
+<node pkg="tf" type="static_transform_publisher" name="link1_broadcaster" args="1.4996891988865357 -0.09400157697644951 0.615    0.0 0.0 -0.6919256392664361  0.7219687733730136   /map /verify_tag_290  100" />
+</launch>
+

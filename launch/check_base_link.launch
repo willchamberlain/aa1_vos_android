@@ -1,0 +1,5 @@
+<launch> <!-- http://wiki.ros.org/tf#static_transform_publisher -->
+  <node  pkg="tf"  type="static_transform_publisher"
+      name="cam_15_static_tf_broadcaster"
+      args="2.168841357413376 1.576034667515585  0   0 0 0.506100125241867 -0.862474731937212  map cam_608 2000" />
+</launch>

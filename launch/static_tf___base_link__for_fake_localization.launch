@@ -1,0 +1,5 @@
+<launch>
+	 <!-- <node pkg="tf" type="static_transform_publisher" name="map_odom_broadcaster" args="  3.7445 -3.8050 0.0000    0 0 0   /map odom 100" > -->
+	 <node pkg="tf" type="static_transform_publisher" name="map_base_link_broadcaster" args="  10.0000 10.0000 2.0000    0 0 0   /map base_link 100" >
+     </node>
+</launch>
