@@ -40,21 +40,48 @@ def repost_path_inverted(Path_data):
 		print 'No path - returning'
 		return
 	inverted_Path_data = Path()
+	print 'Path_data.poses[len(Path_data.poses)-1].pose.orientation='
+	print Path_data.poses[len(Path_data.poses)-1].pose.orientation
 	deque_reversing = deque(Path_data.poses)
 	deque_reversing.reverse()
 	Path_data_reverse_order = list(deque_reversing)
 	end_of_path_PoseStamped = Path_data_reverse_order[0]  #  TODO/note - this should be the other robot's pose 
+	print 'end_of_path_PoseStamped ='
+	print end_of_path_PoseStamped
 	other_robot_goal_PoseStamped = end_of_path_PoseStamped
+	previous_poseStamped = end_of_path_PoseStamped # dummy value 
 	for poseStamped in deque_reversing :  #  reverse order 
 		distance = (
 		(end_of_path_PoseStamped.pose.position.x-poseStamped.pose.position.x)**2 +
 		(end_of_path_PoseStamped.pose.position.y-poseStamped.pose.position.y)**2 ) ** 0.5
-		print 'distance = %f'%distance
+		print 'distance = %f, qz = %f'%(distance,poseStamped.pose.orientation.z)
 		if distance > distance_threshold :
 			other_robot_goal_PoseStamped = poseStamped
 			print 'far enough: other_robot_goal_PoseStamped = '
 			print other_robot_goal_PoseStamped
-			break 		
+			print poseStamped
+			y = other_robot_goal_PoseStamped.pose.position.y - previous_poseStamped.pose.position.y
+			x = other_robot_goal_PoseStamped.pose.position.x - previous_poseStamped.pose.position.x
+			theta = math.atan2(y, x)
+			other_robot_goal_PoseStamped.pose.orientation.z = theta / math.pi
+			other_robot_goal_PoseStamped.pose.orientation.w = (1 - ((other_robot_goal_PoseStamped.pose.orientation.z)/math.pi)**2)**0.5
+			break 
+		else: 
+			previous_poseStamped = poseStamped				
+	print 'other_robot_goal_PoseStamped = '
+	print other_robot_goal_PoseStamped
+	quaternion = [ other_robot_goal_PoseStamped.pose.orientation.x , other_robot_goal_PoseStamped.pose.orientation.y , other_robot_goal_PoseStamped.pose.orientation.z , other_robot_goal_PoseStamped.pose.orientation.w ]	
+	rotation_matrix = t.quaternion_matrix( quaternion )	
+	inversed_transform = t.inverse_matrix(rotation_matrix)		## https://answers.ros.org/question/229329/what-is-the-right-way-to-inverse-a-transform-in-python/
+	inversed_quaternion = t.quaternion_from_matrix(inversed_transform)
+	print quaternion
+	print rotation_matrix
+	print inversed_transform
+	print inversed_quaternion
+	other_robot_goal_PoseStamped.pose.orientation.x  =  inversed_quaternion[0]
+	other_robot_goal_PoseStamped.pose.orientation.y  =  inversed_quaternion[1]
+	other_robot_goal_PoseStamped.pose.orientation.z  =  inversed_quaternion[2]
+	other_robot_goal_PoseStamped.pose.orientation.w  =  inversed_quaternion[3]
 	print 'other_robot_goal_PoseStamped = '
 	print other_robot_goal_PoseStamped
 	other_robot_goal_publisher.publish(other_robot_goal_PoseStamped)
@@ -110,11 +137,5 @@ def main():
 
 
 if __name__ == '__main__':
-#	M = t.quaternion_matrix([1, 0, 0, 0])  						# 	[ w , x , y , z ] according to https://www.lfd.uci.edu/~gohlke/code/transformations.py.html
-#	print 'numpy.allclose(M, numpy.identity(4)) = '
-#	print numpy.allclose(M, numpy.identity(4))	FALSE
-#	M = t.quaternion_matrix([0, 0, 0, 1])  						# 	[ x , y , z , w ] according to https://github.com/ros/geometry/blob/indigo-devel/tf/src/tf/transformations.py
-#	print 'numpy.allclose(M, numpy.identity(4)) = '	
-#	print numpy.allclose(M, numpy.identity(4))  TRUE
 	main()    
 
