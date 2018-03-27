@@ -26,20 +26,25 @@ from vos_aa1.srv import localise_by_visual_descriptorResponse
 
 # setup ROS nodes, subscribers, etc 
 
-# visiontask_publisher = rospy.Publisher('/cam_607/vos_task_assignment_subscriber',WhereIsAsPub, queue_size=1)
-
+# single-camera set
+#visiontask_publisher_607   = rospy.Publisher('/cam_607/vos_task_assignment_subscriber',WhereIsAsPub, queue_size=10, latch=True)
+#visiontask_publisher_608   = rospy.Publisher('/cam_608/vos_task_assignment_subscriber',WhereIsAsPub, queue_size=10, latch=True)
+#visiontask_publisher_list  = [ visiontask_publisher_607 , visiontask_publisher_608 ]
+# multi-camera set
 visiontask_publisher_603   = rospy.Publisher('/cam_603/vos_task_assignment_subscriber',WhereIsAsPub, queue_size=10, latch=True)
 visiontask_publisher_605   = rospy.Publisher('/cam_605/vos_task_assignment_subscriber',WhereIsAsPub, queue_size=10, latch=True)
 visiontask_publisher_608   = rospy.Publisher('/cam_608/vos_task_assignment_subscriber',WhereIsAsPub, queue_size=10, latch=True)
+visiontask_publisher_609   = rospy.Publisher('/cam_609/vos_task_assignment_subscriber',WhereIsAsPub, queue_size=10, latch=True)
 visiontask_publisher_611   = rospy.Publisher('/cam_611/vos_task_assignment_subscriber',WhereIsAsPub, queue_size=10, latch=True)
 visiontask_publisher_603_2 = rospy.Publisher('/cam_603/vos_task_assignment_subscriber',WhereIsAsPub, queue_size=10, latch=True)
 visiontask_publisher_605_2 = rospy.Publisher('/cam_605/vos_task_assignment_subscriber',WhereIsAsPub, queue_size=10, latch=True)
 visiontask_publisher_608_2 = rospy.Publisher('/cam_608/vos_task_assignment_subscriber',WhereIsAsPub, queue_size=10, latch=True)
-visiontask_publisher_611_2   = rospy.Publisher('/cam_611/vos_task_assignment_subscriber',WhereIsAsPub, queue_size=10, latch=True)
-visiontask_publisher_609   = rospy.Publisher('/cam_609/vos_task_assignment_subscriber',WhereIsAsPub, queue_size=10, latch=True)
 visiontask_publisher_609_2 = rospy.Publisher('/cam_609/vos_task_assignment_subscriber',WhereIsAsPub, queue_size=10, latch=True)
-visiontask_publisher_list  = [ visiontask_publisher_603 , visiontask_publisher_605 , visiontask_publisher_608 , visiontask_publisher_611 , visiontask_publisher_603_2 , visiontask_publisher_605_2 , visiontask_publisher_608_2 , visiontask_publisher_611_2 , visiontask_publisher_609, visiontask_publisher_609_2 ] 
+visiontask_publisher_611_2   = rospy.Publisher('/cam_611/vos_task_assignment_subscriber',WhereIsAsPub, queue_size=10, latch=True)
+visiontask_publisher_list  = [ visiontask_publisher_603 , visiontask_publisher_605 , visiontask_publisher_608 , visiontask_publisher_609 , visiontask_publisher_611 , 
+                        visiontask_publisher_603_2 , visiontask_publisher_605_2 , visiontask_publisher_608_2 , visiontask_publisher_609_2 , visiontask_publisher_611_2 ] 
 
+global rate_
 rate_ = 10000
 
 def localise_from_feature_from_visionsources():

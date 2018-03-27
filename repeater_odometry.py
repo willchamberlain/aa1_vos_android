@@ -16,7 +16,7 @@ from nav_msgs.msg import Odometry
 class Odometry_frame_adapter_1:
     def __init__(self):
         self.sub  = rospy.Subscriber("/vrep/base_pose_ground_truth_vrep", Odometry, self.odom_callback)
-        self.pub  = rospy.Publisher( "/vrep/base_pose_ground_truth", Odometry, queue_size=10)
+        self.pub  = rospy.Publisher( "/vrep/base_pose_ground_truth", Odometry, queue_size=1)
         self.calls_per_second = 10                     # 10hz  
         self.future_dating_duration = rospy.Duration(0.0) #rospy.Duration(1.0/self.calls_per_second)                     # 10hz  
         self.rate = rospy.Rate(self.calls_per_second)  # 10hz
@@ -27,16 +27,16 @@ class Odometry_frame_adapter_1:
         self.pub.publish(repeated_odom)
 
     def odom_callback(self, odom_msg):
-        rospy.loginfo(rospy.get_caller_id() + ": laser_odom_frame_adapter.py:  odom_callback:  I heard %s", odom_msg.header.frame_id)
+        rospy.loginfo(rospy.get_caller_id() + ": laser_odom_frame_adapter.py:  odom_callback:  I heard %s at x:%f y:%f", odom_msg.header.frame_id,odom_msg.pose.pose.position.x,odom_msg.pose.pose.position.y)
         self.odom_in = odom_msg
         for ii_ in range(1,self.calls_per_second):
-            self.publish_odom_now(odom_msg)
+            self.publish_odom_now(self.odom_in)
             self.rate.sleep()
 
 class Odometry_frame_adapter:
     def __init__(self):
         self.sub  = rospy.Subscriber("/vrep/base_pose_ground_truth", Odometry, self.odom_callback)
-        self.pub  = rospy.Publisher( "/vrep/base_pose_ground_truth_vrep", Odometry, queue_size=10)
+        self.pub  = rospy.Publisher( "/vrep/base_pose_ground_truth_vrep", Odometry, queue_size=1)
         self.calls_per_second = 4                     # 4hz  
         self.rate = rospy.Rate(self.calls_per_second) # 4hz
         self.odom_in = None

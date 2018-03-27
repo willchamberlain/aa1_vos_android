@@ -1,9 +1,16 @@
 <launch>
   <node  name="c608__fixed_cam__static_tf"
-      args="-1.5 4.0 1.05     0 0 0.0000 1.000  map dum_c608  20" 
+      args="-0.25 -0.7 1.05     0.016694   0.040300   -0.382332   0.922995  map dum_c608  20" 
       pkg="tf"  type="static_transform_publisher"      />
 </launch>      
 
+
+<!-- <launch>
+  <node  name="c608__fixed_cam__static_tf"
+      args="-1.5 4.0 1.05     0 0 0.0000 1.000  map dum_c608  20" 
+      pkg="tf"  type="static_transform_publisher"      />
+</launch>      
+-->
 
 <!-- <launch>
   <node  name="c608__fixed_cam__static_tf"

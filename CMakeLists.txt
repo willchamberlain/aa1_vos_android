@@ -151,6 +151,8 @@ include_directories(
 )
 
 
+
+
 ################################################################################
 ### 2017_03_20 :  publish dummy odometry for the fake_localization amcl-replacement node to run from: see  http://wiki.ros.org/navigation/Tutorials/RobotSetup/Odom  and  http://wiki.ros.org/fake_localization, respectively
 
@@ -174,6 +176,37 @@ install(
         odometry_publisher
     DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
+
+################################################################################
+### 2018_03_15 fake laser scanner: should send a bunch of no-detections
+# Build the executable
+add_executable(fake_laser_scanner  src/fake_laser_scan.cpp)  # the executable and the list of files to compile and link into it
+## cmake target dependencies of the executable, including cmake steps, project modules, and compilation dependencies
+add_dependencies(fake_laser_scanner
+  vos_aa1_gencpp                  # generate cpp ?? - see http://wiki.ros.org/ROS/Tutorials/WritingServiceClient%28c%2B%2B%29#roscpp_tutorials.2BAC8-Tutorials.2BAC8-WritingServiceClient.Writing_a_Service_Node
+  vos_aa1_generate_messages_cpp   # generation of messages, services, actions
+  ${${PROJECT_NAME}_EXPORTED_TARGETS}
+  ${catkin_EXPORTED_TARGETS}
+)
+# link dependencies
+target_link_libraries(fake_laser_scanner  ${catkin_LIBRARIES}
+)
+
+################################################################################
+### 2018_03_21 fake_localization with parameters for topic names
+# Build the executable
+add_executable(fake_localization  src/fake_localization.cpp)  # the executable and the list of files to compile and link into it
+## cmake target dependencies of the executable, including cmake steps, project modules, and compilation dependencies
+add_dependencies(fake_localization
+  vos_aa1_gencpp                  # generate cpp ?? - see http://wiki.ros.org/ROS/Tutorials/WritingServiceClient%28c%2B%2B%29#roscpp_tutorials.2BAC8-Tutorials.2BAC8-WritingServiceClient.Writing_a_Service_Node
+  vos_aa1_generate_messages_cpp   # generation of messages, services, actions
+  ${${PROJECT_NAME}_EXPORTED_TARGETS}
+  ${catkin_EXPORTED_TARGETS}
+)
+# link dependencies
+target_link_libraries(fake_localization  ${catkin_LIBRARIES}
+)
+
 ################################################################################
 
 ## Declare a C++ library
