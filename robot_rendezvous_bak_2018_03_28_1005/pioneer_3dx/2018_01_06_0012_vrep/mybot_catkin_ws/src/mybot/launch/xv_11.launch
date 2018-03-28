@@ -1,0 +1,17 @@
+<launch>
+  <!-- Run the depthimage_to_laserscan node -->
+  <node pkg="xv_11_laser_driver" type="neato_laser_publisher" name="neato_laser_publisher" output="screen">
+    <param name="port" value="/dev/ttyUSB0"/>
+    <param name="firmware_version" value="2"/>
+    <param name="frame_id" value="xv11"/>
+  </node>
+
+  <node pkg="tf" type="static_transform_publisher" name="xv11_tf_publisher" args="0.035 0 0.16 0 0 0 1 base_footprint xv11 20" />
+
+  <!-- to bound xv11 angle range to -1.57 ~ +1.57 -->
+  <node pkg="mybot" type="mybot_xv11_angular_bound_filter" name="mybot_xv11_angular_bound_filter" output="screen"/>
+
+  <!-- to remove dynamic obstacles for short-range laser -->
+  <node pkg="mybot" type="mybot_laser_obstacle_clearing_filter" name="mybot_laser_obstacle_clearing_filter" />
+
+</launch>

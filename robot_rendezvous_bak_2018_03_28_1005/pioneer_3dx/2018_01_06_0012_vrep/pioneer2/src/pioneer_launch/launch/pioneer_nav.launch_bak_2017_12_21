@@ -1,0 +1,41 @@
+<launch>
+<group ns="STEVE0">
+	<include file="/home/pioneer2/pioneer2/src/pioneer_launch/launch/pioneer_base.launch" />
+	<node name="rostopic" pkg="rostopic" type="rostopic" args="pub -1 /cmd_motor_state p2os_driver/MotorState 1"/>
+
+<!--
+	<node name="map_server" pkg="map_server" type="map_server" args="/home/pioneer2/pioneer2/maps/lvl11_map2/cost_map.yaml"/>-->
+      <!-- <node name="map_server" pkg="map_server" type="map_server" args="/home/pioneer2/pioneer2/maps/lvl11_map2/cost_map.yaml"/> -->
+	    <!--- Run AMCL -->
+      <!--
+      <include file="$(find p2os_launch)/launch/amcl.launch" />
+      -->
+	    <!--
+	    <include file="/home/pioneer2/p2os_launch/launch/amcl.launch" />
+	    -->
+	<node pkg="fake_localization" type="fake_localization" name="fake_localization_node"/>
+	
+	<node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
+		<rosparam file="/home/pioneer2/p2os_launch/launch/costmap_common_params.yaml" command="load" ns="global_costmap" />
+		<rosparam file="/home/pioneer2/p2os_launch/launch/costmap_common_params.yaml" command="load" ns="local_costmap" />
+      <!--
+      <rosparam file="$(find p2os_launch)/launch/local_costmap_params.yaml" command="load" />
+      <rosparam file="$(find p2os_launch)/launch/global_costmap_params.yaml" command="load" />
+      <rosparam file="$(find p2os_launch)/launch/base_local_planner_params.yaml" command="load" />
+      -->
+		<rosparam file="/home/pioneer2/p2os_launch/launch/local_costmap_params.yaml" command="load" />
+		<rosparam file="/home/pioneer2/p2os_launch/launch/global_costmap_params.yaml" command="load" />
+		<rosparam file="/home/pioneer2/p2os_launch/launch/base_local_planner_params.yaml" command="load" />
+		<param name="base_global_planner" type="string" value="NavfnROS" />
+		<param name="conservative_reset_dist" type="double" value="3.0" />
+		
+		<param name="controller_frequency" type="double" value="3.0" />
+		
+		<param name="clearing_rotation_allowed" type="bool" value="false" />
+		<param name="clearing_roatation_allowed" type="bool" value="false" />
+
+		<remap from="scan" to="scan_filtered_clearer"/>
+	</node>
+	
+</group>
+</launch>

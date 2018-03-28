@@ -1,0 +1,27 @@
+<launch>
+
+  <node name="pioneer_driver" pkg="p2os_driver" type="p2os_driver">
+     <param name="port" value="/dev/ttyUSB0"/>
+     <param name="pulse" value="1.0"/>
+     <param name="tf_prefix" value="STEVE0" />
+     <param name="odom_frame_id" value="/STEVE0/odom" />
+     <param name="base_link_frame_id" value="/STEVE0/base_link" />
+  </node>
+
+
+  <!-- custom filter to make obstacle clearing work in move_base local costmap: deals with Hokuyo problem of returning Nan rather than INF for beams that are out of range: sets beam ranges that are INF|NaN|over 4.0m to 4.0m -->
+  <node name="hokuyo_node_will" pkg="hokuyo_node" type="hokuyo_node_will">
+  </node>
+  <node name="mybot_laser_obstacle_clearing_filter_node" pkg="mybot" type="mybot_laser_obstacle_clearing_filter">
+  </node>
+  
+
+
+  <node pkg="tf" type="static_transform_publisher" name="laser_broadcaster" args="0.1 0 0.1397 0 0 0 1 STEVE0/base_link STEVE0/laser 100" >
+    <!-- tf_prefix doesn't work<param name="tf_prefix" value="STEVE0" /> -->
+  </node>
+  <node pkg="tf" type="static_transform_publisher" name="camera_broadcaster" args="0.1 0 0.1397 0 0 0 1 STEVE0/base_link STEVE0/camera_link 100" >
+    <!-- tf_prefix doesn't work <param name="tf_prefix" value="STEVE0" /> -->
+  </node>
+  
+</launch>

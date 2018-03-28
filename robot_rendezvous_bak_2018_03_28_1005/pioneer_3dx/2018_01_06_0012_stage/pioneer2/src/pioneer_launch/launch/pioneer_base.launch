@@ -1,0 +1,35 @@
+<launch>
+
+<!--  <node name="pioneer_driver" pkg="p2os_driver" type="p2os_driver">
+     <param name="port" value="/dev/ttyUSB0"/>
+     <param name="pulse" value="1.0"/>
+  </node>
+-->  
+
+
+  <!-- custom filter to make obstacle clearing work in move_base local costmap: deals with Hokuyo problem of returning Nan rather than INF for beams that are out of range: sets beam ranges that are INF|NaN|over 4.0m to 4.0m 
+  -->
+
+<!-- <node name="hokuyo_node_will" pkg="hokuyo_node" type="hokuyo_node_will">
+  </node>
+  <node name="mybot_laser_obstacle_clearing_filter_node" pkg="mybot" type="mybot_laser_obstacle_clearing_filter">
+  </node>
+-->  
+  
+
+
+<!-- standard lidar filters do not correct the Hokuyo problem
+    <node pkg="laser_filters" type="scan_to_scan_filter_chain" name="laser_filter">
+          <rosparam command="load" file="/mnt/nixbig/data/project_AA1_backup_pioneer2/2018_01_06_0012_vrep/pioneer2/src/pioneer_launch/launch/hokuyo_config.yaml" /> 
+          <remap from="base_scan" to="scan" />
+    </node>
+-->
+
+
+  <!--<node pkg="tf" type="static_transform_publisher" name="laser_tf_broadcaster" args="0.1 0 0.1397 0 0 0 1 base_link laser 100" /> -->
+  <!-- Switch to fast range sensor - <node pkg="tf" type="static_transform_publisher" name="laser_tf_broadcaster" args="0.1 0 0.1397 0 0 0 1 base_link Hokuyo_URG_04LX_UG01_ROS 100" />-->
+  <node pkg="tf" type="static_transform_publisher" name="laser_tf_broadcaster" args="0.1 0 0.1397 0 0 0 1 base_link fastHokuyo 100" />
+
+  <node pkg="tf" type="static_transform_publisher" name="camera_tf_broadcaster" args="0.1 0 0.1397 0 0 0 1 base_link camera_link 100" />  
+
+</launch>

@@ -1,0 +1,2 @@
+source ~/vos_catkin_ws/devel/setup.bash
+rosrun vos_aa1 RobotTaskDemandManagerPioneer2

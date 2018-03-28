@@ -1,0 +1,5 @@
+<launch>
+  <!-- see xv_11.launch --> 
+  <!-- to remove dynamic obstacles for short-range laser -->
+  <node pkg="mybot" type="mybot_laser_obstacle_clearing_filter" name="mybot_laser_obstacle_clearing_filter" />
+</launch>

@@ -1,0 +1,19 @@
+<launch>
+
+  <node name="pioneer_driver" pkg="p2os_driver" type="p2os_driver">
+     <param name="port" value="/dev/ttyUSB0"/>
+     <param name="pulse" value="1.0"/>
+  </node>
+
+  <include file="$(find realsense_camera)/launch/sr300_nodelet_default.launch" />
+  
+  <!--node name="depth_to_laser" pkg="depthimage_to_laserscan" type="depthimage_to_laserscan">
+     <remap from="image" to="/camera/depth/image_raw"/>
+  </node-->
+
+  <node name="hokuyo_node" pkg="hokuyo_node" type="hokuyo_node">
+  </node>
+  <node pkg="tf" type="static_transform_publisher" name="laser_broadcaster" args="0.1 0 0.1397 0 0 0 1 base_link laser 100" />
+  <node pkg="tf" type="static_transform_publisher" name="camera_broadcaster" args="0.1 0 0.1397 0 0 0 1 base_link camera_link 100" />
+  
+</launch>

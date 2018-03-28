@@ -1,0 +1,38 @@
+#!/bin/bash
+
+while true; do
+
+  echo 'timedatectl status'
+
+  timedatectl status
+  
+  echo '...'
+  sleep 2
+  echo '....'
+  sleep 0.5
+  echo '.....'
+  echo 'chronyc status'
+
+  chronyc -v
+  chronyc tracking
+  echo 'chronyc -a makestep 0.01 1  # for large steps'
+  sudo chronyc -a makestep 0.01 1
+
+  echo '...'
+  sleep 2
+  echo '....'
+  sleep 0.5
+  echo '.....'
+  echo 'ntpdate -q 192.168.1.164'
+
+  ntpdate -q 192.168.1.164  
+
+  echo '.....'
+  sleep 2
+  echo '....'
+  sleep 0.5
+  echo '...'
+
+  echo '... sleeping for 5s ...'
+  sleep 5
+done

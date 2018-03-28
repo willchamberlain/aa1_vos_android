@@ -1,0 +1,91 @@
+--------------------------------
+--- Summary --------------------
+--------------------------------
+start process:
+  
+  see /home/pioneer2/Pictures/Screenshot from 2018-01-06 00:43:21.png
+
+  ntp 
+  
+  roscore
+  
+  roslaunch vos_aa1 vc_client.launch system_id:=Pioneer2
+  
+	roslaunch /home/pioneer2/pioneer2/src/pioneer_launch/launch/pioneer_nav.launch
+	
+	rostopic pub -r 2 /move_base_simple/goal geometry_msgs/PoseStamped "ader:
+  seq: 0
+  stamp:
+    secs: $(date +%s)
+    nsecs: $(date +%N)
+  frame_id: '/map'
+pose:
+  position:
+    x: 2.0
+    y: 4.5
+    z: 0.0
+  orientation:
+    x: 0.0
+    y: 0.0
+    z: 0.7071
+    w: 0.7071"
+
+	
+	
+laser scan: hokuyo
+kinnect/realsense/RGBD: not used
+roscore: on laptop
+map server: on Pioneer
+localisation: fake_localization not amcl.  On Pioneer
+System time: running chrony with the priority server set to 192.168.1.164
+
+teleop: run on laptop: 
+
+
+
+--------------------------------
+--- Detail ---------------------
+--------------------------------
+
+--------------------------------
+System time:  running on RasLab local wifi, so no access to QUT NTP server
+	When: 2017_06_07
+	So: set up Pioneer to use my laptop as the NTP server
+	Run:
+	  sudo /home/pioneer2/bin/ntp_loop
+	  # wait till stable
+	  <ctr+c>
+	  sudo /etc/init.d/chrony stop
+    sudo ntpdate 192.168.1.164
+    sudo /etc/init.d/chrony start
+	
+
+roswtf	# shows the timing issue with ROS
+# check difference
+ntpdate -q 192.168.1.164
+
+use Chrony to resolve, per this ROS article :  http://wiki.ros.org/ROS/NetworkSetup#Timing_issues.2C_TF_complaining_about_extrapolation_into_the_future.3F
+
+# plug in the QUT ethernet and get authorised by opening FireFox at abc.net.au, then
+# install chrony
+sudo apt-get install chrony
+
+# backup the config
+sudo cp /etc/chrony/chrony.conf /etc/chrony/chrony.conf_bak_2017_06_06
+
+# add laptop as NTP server
+sudo nano /etc/chrony/chrony.conf
+# add this as the first ntp server
+#  server 192.168.1.164 minpoll 0 maxpoll 10 maxdelay .05
+
+# check difference
+ntpdate -q 192.168.1.164
+
+# converging slowly, so do this to synch instantly
+sudo /etc/init.d/chrony stop
+sudo ntpdate 192.168.1.164
+sudo /etc/init.d/chrony start
+
+# check difference
+ntpdate -q 192.168.1.164
+
