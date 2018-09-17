@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 
+import rospy
+from std_msgs.msg import Float32MultiArray
+
 import vrep
 import time
 
@@ -55,6 +58,9 @@ def grid_points_3D_():
 
 
 def main():
+  pub = rospy.Publisher('freespace_points', Float32MultiArray, queue_size=10)
+  rospy.init_node('freespace_node', anonymous=True)
+
   # Threshold the HSV image for carpet colour
   lower_carpet_1 = np.array([165,  10,  10])
   upper_carpet_1 = np.array([195, 255, 255])
@@ -100,7 +106,7 @@ def main():
     err, resolution, image = vrep.simxGetVisionSensorImage(clientID, camSensor, 0, vrep.simx_opmode_streaming)
     time.sleep(1)
 
-    while (vrep.simxGetConnectionId(clientID) != -1):
+    while (vrep.simxGetConnectionId(clientID) != -1)  and  not rospy.is_shutdown():
       # get image from vision sensor 'camSensor'
       err, resolution, image = vrep.simxGetVisionSensorImage(clientID, camSensor, 0, vrep.simx_opmode_buffer)
       if err == vrep.simx_return_ok:
