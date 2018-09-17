@@ -37,9 +37,15 @@ def doNothing(x):
     pass
 
 def grid_points_3D_():
+  x_low = -1.
+  x_high = 8.+0.1
+  y_low = 1.
+  y_high = -9.+-0.1
   grid_points_3D = np.float32([9000,9000]) # push dummies
-  for x in np.arange(-1.,8.+0.1,0.1):
-    for y in np.arange(1.,-9.+-0.1,-0.1):
+  for x in np.arange(x_low,x_high,0.1):
+    for y in np.arange(y_low,y_high,-0.1):
+  # for x in np.arange(-14.,15.+0.1,0.1):
+  #   for y in np.arange(17.,-14.+-0.1,-0.1):
   # for x in np.arange(5.,7.+0.1,1.):
   #   for y in np.arange(-6.,-8.+-0.1,-1.):
       grid_points_3D = np.append( grid_points_3D , [x,y] ) 
@@ -149,6 +155,8 @@ def main():
         grid_points_3D = grid_points_3D_()
         print 'grid_points_3D=' ;  print grid_points_3D
         # get the pixel coordinates of each square, check the pixels in that range 
+        grid_points_3D_vec = grid_points_3D.reshape(-1,1,2)
+        print'grid_points_3D_vec.shape=' ; print grid_points_3D_vec.shape
         grid_points_px = cv2.perspectiveTransform(grid_points_3D.reshape(-1,1,2),cam_603_inv_homographyMatrix)  
         grid_points_px_squeezed = grid_points_px.astype(int).squeeze()
         grid_points_px_list = grid_points_px_squeezed.tolist()  
@@ -170,6 +178,7 @@ def main():
         # start checking whether we can see carpet   
         # start display of carpet texture through floor grid 
         mask_total_1 = 0 - mask_total   # right size and type, all zeros 
+        num_pixels_good = 0
         for grid_points_px_idx in range(0,len(grid_points_px)):
           px = grid_points_px[grid_points_px_idx]
           px = px.astype(int)
@@ -180,11 +189,19 @@ def main():
           if px[0]>=0 and px[0]<mask_total.shape[1] and px[1]>=0 and px[1]<mask_total.shape[0]:
               # mask_total_1[ px[1],px[0] ] = 255     # x,y maps to image v,u
             mask_total_1[ px[1],px[0] ] = mask_total[ px[1],px[0] ]     # x,y maps to image v,u
+            if mask_total[ px[1],px[0] ] == 255 :
+              num_pixels_good = num_pixels_good + 1
+              grid_points_3D_vec_entry = grid_points_3D_vec[grid_points_px_idx]
+              grid_points_3D_vec_entry = grid_points_3D_vec_entry.squeeze()
+              print 'grid_points_3D_vec_entry=' ; print grid_points_3D_vec_entry
+              print 'non-zero pixel at %d %d = 3d %f %f'%(px[1],px[0] , grid_points_3D_vec_entry[1] , grid_points_3D_vec_entry[0])
+
               # print 'px  number  %d  is in the FoV'%grid_points_px_idx
               # print px
             # else:
               # print 'px  number  %d  is outside the FoV:'%grid_points_px_idx
               # print px        
+        print 'num_pixels_good=%d'%(num_pixels_good)      
         display_orientation_checks = False    
         if display_orientation_checks:    
           mask_total_1[10:20,:] = 255     # check orientation : top-to-bottom/down as displayed
