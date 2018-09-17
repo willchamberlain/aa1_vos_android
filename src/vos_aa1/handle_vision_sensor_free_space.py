@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import vrep
 import time
 
@@ -151,11 +153,12 @@ def main():
         grid_points_px_squeezed = grid_points_px.astype(int).squeeze()
         grid_points_px_list = grid_points_px_squeezed.tolist()  
         A = np.array(  [ [436, 577], [391, 460] ]  )
-        debug_ = False
+        debug_ = True
         if debug_:
           print 'grid_points_px=' ;  print grid_points_px ;  print 'grid_points_px.squeeze()=' ;  print grid_points_px.squeeze() ;  print 'grid_points_px.astype(int).squeeze()=' ;  print grid_points_px.astype(int).squeeze() ;  print 'mask_total[grid_points_px.astype(int).squeeze()]  = '
           print 'type(grid_points_px_squeezed) =' ;  print type(grid_points_px_squeezed) ;  print 'grid_points_px_squeezed.shape =' ;  print grid_points_px_squeezed.shape
-          print 'grid_points_px_list = ' ;  print grid_points_px_list ;  print 'len(grid_points_px_list) = ' ;  print len(grid_points_px_list) ;  print 'len(grid_points_px_list[0]) = ' ;  print len(grid_points_px_list[0])
+          # print 'grid_points_px_list = ' ;  print grid_points_px_list ;  
+          print 'len(grid_points_px_list) = ' ;  print len(grid_points_px_list) ;  print 'len(grid_points_px_list[0]) = ' ;  print len(grid_points_px_list[0])
           # print mask_total[grid_points_px.astype(int).squeeze()]
           print 'before : mask_total.shape=' ;  print mask_total.shape
           # print 'A.shape' ;  print A.shape
@@ -171,14 +174,17 @@ def main():
           px = grid_points_px[grid_points_px_idx]
           px = px.astype(int)
           px = px.squeeze()
-          if px[0]>=0 and px[0]<mask_total.shape[0] and px[1]>=0 and px[1]<mask_total.shape[1]:
-            # mask_total_1[ px[1],px[0] ] = 255     # x,y maps to image v,u
+          # print 'px[0] mask_total.shape[0] px[1] mask_total.shape[1]'
+          # print px[0] ; print mask_total.shape[0] ; print px[1] ; print mask_total.shape[1]
+          # if px[0]>=0 and px[0]<mask_total.shape[0] and px[1]>=0 and px[1]<mask_total.shape[1]:
+          if px[0]>=0 and px[0]<mask_total.shape[1] and px[1]>=0 and px[1]<mask_total.shape[0]:
+              # mask_total_1[ px[1],px[0] ] = 255     # x,y maps to image v,u
             mask_total_1[ px[1],px[0] ] = mask_total[ px[1],px[0] ]     # x,y maps to image v,u
-            # print 'px  number  %d  is in the FoV'%grid_points_px_idx
-            # print px
-          # else:
-            # print 'px  number  %d  is outside the FoV:'%grid_points_px_idx
-            # print px        
+              # print 'px  number  %d  is in the FoV'%grid_points_px_idx
+              # print px
+            # else:
+              # print 'px  number  %d  is outside the FoV:'%grid_points_px_idx
+              # print px        
         display_orientation_checks = False    
         if display_orientation_checks:    
           mask_total_1[10:20,:] = 255     # check orientation : top-to-bottom/down as displayed
