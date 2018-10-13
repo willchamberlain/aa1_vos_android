@@ -101,10 +101,11 @@ print "camera_poses_to_detect_from_cameras = %s"%(str(camera_poses_to_detect_fro
 #robot_feature_tags_to_detect_visually    = ( 50057, 50157, 50257, 50357, 50457, 50557 , 60157, 60357, 60557 , 60057, 60257, 60457,    40170, 50170, 60170, 70170,  40250, 50250, 60250, 70250,  40290, 50290, 60290, 70290,  40330, 50330, 60330, 70330)  #  t50557 is the world-to-marker
 #print "robot_feature_tags_to_detect_visually=%s"%(str(robot_feature_tags_to_detect_visually))
 
-pioneer1_features = ( 40170, 50170, 60170, 70170,  40250, 50250, 60250, 70250,  40290, 50290, 60290, 70290,  40330, 50330, 60330, 70330 )
+pioneer1_features = ( 40170, 50170, 60170, 70170,  40250, 50250, 60250, 70250,  40290, 50290, 60290, 70290,  40330, 50330, 60330, 70330   , 50057, 50257, 50457   , 60057, 60257, 60457   , 70057, 70257, 70457 )
 print "pioneer1_features=%s"%(str(pioneer1_features)) 
 # 2018_02_07_1305 - robot_feature_tags_to_detect_visually = pioneer1_features 
-robot_feature_tags_to_detect_visually    = ( 50170, 50250, 50290, 50330 )
+robot_feature_tags_to_detect_visually    = (70250,70290,70330) #(70250,70290,70330,70170) # ( 50170, 50250, 50290, 50330   , 50057, 50257, 50457) 
+#robot_feature_tags_to_detect_visually    = (70, 60)
 print "robot_feature_tags_to_detect_visually=%s"%(str(robot_feature_tags_to_detect_visually))
 
 
@@ -434,7 +435,7 @@ def detect_feature_callback(req):
     #  t70557 is the camera-to-robot-base 
     if  marker_tag_id in features_on_cam: # ['t50557', 't40557']:    #  t40557 is the world-to-camera  , t50557 is the world-to-marker , t60557 is the camera-to-marker , t70557 is the camera-to-robot-base 
         dum_c2_map_to_robot_via_t55_trans = "dum_%s_map_to_robot_via_%s_trans"%(c2,t55)
-        print "detect_feature_callback:  t55 in ['50557', 't40557'] : t55='%s' : publishing tf from /map to %s "%(t55 , dum_c2_map_to_robot_via_t55_trans)
+        print "detect_feature_callback:   t55='%s' is in features_on_cam  : publishing tf from /map to %s "%(t55 , dum_c2_map_to_robot_via_t55_trans)
         
         tfBroadcaster.sendTransform(    # apply the translation ...
             (req.visualFeature.pose.pose.position.x, req.visualFeature.pose.pose.position.y, req.visualFeature.pose.pose.position.z),
@@ -443,7 +444,7 @@ def detect_feature_callback(req):
             dum_c2_map_to_robot_via_t55_trans,  # to
             'map')                              # from    
         dum_c2_map_to_robot_via_t55_trans_rot = "dum_%s_map_to_robot_via_%s_trans_rot"%(c2,t55)
-        print "detect_feature_callback:  t55 in ['50557', 't40557'] : t55='%s' : publishing tf from %s to %s "%(t55 , dum_c2_map_to_robot_via_t55_trans , dum_c2_map_to_robot_via_t55_trans_rot)
+        print "detect_feature_callback:  t55='%s' is in features_on_cam  : publishing tf from %s to %s "%(t55 , dum_c2_map_to_robot_via_t55_trans , dum_c2_map_to_robot_via_t55_trans_rot)
         tfBroadcaster.sendTransform(    # ... then apply the rotation
             (0,0,0),                            # ... then apply the rotation - because the Python does things _differently_. 
             (req.visualFeature.pose.pose.orientation.x, req.visualFeature.pose.pose.orientation.y, req.visualFeature.pose.pose.orientation.z, req.visualFeature.pose.pose.orientation.w),
@@ -451,7 +452,10 @@ def detect_feature_callback(req):
             dum_c2_map_to_robot_via_t55_trans_rot,    # to
             dum_c2_map_to_robot_via_t55_trans)        # from
             
-        if  marker_tag_id in robot_feature_tags_to_detect_visually:     # VOS FUNCTION = publish smoothed pose estimates (by averaging at the moment)
+        if  marker_tag_id not in robot_feature_tags_to_detect_visually:     # VOS FUNCTION = publish smoothed pose estimates (by averaging at the moment)
+            print "%s not in robot_feature_tags_to_detect_visually"%(marker_tag_id)
+        else:
+            "detect_feature_callback:  t55='%s' is in robot_feature_tags_to_detect_visually"
             observed_id = '_unknown'        
             print "observed_id = '%s'"%observed_id   
             print "(robot_id_ + observed_id) = '%s'"%(robot_id_ + observed_id)
@@ -795,148 +799,205 @@ def detect_feature_callback(req):
 
 
 
+            
     #  TODO - load from file with load_properties or jsonpickle, and also move into the robot's request
     #  ROBOT VISUAL MODEL / robot model if 't9250'==t55:
-    if 't90171'==t55: # 't90170'==t55:
-        t55_transrot_from_dum_c2_robot_pose_170 = "dum_%s_trans_rot_to_%s_robot_pose_170"%(c2,t55)
-        tfBroadcaster.sendTransform(
-            # pioneer - the tall one ( -0.12, 0, -0.76),                             # before rot, step back --> forward
-            ( 0.12-0.18, 0, -0.61),                     # forward of centre of tag box, tag box centre is 18cm rear of base_link (Pioneer2)
-            (0, 0, 0, 1),                               # 170 is on the front
-            time_now,
-            t55_transrot_from_dum_c2_robot_pose_170,
-            t55_transrot_from_dum_c2_post90y180zneg90z)
-#        tfListener.waitForTransform('map', t55_transrot_from_dum_c2_robot_pose_250, rospy.Time(), rospy.Duration(0))      # from the map origin, to the robot
-        try:  #  TODO - produce a unified pose estimate from this set of observations of this robot model, on the phone side - in this case average the quaternions, see https://stackoverflow.com/questions/12374087/average-of-multiple-quaternions
-            print "------------------- start publish initialpose 170 ----------------------"
-            tfListener.waitForTransform('map', t55_transrot_from_dum_c2_robot_pose_170, rospy.Time(), rospy.Duration(1))
-            pos_, quat_ = tfListener.lookupTransform('map', t55_transrot_from_dum_c2_robot_pose_170,  rospy.Time(0))
-            publish_pose_xyz_xyzw_covar(initialpose_poseWCS_publisher, fakelocalisation_poseWCS_publisher, time_now, 'map', pos_[0], pos_[1], pos_[2], quat_[0], quat_[1], quat_[2], quat_[3], [0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.06853891945200942])
-            publish_pose_xyz_xyzw(pose_publisher,time_now,  'map', pos_[0], pos_[1], pos_[2], quat_[0], quat_[1], quat_[2], quat_[3])
-            robotPoseHistory.append([pos_[0], pos_[1]])
+#     if 't90171'==t55: # 't90170'==t55:
+#         t55_transrot_from_dum_c2_robot_pose_170 = "dum_%s_trans_rot_to_%s_robot_pose_170"%(c2,t55)
+#         tfBroadcaster.sendTransform(
+#             # pioneer - the tall one ( -0.12, 0, -0.76),                             # before rot, step back --> forward
+#             ( 0.12-0.18, 0, -0.61),                     # forward of centre of tag box, tag box centre is 18cm rear of base_link (Pioneer2)
+#             (0, 0, 0, 1),                               # 170 is on the front
+#             time_now,
+#             t55_transrot_from_dum_c2_robot_pose_170,
+#             t55_transrot_from_dum_c2_post90y180zneg90z)
+# #        tfListener.waitForTransform('map', t55_transrot_from_dum_c2_robot_pose_250, rospy.Time(), rospy.Duration(0))      # from the map origin, to the robot
+#         try:  #  TODO - produce a unified pose estimate from this set of observations of this robot model, on the phone side - in this case average the quaternions, see https://stackoverflow.com/questions/12374087/average-of-multiple-quaternions
+#             print "------------------- start publish initialpose 170 ----------------------"
+#             tfListener.waitForTransform('map', t55_transrot_from_dum_c2_robot_pose_170, rospy.Time(), rospy.Duration(1))
+#             pos_, quat_ = tfListener.lookupTransform('map', t55_transrot_from_dum_c2_robot_pose_170,  rospy.Time(0))
+#             publish_pose_xyz_xyzw_covar(initialpose_poseWCS_publisher, fakelocalisation_poseWCS_publisher, time_now, 'map', pos_[0], pos_[1], pos_[2], quat_[0], quat_[1], quat_[2], quat_[3], [0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.06853891945200942])
+#             publish_pose_xyz_xyzw(pose_publisher,time_now,  'map', pos_[0], pos_[1], pos_[2], quat_[0], quat_[1], quat_[2], quat_[3])
+#             robotPoseHistory.append([pos_[0], pos_[1]])
 
-            print "------------------- published initialpose 170 ----------------------"
-        except tf.Exception as err:
-            print "some tf exception happened 170: {0}".format(err)
-    elif 't90250'==t55:
-        t55_transrot_from_dum_c2_robot_pose_250 = "dum_%s_trans_rot_to_%s_robot_pose_250"%(c2,t55)
+#             print "------------------- published initialpose 170 ----------------------"
+#         except tf.Exception as err:
+#             print "some tf exception happened 170: {0}".format(err)
+#     elif 't90250'==t55:
+#         t55_transrot_from_dum_c2_robot_pose_250 = "dum_%s_trans_rot_to_%s_robot_pose_250"%(c2,t55)
+#         tfBroadcaster.sendTransform(
+#             # pioneer - the tall one ( -0.12, 0, -0.76),                             # before rot, step back --> forward
+#             ( -0.12-0.18, 0, -0.64),                    # before rot, step back --> forward , tag box centre is 18cm rear of base_link (Pioneer2)
+#             (0, 0, 1, 0),                               # 250 is on the back, so turn 180 to face forward
+#             time_now,
+#             t55_transrot_from_dum_c2_robot_pose_250,
+#             t55_transrot_from_dum_c2_post90y180zneg90z)
+# #        tfListener.waitForTransform('map', t55_transrot_from_dum_c2_robot_pose_250, rospy.Time(), rospy.Duration(0))      # from the map origin, to the robot
+#         try:
+#             print "------------------- start publish initialpose 250 ----------------------"
+#             tfListener.waitForTransform('map', t55_transrot_from_dum_c2_robot_pose_250, rospy.Time(), rospy.Duration(1))
+#             pos_, quat_ = tfListener.lookupTransform('map', t55_transrot_from_dum_c2_robot_pose_250,  rospy.Time(0))
+#             publish_pose_xyz_xyzw_covar(initialpose_poseWCS_publisher, fakelocalisation_poseWCS_publisher, time_now, 'map', pos_[0], pos_[1], pos_[2], quat_[0], quat_[1], quat_[2], quat_[3], [0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.06853891945200942])
+#             publish_pose_xyz_xyzw(pose_publisher,time_now,  'map', pos_[0], pos_[1], pos_[2], quat_[0], quat_[1], quat_[2], quat_[3])
+#             robotPoseHistory.append([pos_[0], pos_[1]])
+#             print "------------------- published initialpose 250 ----------------------"
+#         except tf.Exception as err:
+#             print "some tf exception happened 250: {0}".format(err)
+#     elif 't90290'==t55:
+#         t55_transrot_from_dum_c2_robot_pose_290 = "dum_%s_trans_rot_to_%s_robot_pose_290"%(c2,t55)
+#         tfBroadcaster.sendTransform(
+#             ( -0.10, 0-(-0.18), -0.64),                 # before left rot, step back --> left , tag box centre is 18cm rear of base_link (Pioneer2)
+#             (0, 0, 0.707106781, 0.707106781),                     # 290 is on the right side, so turn left to face forward
+#             time_now,
+#             t55_transrot_from_dum_c2_robot_pose_290,
+#             t55_transrot_from_dum_c2_post90y180zneg90z)
+# #        tfListener.waitForTransform('map', t55_transrot_from_dum_c2_robot_pose_290, rospy.Time(), rospy.Duration(0))      # from the map origin, to the robot
+#         try:
+#             print "------------------- start publish initialpose 290 ----------------------"
+#             tfListener.waitForTransform('map', t55_transrot_from_dum_c2_robot_pose_290, rospy.Time(), rospy.Duration(1))
+#             pos_, quat_ = tfListener.lookupTransform('map', t55_transrot_from_dum_c2_robot_pose_290,  rospy.Time(0))
+#             publish_pose_xyz_xyzw_covar(initialpose_poseWCS_publisher, fakelocalisation_poseWCS_publisher, time_now, 'map', pos_[0], pos_[1], pos_[2], quat_[0], quat_[1], quat_[2], quat_[3], [0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.06853891945200942])
+#             publish_pose_xyz_xyzw(pose_publisher,time_now,  'map', pos_[0], pos_[1], pos_[2], quat_[0], quat_[1], quat_[2], quat_[3])
+#             robotPoseHistory.append([pos_[0], pos_[1]])
+#             print "------------------- published initialpose 290 ----------------------"
+#         except tf.Exception as err:
+#             print "some tf exception happened 290: {0}".format(err)
+#     elif 't90330'==t55:
+#         t55_transrot_from_dum_c2_robot_pose_330 = "dum_%s_trans_rot_to_%s_robot_pose_330"%(c2,t55)
+#         tfBroadcaster.sendTransform(                     # robot pose, as estimated from the inverse of the base_link-to-tag-330 transform
+#             ( -0.10, 0-0.18, -0.64),                              # before right rot, step back --> right , tag box centre is 18cm rear of base_link (Pioneer2)
+#             (0, 0, -0.707106781, 0.707106781),                     # 330 is on the left side, so turn right to face forward
+#             time_now,
+#             t55_transrot_from_dum_c2_robot_pose_330,
+#             t55_transrot_from_dum_c2_post90y180zneg90z)
+#         try:
+#             print "------------------- start publish initialpose 330 ----------------------"
+#             tfListener.waitForTransform('map', t55_transrot_from_dum_c2_robot_pose_330, rospy.Time(), rospy.Duration(1))
+#             pos_, quat_ = tfListener.lookupTransform('map', t55_transrot_from_dum_c2_robot_pose_330,  rospy.Time(0))
+#             publish_pose_xyz_xyzw_covar(initialpose_poseWCS_publisher, fakelocalisation_poseWCS_publisher, time_now, 'map', pos_[0], pos_[1], pos_[2], quat_[0], quat_[1], quat_[2], quat_[3], [0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.06853891945200942])
+#             publish_pose_xyz_xyzw(pose_publisher,time_now,  'map', pos_[0], pos_[1], pos_[2], quat_[0], quat_[1], quat_[2], quat_[3])
+#             robotPoseHistory.append([pos_[0], pos_[1]])
+#             print "------------------- published initialpose 330 ----------------------"
+#         except tf.Exception as err:
+#             print "some tf exception happened 330: {0}".format(err)
+#     elif 't91650'==t55:
+#         t55_transrot_from_dum_c2_robot_pose_1650 = "dum_%s_trans_rot_to_%s_robot_pose_1650"%(c2,t55)
+#         tfBroadcaster.sendTransform(
+#             ( 0.1, 0.0, 0.0),
+#             (0, 0, 0, 1),                     
+#             time_now,
+#             t55_transrot_from_dum_c2_robot_pose_1650,
+#             t55_transrot_from_dum_c2_post90y180zneg90z)
+#         try:
+#             print "------------------- start publish initialpose _dummy_ 1650 ----------------------"
+#             tfListener.waitForTransform('map', t55_transrot_from_dum_c2_robot_pose_1650, rospy.Time(), rospy.Duration(1))
+#             pos_, quat_ = tfListener.lookupTransform('map', t55_transrot_from_dum_c2_robot_pose_1650,  rospy.Time(0))
+#             publish_pose_xyz_xyzw_covar(initialpose_poseWCS_publisher, fakelocalisation_poseWCS_publisher, time_now, 'map', pos_[0], pos_[1], pos_[2], quat_[0], quat_[1], quat_[2], quat_[3], [0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0])
+#             publish_pose_xyz_xyzw(pose_publisher,time_now,  'map', pos_[0], pos_[1], pos_[2], quat_[0], quat_[1], quat_[2], quat_[3])
+#             robotPoseHistory.append([pos_[0], pos_[1]])
+#             print "------------------- published initialpose _dummy_ 1650 ----------------------"
+#         except tf.Exception as err:
+#             print "some tf exception happened 1650: {0}".format(err)
+            
+    
+    # drive_homography_from_VOS_server = False
+    # if   drive_homography_from_VOS_server and 't70170' == t55:           #Pioneer1, front   
+    #     global vos_state
+    #     if  vos_state <> 'robot moving':
+    #         print 'vos_state was : vos_state=%s'%(vos_state)
+    #         vos_state = 'robot moving'
+    #         print 'vos_state now : vos_state=%s'%(vos_state)  
+    #         try:
+    #             print "------------------- set goal based on t70170 ----------------------"
+    #             tfListener.waitForTransform('map',              '/base_link',  rospy.Time(),  rospy.Duration(1))
+    #             pos_, quat_ = tfListener.lookupTransform('map', '/base_link',  rospy.Time(0)  )                
+    #             global tag_210_target_publisher         
+    #             publish_pose_xyz_xyzw(tag_210_target_publisher,time_now,  'map', pos_[0]+1, pos_[1], 0.0, 0.0, 0.0, quat_[2], quat_[3])  # NOTE: z is zero for ground robots, and it likes zero roll and pitch  :  move_base.cpp "ROS_ERROR("Quaternion is invalid... for navigation the z-axis of the quaternion must be close to vertical.")"
+    #         except tf.Exception as err:
+    #             print "some tf exception happened 210: {0}".format(err)
+    #     else:    
+    #         print 'vos_state is already robot moving: vos_state=%s'%(vos_state)  
+    # elif drive_homography_from_VOS_server and  't70250' == t55:           #Pioneer1, left   
+    #     global vos_state
+    #     if  vos_state <> 'robot moving':
+    #         print 'vos_state was : vos_state=%s'%(vos_state)
+    #         vos_state = 'robot moving'
+    #         print 'vos_state now : vos_state=%s'%(vos_state)  
+    #     else:    
+    #         print 'vos_state is already robot moving: vos_state=%s'%(vos_state)  
+    # elif drive_homography_from_VOS_server and 't70290' == t55:           #Pioneer1, left   
+    #     global vos_state
+    #     if  vos_state <> 'robot moving':
+    #         print 'vos_state was : vos_state=%s'%(vos_state)
+    #         vos_state = 'robot moving'
+    #         print 'vos_state now : vos_state=%s'%(vos_state)  
+    #     else:    
+    #         print 'vos_state is already robot moving: vos_state=%s'%(vos_state)  
+    # elif drive_homography_from_VOS_server and 't70330' == t55:           #Pioneer1, right   
+    #     global vos_state
+    #     if  vos_state <> 'robot moving':
+    #         print 'vos_state was : vos_state=%s'%(vos_state)
+    #         vos_state = 'robot moving'
+    #         print 'vos_state now : vos_state=%s'%(vos_state)  
+    #     else:   
+    #         print 'vos_state is already robot moving: vos_state=%s'%(vos_state)  
+        
+
+    t55_transrot_from_dum_c2_actual = "dum_%s_trans_rot_to_%s_actual"%(c2,t55)
+    try:
+        tfListener.waitForTransform(t55_transrot_from_dum_c2_pre90y, t55_transrot_from_dum_c2_pre90y180z, rospy.Time(), rospy.Duration(0.2))
+        pos_, quat_ = tfListener.lookupTransform(t55_transrot_from_dum_c2_pre90y, t55_transrot_from_dum_c2_pre90y180z,  rospy.Time(0))
+        R = tf.transformations.quaternion_matrix(quat_)
+        R_rect = np.array((
+            (R[0,2] , -1.0*R[0,1] , R[0,0], 0.0),
+            (R[1,2] , -1.0*R[1,1] , R[1,0], 0.0),
+            (R[2,2] , -1.0*R[2,1] , R[2,0], 0.0),
+            ( 0.0   , 0.0         , 0.0   , 1.0) 
+            ), dtype=np.float64)
+        quat_rect = tf.transformations.quaternion_from_matrix(R_rect)
+        #publish_pose_xyz_xyzw_covar(initialpose_poseWCS_publisher, fakelocalisation_poseWCS_publisher, time_now, 'map', pos_[0], pos_[1], pos_[2], quat_rect[0], quat_rect[1], quat_rect[2], quat_rect[3], [0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.06853891945200942])
+        #publish_pose_xyz_xyzw(pose_publisher,time_now,  'map', pos_[0], pos_[1], pos_[2], quat_rect[0], quat_rect[1], quat_rect[2], quat_rect[3])
         tfBroadcaster.sendTransform(
-            # pioneer - the tall one ( -0.12, 0, -0.76),                             # before rot, step back --> forward
-            ( -0.12-0.18, 0, -0.64),                    # before rot, step back --> forward , tag box centre is 18cm rear of base_link (Pioneer2)
-            (0, 0, 1, 0),                               # 250 is on the back, so turn 180 to face forward
+            (0,0,0),
+            (quat_rect[0], quat_rect[1], quat_rect[2], quat_rect[3]),  #  (quat_rect.x, quat_rect.y, quat_rect.z, quat_rect.w),
             time_now,
-            t55_transrot_from_dum_c2_robot_pose_250,
-            t55_transrot_from_dum_c2_post90y180zneg90z)
-#        tfListener.waitForTransform('map', t55_transrot_from_dum_c2_robot_pose_250, rospy.Time(), rospy.Duration(0))      # from the map origin, to the robot
+            t55_transrot_from_dum_c2_actual,
+            t55_transrot_from_dum_c2_pre90y180z)
+    except tf.Exception as err:
+        print "some tf exception happened 57: {0}".format(err)
+    except Exception as e:
+        print 'Could not issue tf %s'%(t55_transrot_from_dum_c2_actual)  
+        print sys.exc_info()[0]
+        s = str(e) 
+        print s
+    t55_transrot_from_dum_c2_actual_b = "dum_%s_trans_rot_to_%s_actual_b"%(c2,t55)
+    tfBroadcaster.sendTransform(
+        (0,0,0),
+        ( 1 , 0 , 0 , 0 ),  # rotate 180 around x
+        time_now,
+        t55_transrot_from_dum_c2_actual_b,
+        t55_transrot_from_dum_c2_actual)
+
+    if t55 in ['t70250','t70290','t70330']: #,'t70170']:
+        print "%s IS in the list"%(t55)
+        print "%s IS in the list"%(t55)
+        print "%s IS in the list"%(t55)
         try:
-            print "------------------- start publish initialpose 250 ----------------------"
-            tfListener.waitForTransform('map', t55_transrot_from_dum_c2_robot_pose_250, rospy.Time(), rospy.Duration(1))
-            pos_, quat_ = tfListener.lookupTransform('map', t55_transrot_from_dum_c2_robot_pose_250,  rospy.Time(0))
-            publish_pose_xyz_xyzw_covar(initialpose_poseWCS_publisher, fakelocalisation_poseWCS_publisher, time_now, 'map', pos_[0], pos_[1], pos_[2], quat_[0], quat_[1], quat_[2], quat_[3], [0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.06853891945200942])
-            publish_pose_xyz_xyzw(pose_publisher,time_now,  'map', pos_[0], pos_[1], pos_[2], quat_[0], quat_[1], quat_[2], quat_[3])
-            robotPoseHistory.append([pos_[0], pos_[1]])
-            print "------------------- published initialpose 250 ----------------------"
-        except tf.Exception as err:
-            print "some tf exception happened 250: {0}".format(err)
-    elif 't90290'==t55:
-        t55_transrot_from_dum_c2_robot_pose_290 = "dum_%s_trans_rot_to_%s_robot_pose_290"%(c2,t55)
-        tfBroadcaster.sendTransform(
-            ( -0.10, 0-(-0.18), -0.64),                 # before left rot, step back --> left , tag box centre is 18cm rear of base_link (Pioneer2)
-            (0, 0, 0.707106781, 0.707106781),                     # 290 is on the right side, so turn left to face forward
-            time_now,
-            t55_transrot_from_dum_c2_robot_pose_290,
-            t55_transrot_from_dum_c2_post90y180zneg90z)
-#        tfListener.waitForTransform('map', t55_transrot_from_dum_c2_robot_pose_290, rospy.Time(), rospy.Duration(0))      # from the map origin, to the robot
-        try:
-            print "------------------- start publish initialpose 290 ----------------------"
-            tfListener.waitForTransform('map', t55_transrot_from_dum_c2_robot_pose_290, rospy.Time(), rospy.Duration(1))
-            pos_, quat_ = tfListener.lookupTransform('map', t55_transrot_from_dum_c2_robot_pose_290,  rospy.Time(0))
-            publish_pose_xyz_xyzw_covar(initialpose_poseWCS_publisher, fakelocalisation_poseWCS_publisher, time_now, 'map', pos_[0], pos_[1], pos_[2], quat_[0], quat_[1], quat_[2], quat_[3], [0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.06853891945200942])
-            publish_pose_xyz_xyzw(pose_publisher,time_now,  'map', pos_[0], pos_[1], pos_[2], quat_[0], quat_[1], quat_[2], quat_[3])
-            robotPoseHistory.append([pos_[0], pos_[1]])
-            print "------------------- published initialpose 290 ----------------------"
-        except tf.Exception as err:
-            print "some tf exception happened 290: {0}".format(err)
-    elif 't90330'==t55:
-        t55_transrot_from_dum_c2_robot_pose_330 = "dum_%s_trans_rot_to_%s_robot_pose_330"%(c2,t55)
-        tfBroadcaster.sendTransform(                     # robot pose, as estimated from the inverse of the base_link-to-tag-330 transform
-            ( -0.10, 0-0.18, -0.64),                              # before right rot, step back --> right , tag box centre is 18cm rear of base_link (Pioneer2)
-            (0, 0, -0.707106781, 0.707106781),                     # 330 is on the left side, so turn right to face forward
-            time_now,
-            t55_transrot_from_dum_c2_robot_pose_330,
-            t55_transrot_from_dum_c2_post90y180zneg90z)
-        try:
-            print "------------------- start publish initialpose 330 ----------------------"
-            tfListener.waitForTransform('map', t55_transrot_from_dum_c2_robot_pose_330, rospy.Time(), rospy.Duration(1))
-            pos_, quat_ = tfListener.lookupTransform('map', t55_transrot_from_dum_c2_robot_pose_330,  rospy.Time(0))
-            publish_pose_xyz_xyzw_covar(initialpose_poseWCS_publisher, fakelocalisation_poseWCS_publisher, time_now, 'map', pos_[0], pos_[1], pos_[2], quat_[0], quat_[1], quat_[2], quat_[3], [0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.06853891945200942])
-            publish_pose_xyz_xyzw(pose_publisher,time_now,  'map', pos_[0], pos_[1], pos_[2], quat_[0], quat_[1], quat_[2], quat_[3])
-            robotPoseHistory.append([pos_[0], pos_[1]])
-            print "------------------- published initialpose 330 ----------------------"
-        except tf.Exception as err:
-            print "some tf exception happened 330: {0}".format(err)
-    elif 't91650'==t55:
-        t55_transrot_from_dum_c2_robot_pose_1650 = "dum_%s_trans_rot_to_%s_robot_pose_1650"%(c2,t55)
-        tfBroadcaster.sendTransform(
-            ( 0.1, 0.0, 0.0),
-            (0, 0, 0, 1),                     
-            time_now,
-            t55_transrot_from_dum_c2_robot_pose_1650,
-            t55_transrot_from_dum_c2_post90y180zneg90z)
-        try:
-            print "------------------- start publish initialpose _dummy_ 1650 ----------------------"
-            tfListener.waitForTransform('map', t55_transrot_from_dum_c2_robot_pose_1650, rospy.Time(), rospy.Duration(1))
-            pos_, quat_ = tfListener.lookupTransform('map', t55_transrot_from_dum_c2_robot_pose_1650,  rospy.Time(0))
+            print "------------------- %s : start publish initialpose _actual_b ----------------------"%(t55)
+            tfListener.waitForTransform('map', t55_transrot_from_dum_c2_actual_b, time_now, rospy.Duration(0.2))
+            pos_, quat_ = tfListener.lookupTransform('map', t55_transrot_from_dum_c2_actual_b,  time_now )
             publish_pose_xyz_xyzw_covar(initialpose_poseWCS_publisher, fakelocalisation_poseWCS_publisher, time_now, 'map', pos_[0], pos_[1], pos_[2], quat_[0], quat_[1], quat_[2], quat_[3], [0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0])
             publish_pose_xyz_xyzw(pose_publisher,time_now,  'map', pos_[0], pos_[1], pos_[2], quat_[0], quat_[1], quat_[2], quat_[3])
             robotPoseHistory.append([pos_[0], pos_[1]])
-            print "------------------- published initialpose _dummy_ 1650 ----------------------"
+            print "------------------- published initialpose _actual_b ----------------------"
         except tf.Exception as err:
-            print "some tf exception happened 1650: {0}".format(err)
-            
-    
-    drive_homography_from_VOS_server = False
-    if   drive_homography_from_VOS_server and 't70170' == t55:           #Pioneer1, front   
-        global vos_state
-        if  vos_state <> 'robot moving':
-            print 'vos_state was : vos_state=%s'%(vos_state)
-            vos_state = 'robot moving'
-            print 'vos_state now : vos_state=%s'%(vos_state)  
-            try:
-                print "------------------- set goal based on t70170 ----------------------"
-                tfListener.waitForTransform('map',              '/base_link',  rospy.Time(),  rospy.Duration(1))
-                pos_, quat_ = tfListener.lookupTransform('map', '/base_link',  rospy.Time(0)  )                
-                global tag_210_target_publisher         
-                publish_pose_xyz_xyzw(tag_210_target_publisher,time_now,  'map', pos_[0]+1, pos_[1], 0.0, 0.0, 0.0, quat_[2], quat_[3])  # NOTE: z is zero for ground robots, and it likes zero roll and pitch  :  move_base.cpp "ROS_ERROR("Quaternion is invalid... for navigation the z-axis of the quaternion must be close to vertical.")"
-            except tf.Exception as err:
-                print "some tf exception happened 210: {0}".format(err)
-        else:    
-            print 'vos_state is already robot moving: vos_state=%s'%(vos_state)  
-    elif drive_homography_from_VOS_server and  't70250' == t55:           #Pioneer1, left   
-        global vos_state
-        if  vos_state <> 'robot moving':
-            print 'vos_state was : vos_state=%s'%(vos_state)
-            vos_state = 'robot moving'
-            print 'vos_state now : vos_state=%s'%(vos_state)  
-        else:    
-            print 'vos_state is already robot moving: vos_state=%s'%(vos_state)  
-    elif drive_homography_from_VOS_server and 't70290' == t55:           #Pioneer1, left   
-        global vos_state
-        if  vos_state <> 'robot moving':
-            print 'vos_state was : vos_state=%s'%(vos_state)
-            vos_state = 'robot moving'
-            print 'vos_state now : vos_state=%s'%(vos_state)  
-        else:    
-            print 'vos_state is already robot moving: vos_state=%s'%(vos_state)  
-    elif drive_homography_from_VOS_server and 't70330' == t55:           #Pioneer1, right   
-        global vos_state
-        if  vos_state <> 'robot moving':
-            print 'vos_state was : vos_state=%s'%(vos_state)
-            vos_state = 'robot moving'
-            print 'vos_state now : vos_state=%s'%(vos_state)  
-        else:   
-            print 'vos_state is already robot moving: vos_state=%s'%(vos_state)  
-        
+            print "TF EXCEPTION tf exception happened: {0}".format(err)
+    else :
+        print "%s is not in the list"%(t55)
+
+
+
+
             
     if False and 't90557' == t55: # front, lower
         print '---------------------------------------------- 90557 for robot tag --------------------------------'
