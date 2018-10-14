@@ -11,6 +11,8 @@ import numpy as np
 import tf
 from tf import transformations
 
+from visual_feature import VisualFeature
+
 
 print "Starting"
 print "------------------------------------------------"
@@ -141,6 +143,31 @@ print socket.getaddrinfo(host,port)
 s.bind(('192.168.43.252', port))        # Bind to the port
 print "bound"
 print "------------------------------------------------"
+print "Set up visual features for robots"
+visual_feature_set = []
+
+rot = np.array((
+    ( 0.0000,   -1.0000,    0.0000 ),
+    ( 1.0000,    0.0000,    0.0000 ),
+    ( 0.0000,    0.0000,    1.0000 )
+    ), dtype=np.float64)
+transl = np.array(( ( 0.1 , 0.15 , 1.0 ) ), dtype=np.float64)        
+vf1 = VisualFeature( "boofcv square fiducial" , 1170, rot, transl )
+visual_feature_set.append( vf1 )
+
+rot = np.array((
+    ( 0.7071,    0.7071,    0.0000 ),
+    (-0.7071,    0.7071,    0.0000 ),
+    ( 0.0000,    0.0000,    1.0000 )
+    ), dtype=np.float64)
+transl = np.array(( ( 0.2 , 0.25 , 1.2 ) ), dtype=np.float64)        
+vf2 = VisualFeature( "boofcv square fiducial" , 1177, rot, transl )
+
+visual_feature_set.append( vf2 )
+
+
+print "------------------------------------------------"
+
 
 s.listen(5)                 # Now wait for client connection.
 print "listening"
@@ -204,6 +231,9 @@ while True:
             print "---"
             print 'camera_to_tag_rotation'
             print camera_to_tag_rotation
+            
+            
+            
             
         except:
             print "Error parsing the data: "
