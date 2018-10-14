@@ -12,6 +12,8 @@ import tf
 from tf import transformations
 
 from visual_feature import VisualFeature
+from vos_target import VOSTarget
+
 
 
 print "Starting"
@@ -143,6 +145,13 @@ print socket.getaddrinfo(host,port)
 s.bind(('192.168.43.252', port))        # Bind to the port
 print "bound"
 print "------------------------------------------------"
+
+print "Set up robot/targets"
+vos_target_list = [] 
+VOSTarget
+
+print "------------"
+
 print "Set up visual features for robots"
 visual_feature_list = []
 
