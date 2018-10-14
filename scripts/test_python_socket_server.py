@@ -17,6 +17,8 @@ print "------------------------------------------------"
 test_message="HI : 970:  transl=[0.25543432624997575,0.21966393316100702,1.3709588212970767]  rot=[0.9996317594954752, 0.024130660901746405, 0.012411954416015796; 0.01986321504658553, -0.9623276093714678, 0.271166046785745; 0.018487782343846026, -0.2708196511441529, -0.9624525538737824 ] "
 test_message="HI : 1170:  transl=[-0.39539658600098126,0.12503715015778222,0.9852511701550373]  rot=[-0.024042460921678832, -0.9994326987736851, 0.02358475555901626; -0.9994398292296162, 0.023479865647488052, -0.023847927764319866; 0.02328063191379955, -0.02414490693966213, -0.9994373595411417 ] "
 test_message="HI : feature_id=[1170]  transl=[-0.39539658600098126,0.12503715015778222,0.9852511701550373]  rot=[-0.024042460921678832, -0.9994326987736851, 0.02358475555901626; -0.9994398292296162, 0.023479865647488052, -0.023847927764319866; 0.02328063191379955, -0.02414490693966213, -0.9994373595411417 ] "
+test_message="HI : feature_id=[1170]  transl=[-0.42736654300831506,0.12622572055441045,0.9806823299211838]  rot=[0.007784502348537559, -0.9991051602160963, 0.041572591364435973; -0.980966809944904, -0.01569634465831915, -0.19354002829101308; 0.19401937869631608, -0.03927471952714641, -0.9802111900485321 ] "
+
 data = test_message
 print data     
 pattern_feature_id = r"feature_id=\[(.*)\]  transl="
@@ -25,6 +27,8 @@ pattern_translation_block = r"transl=\[(.*)\]  rot="  #  raw string:  to avoid h
 translation_block = re.search(pattern_translation_block, data)  #  https://docs.python.org/2/library/re.html
 pattern_rotation_block = r"rot=\[(.*)\]"  #  raw string:  to avoid having to double-escape some characters:  see https://docs.python.org/2/library/re.html    
 rotation_block = re.search(pattern_rotation_block, data)  #  https://docs.python.org/2/library/re.html
+
+
 print "------------------------------------------------"
 print 'feature_id.group(1)  :'
 print feature_id.group(1)
@@ -37,16 +41,12 @@ print rotation_block.group(1)
 print "------------------------------------------------"
 pattern_numbers = r"(-?[0-9]+(\..[0-9]*))"  # zero or one '-' , one or more number , (  zero or one period , zero or one number  )
 pattern_numbers = r"(-?[0-9]+\.[0-9]+)"  # zero or one '-' , one or more number , one period , one or more number
+pattern_integer = r"(-?[0-9]+)"  # zero or one '-' , one or more number
 numbers_in_translation_block = re.findall(pattern_numbers,translation_block.group(1))
 print 'numbers_in_translation_block  :'
 print numbers_in_translation_block
 transl_nums = numbers_in_translation_block
-
-print "------------------------------------------------"
-numbers_in_rotation_block = re.findall(pattern_numbers,rotation_block.group(1))
-print 'numbers_in_rotation_block  :'
-print numbers_in_rotation_block
-rot_nums = numbers_in_rotation_block
+ 
 
 print "------------------------------------------------"
 #  flip to ROS coordinate system
@@ -73,14 +73,16 @@ t = np.array((
     (   1.0091068950063067)
     ), dtype=np.float64)
     
-
+numbers_in_rotation_block = re.findall(pattern_numbers,rotation_block.group(1))
+rot_nums = numbers_in_rotation_block
 r = np.array((
     ( rot_nums[0], rot_nums[1], rot_nums[2] ),
     ( rot_nums[3], rot_nums[4], rot_nums[5]), 
     ( rot_nums[6], rot_nums[7], rot_nums[8])
     ), dtype=np.float64)    
-    
+
 a_ = try_.dot(r.dot(try_inverse))
+
 rotx_neg90 = np.array((
     (    1.0000,    0.0000,    0.0000 ),
     (    0.0000,    0.0000,    1.0000 ),
@@ -165,6 +167,48 @@ while True:
         except:
             print "Error decoding the data: "
             print sys.exc_info()[0]
+           
+            
+        #  Operate on every single request    
+        try:
+            feature_id_block = re.search(pattern_feature_id, data)
+            translation_block = re.search(pattern_translation_block, data)  #  https://docs.python.org/2/library/re.html
+            rotation_block = re.search(pattern_rotation_block, data)  #  https://docs.python.org/2/library/re.html
+            print "------------------------------------------------"
+            feature_id_nums = re.findall(pattern_integer,feature_id_block.group(1))
+            feature_id = feature_id_nums[0]
+            
+            numbers_in_translation_block = re.findall(pattern_numbers,translation_block.group(1))
+            transl_nums = numbers_in_translation_block
+            transl_vec = np.array(( 
+                ( transl_nums[0] ) , ( transl_nums[1] ) , ( transl_nums[2] )
+                ), dtype=np.float64)
+            camera_to_tag_translation = try_.dot(transl_vec)
+            
+            numbers_in_rotation_block = re.findall(pattern_numbers,rotation_block.group(1))
+            rot_nums = numbers_in_rotation_block
+            r = np.array((
+                ( rot_nums[0], rot_nums[1], rot_nums[2] ),
+                ( rot_nums[3], rot_nums[4], rot_nums[5]), 
+                ( rot_nums[6], rot_nums[7], rot_nums[8])
+                ), dtype=np.float64)    
+            a_ = try_.dot(r.dot(try_inverse))
+            camera_to_tag_rotation = rotx_neg90.dot(a_)   
+            print "------------------------------------------------"
+            
+            print "feature_id"
+            print feature_id
+            print "---"
+            print 'camera_to_tag_translation'
+            print camera_to_tag_translation
+            print "---"
+            print 'camera_to_tag_rotation'
+            print camera_to_tag_rotation
+            
+        except:
+            print "Error parsing the data: "
+            print sys.exc_info()[0]
+        
             
         try:
             pattern_translation_block = r"transl=\[(.*)\]  rot="  #  raw string:  to avoid having to double-escape some characters:  see https://docs.python.org/2/library/re.html
