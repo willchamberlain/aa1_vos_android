@@ -4,7 +4,8 @@
 
 class VisualFeature:
 
-    def __init__(self, algorithm_, feature_id_, rot_, transl_ ):
+    def __init__(self, target_id_, algorithm_, feature_id_, rot_, transl_ ):
+        self.target_id = target_id_
         self.algorithm="boofcv square fiducial" 
         #  self.descriptor="330"
         self.feature_id=feature_id_
@@ -23,7 +24,8 @@ class VisualFeature:
         #      ), dtype=np.float64)
         
         
-    def default_VisualFeature():    
+    def default_VisualFeature():  
+        target_id = "Pioneer3"  
         algorithm="boofcv square fiducial" 
         descriptor="330"
         feature_id=330

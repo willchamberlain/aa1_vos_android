@@ -142,13 +142,13 @@ host = socket.gethostname() # Get local machine name
 print host
 port = 5000                # Reserve a port for your service.
 print socket.getaddrinfo(host,port)
-s.bind(('192.168.43.252', port))        # Bind to the port
+s.bind(('192.168.86.202', port))        # Bind to the port
 print "bound"
 print "------------------------------------------------"
 
-print "Set up robot/targets"
-vos_target_list = [] 
-VOSTarget
+# print "Set up robot/targets" - later 
+# vos_target_list = [] 
+# VOSTarget
 
 print "------------"
 
@@ -161,7 +161,7 @@ rot = np.array((
     ( 0.0000,    0.0000,    1.0000 )
     ), dtype=np.float64)
 transl = np.array(( ( 0.1 , 0.15 , 1.0 ) ), dtype=np.float64)        
-vf1170 = VisualFeature( "boofcv square fiducial" , 1170, rot, transl )
+vf1170 = VisualFeature( "static_test", "boofcv square fiducial" , 1170, rot, transl )
 visual_feature_list.append( vf1170 )
 
 rot = np.array((
@@ -170,15 +170,15 @@ rot = np.array((
     ( 0.0000,    0.0000,    1.0000 )
     ), dtype=np.float64)
 transl = np.array(( ( 0.2 , 0.25 , 1.2 ) ), dtype=np.float64)        
-vf1177 = VisualFeature( "boofcv square fiducial" , 1177, rot, transl )
+vf1177 = VisualFeature( "static_test", "boofcv square fiducial" , 1177, rot, transl )
 visual_feature_list.append( vf1177 )  
 
 transl = np.array(( ( 0.2 , 0.25 , 1.23 ) ), dtype=np.float64)        
-vf1178 = VisualFeature( "boofcv square fiducial" , 1178, rot, transl )
+vf1178 = VisualFeature( "static_test", "boofcv square fiducial" , 1178, rot, transl )
 visual_feature_list.append( vf1178 )  
 
 transl = np.array(( ( 0.2 , 0.25 , 1.25 ) ), dtype=np.float64)        
-vf1179 = VisualFeature( "boofcv square fiducial" , 1179, rot, transl )
+vf1179 = VisualFeature( "static_test", "boofcv square fiducial" , 1179, rot, transl )
 visual_feature_list.append( vf1179 )
 
 value = 1178
@@ -221,6 +221,55 @@ if x :
     print x.transl
 else :
     print "Not found 1187!"
+
+print "Finished testing visual_feature_list"
+
+print "------------------------------------------------"
+print "Set up visual_feature_list"
+visual_feature_list = []
+
+
+rot = np.array((
+    ( 0.0000,   -1.0000,    0.0000 ),
+    ( 1.0000,    0.0000,    0.0000 ),
+    ( 0.0000,    0.0000,    1.0000 )
+    ), dtype=np.float64)   
+transl = np.array(( ( 0.000, -0.040,  0.615 ) ), dtype=np.float64)        
+vf330 = VisualFeature( "Pioneer1", "boofcv square fiducial" , 330, rot, transl )
+visual_feature_list.append( vf330 )
+
+rot = np.array((
+    ( 1.0000,    0.0000,    0.0000 ),
+    ( 0.0000,    1.0000,    0.0000 ),
+    ( 0.0000,    0.0000,    1.0000 )
+    ), dtype=np.float64)   
+transl = np.array(( ( 0.085,  0.000,  0.615 ) ), dtype=np.float64)        
+vf290 = VisualFeature( "Pioneer1", "boofcv square fiducial" , 290, rot, transl )
+visual_feature_list.append( vf290 )
+
+rot = np.array((
+    ( 0.0000,    1.0000,    0.0000 ),
+    (-1.0000,    0.0000,    0.0000 ),
+    ( 0.0000,    0.0000,    1.0000 )
+    ), dtype=np.float64)   
+transl = np.array(( ( -0.150,  0.040,  0.615 ) ), dtype=np.float64)        
+vf250 = VisualFeature( "Pioneer1", "boofcv square fiducial" , 290, rot, transl )
+visual_feature_list.append( vf250 )
+
+rot = np.array((
+    ( 0.0000,    0.0000,   -1.0000 ),
+    ( 0.0000,    1.0000,    0.0000 ),
+    ( 1.0000,    0.0000,    0.0000 )
+    ), dtype=np.float64)   
+transl = np.array(( ( 0.0000,  0.0000,  0.640 ) ), dtype=np.float64)        
+vf170 = VisualFeature( "Pioneer2", "boofcv square fiducial" , 170, rot, transl )
+visual_feature_list.append( vf170 )
+
+print "visual_feature_list:"
+for x in visual_feature_list:
+    print x
+    print "VisualFeature:  %s : %i"%(x.target_id , x.feature_id )
+print "end visual_feature_list"
 
 print "------------------------------------------------"
 
@@ -282,13 +331,48 @@ while True:
             print "feature_id"
             print feature_id
             print "---"
+            print int(feature_id)
+            print "---"
             print 'camera_to_tag_translation'
             print camera_to_tag_translation
             print "---"
             print 'camera_to_tag_rotation'
             print camera_to_tag_rotation
             
+            print "---"
             
+            x = []
+            for x in visual_feature_list:
+                print "does %i match the request %i?"%(x.feature_id,int(feature_id))
+                if x.feature_id == int(feature_id):
+                    print "I found : "
+                    print x.feature_id
+                    print "---"
+                    #   do the tag inverse --> tag-to-base_link
+                        #  CHECK that this is good and transformations.py hasn't screwed it up
+                    x.rot
+                    inverse_rot = x.rot.transpose()
+                    print "inverse_rot = "
+                    print inverse_rot
+                    print "---"
+                    x.transl
+                    inverse_transl = -1 * inverse_rot.dot(x.transl)
+                    print "inverse_transl = "
+                    print inverse_transl
+                    print "---"
+                    
+                    #   publish base_link  -->  Matlab 
+                    
+                    #   Matlab re-publish base_link as base_pose_ground_truth
+                    #   Matlab plan and issue goal 
+                        
+                    
+                    
+                    
+                    break
+            else:
+                print "NOT found"
+                x = None
             
             
         except:
