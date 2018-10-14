@@ -144,7 +144,7 @@ s.bind(('192.168.43.252', port))        # Bind to the port
 print "bound"
 print "------------------------------------------------"
 print "Set up visual features for robots"
-visual_feature_set = []
+visual_feature_list = []
 
 rot = np.array((
     ( 0.0000,   -1.0000,    0.0000 ),
@@ -152,8 +152,8 @@ rot = np.array((
     ( 0.0000,    0.0000,    1.0000 )
     ), dtype=np.float64)
 transl = np.array(( ( 0.1 , 0.15 , 1.0 ) ), dtype=np.float64)        
-vf1 = VisualFeature( "boofcv square fiducial" , 1170, rot, transl )
-visual_feature_set.append( vf1 )
+vf1170 = VisualFeature( "boofcv square fiducial" , 1170, rot, transl )
+visual_feature_list.append( vf1170 )
 
 rot = np.array((
     ( 0.7071,    0.7071,    0.0000 ),
@@ -161,10 +161,57 @@ rot = np.array((
     ( 0.0000,    0.0000,    1.0000 )
     ), dtype=np.float64)
 transl = np.array(( ( 0.2 , 0.25 , 1.2 ) ), dtype=np.float64)        
-vf2 = VisualFeature( "boofcv square fiducial" , 1177, rot, transl )
+vf1177 = VisualFeature( "boofcv square fiducial" , 1177, rot, transl )
+visual_feature_list.append( vf1177 )  
 
-visual_feature_set.append( vf2 )
+transl = np.array(( ( 0.2 , 0.25 , 1.23 ) ), dtype=np.float64)        
+vf1178 = VisualFeature( "boofcv square fiducial" , 1178, rot, transl )
+visual_feature_list.append( vf1178 )  
 
+transl = np.array(( ( 0.2 , 0.25 , 1.25 ) ), dtype=np.float64)        
+vf1179 = VisualFeature( "boofcv square fiducial" , 1179, rot, transl )
+visual_feature_list.append( vf1179 )
+
+value = 1178
+x = []
+for x in visual_feature_list:
+    if x.feature_id == value:
+        print "I found : "
+        print value
+        break
+else:
+    x = None
+print x    
+if x != None :
+    print "Found 1178!"
+    print x.feature_id
+    print x.transl
+else :
+    print "Not found 1178!"
+
+print "---------------------"
+
+x = []
+for x in visual_feature_list:
+    print x.feature_id
+    print x.feature_id == 1178
+x = []
+next((x for x in visual_feature_list if x.feature_id == 1178), None)
+if x :
+    print "Found 1178!"
+    print x.feature_id
+    print x.transl
+else :
+    print "Not found 1178!"
+    
+x = []
+next((x for x in visual_feature_list if x.feature_id == 1187), None)
+if x :
+    print "Found 1187!"
+    print x.feature_id
+    print x.transl
+else :
+    print "Not found 1187!"
 
 print "------------------------------------------------"
 

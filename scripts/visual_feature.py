@@ -1,12 +1,13 @@
 
 import numpy as np
 
+
 class VisualFeature:
 
     def __init__(self, algorithm_, feature_id_, rot_, transl_ ):
         self.algorithm="boofcv square fiducial" 
         #  self.descriptor="330"
-        self.feature_id=330
+        self.feature_id=feature_id_
         #  xyz=" 0.000 -0.040  0.615"
         self.rot = rot_
         #  np.array((
@@ -20,6 +21,7 @@ class VisualFeature:
         #      ( -0.040 ),
         #      (  0.615 )
         #      ), dtype=np.float64)
+        
         
     def default_VisualFeature():    
         algorithm="boofcv square fiducial" 
